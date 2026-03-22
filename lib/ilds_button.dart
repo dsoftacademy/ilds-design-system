@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// ILDS button — aligned with Figma component set `13472:2804` (ILDS Master | Design).
+/// ILDS button — component set `13472:2804`; loading variants (e.g. `13472:2884`)
+/// use a trailing progress indicator while blocking taps.
 enum IldsButtonType { primary, secondary, tertiary }
 
 enum IldsButtonSize { large, medium, small }
@@ -99,7 +100,7 @@ class IldsButton extends StatelessWidget {
     }
   }
 
-  double _spinnerSize() {
+  double _progressSize() {
     switch (size) {
       case IldsButtonSize.large:
         return 24;
@@ -107,6 +108,17 @@ class IldsButton extends StatelessWidget {
         return 20;
       case IldsButtonSize.small:
         return 16;
+    }
+  }
+
+  double _progressStrokeWidth() {
+    switch (size) {
+      case IldsButtonSize.large:
+        return 2.5;
+      case IldsButtonSize.medium:
+        return 2.25;
+      case IldsButtonSize.small:
+        return 2;
     }
   }
 
@@ -201,9 +213,14 @@ class IldsButton extends StatelessWidget {
     final gap = _gap();
     final padding = _padding();
     final style = _labelStyle().copyWith(color: colors.foreground);
-    final spinner = _IldsButtonSpinner(
-      size: _spinnerSize(),
-      color: colors.foreground,
+    final dim = _progressSize();
+    final progress = SizedBox(
+      width: dim,
+      height: dim,
+      child: CircularProgressIndicator(
+        strokeWidth: _progressStrokeWidth(),
+        valueColor: AlwaysStoppedAnimation<Color>(colors.foreground),
+      ),
     );
 
     final showLeading = leading != null && !isLoading;
@@ -215,7 +232,7 @@ class IldsButton extends StatelessWidget {
       children: [
         if (showLeading) ...[
           IconTheme.merge(
-            data: IconThemeData(size: _spinnerSize(), color: colors.foreground),
+            data: IconThemeData(size: dim, color: colors.foreground),
             child: leading!,
           ),
           SizedBox(width: gap),
@@ -229,12 +246,12 @@ class IldsButton extends StatelessWidget {
         ),
         if (isLoading) ...[
           SizedBox(width: gap),
-          spinner,
+          progress,
         ],
         if (showTrailing) ...[
           SizedBox(width: gap),
           IconTheme.merge(
-            data: IconThemeData(size: _spinnerSize(), color: colors.foreground),
+            data: IconThemeData(size: dim, color: colors.foreground),
             child: trailing!,
           ),
         ],
@@ -283,80 +300,4 @@ class _ButtonColors {
   final Color foreground;
   final Color? borderColor;
   final double borderWidth;
-}
-
-class _IldsButtonSpinner extends StatefulWidget {
-  const _IldsButtonSpinner({
-    required this.size,
-    required this.color,
-  });
-
-  final double size;
-  final Color color;
-
-  @override
-  State<_IldsButtonSpinner> createState() => _IldsButtonSpinnerState();
-}
-
-class _IldsButtonSpinnerState extends State<_IldsButtonSpinner>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 900),
-  )..repeat();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: widget.size,
-      height: widget.size,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          return Transform.rotate(
-            angle: _controller.value * 6.283185307179586,
-            child: CustomPaint(
-              painter: _ArcPainter(color: widget.color),
-              size: Size.square(widget.size),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _ArcPainter extends CustomPainter {
-  _ArcPainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final stroke = (size.shortestSide / 12).clamp(1.5, 2.5);
-    final rect = Offset.zero & size;
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(
-      rect.deflate(stroke / 2),
-      -0.5,
-      4.5,
-      false,
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _ArcPainter oldDelegate) =>
-      oldDelegate.color != color;
 }
