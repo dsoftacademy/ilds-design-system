@@ -1,1 +1,7 @@
-{"codeConnect":{"include":["lib/**/*.figma.tsx"]}}
+{
+  "codeConnect": {
+    "include": ["**/*.figma.ts", "**/*.figma.tsx"],
+    "label": "Flutter",
+    "language": "dart"
+  }
+}
