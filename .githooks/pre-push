@@ -1,0 +1,35 @@
+#!/bin/sh
+# ILDS: require tokens/tokens.json in each push so n8n/GitHub Slack notifier can detect it.
+# Bypass (emergencies only): SKIP_TOKEN_PUSH_CHECK=1 git push
+
+if [ "${SKIP_TOKEN_PUSH_CHECK:-}" = "1" ]; then
+  exit 0
+fi
+
+remote="$1"
+url="$2"
+
+while read local_ref local_sha remote_ref remote_sha
+do
+  case "$local_ref" in
+    refs/tags/*) continue ;;
+  esac
+
+  if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then
+    continue
+  fi
+
+  if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+    files=$(git diff-tree --no-commit-id --name-only -r "$local_sha")
+  else
+    files=$(git diff --name-only "$remote_sha" "$local_sha")
+  fi
+
+  if ! echo "$files" | grep -xF 'tokens/tokens.json' > /dev/null; then
+    echo "ilds-design-system: push rejected — tokens/tokens.json must be in this push (n8n token notifier)." >&2
+    echo "Include a tokens change or run: SKIP_TOKEN_PUSH_CHECK=1 git push" >&2
+    exit 1
+  fi
+done
+
+exit 0

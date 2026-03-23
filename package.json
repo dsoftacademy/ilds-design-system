@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "ICICI Lombard Design System",
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks",
     "code-connect:publish": "dotenv -e .env -- npx figma connect publish"
   },
   "dependencies": {
