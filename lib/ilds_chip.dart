@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'design_system/ilds_tokens.dart';
 
 enum IldsChipSize { large, medium }
 
@@ -26,30 +27,29 @@ class IldsChip extends StatelessWidget {
     this.onRemoved,
   });
 
-  static const Color _primaryOrange = Color(0xFFEB440C);
-  static const Color _disabledGrey = Color(0xFFADADAD);
-  static const Color _borderDefault = Color(0xFFE0E0E0);
-  static const Color _labelDefault = Color(0xFF424242);
-
   @override
   Widget build(BuildContext context) {
     final bool isLarge = size == IldsChipSize.large;
     final double height = isLarge ? 36.0 : 28.0;
     final double fontSize = isLarge ? 14.0 : 12.0;
     final EdgeInsets padding = EdgeInsets.symmetric(
-      horizontal: isLarge ? 12.0 : 8.0,
+      horizontal: isLarge ? ILDSTokens.spacing3 : ILDSTokens.spacing2,
     );
 
-    Color borderColor = isSelected ? _primaryOrange : _borderDefault;
-    Color labelColor = isSelected ? _primaryOrange : _labelDefault;
+    // Token: color.orange.500 (selected) | color.neutral.200 (default border)
+    Color borderColor = isSelected ? ILDSTokens.orange500 : ILDSTokens.neutral200;
+    // Token: color.orange.500 (selected) | color.neutral.500 (default label)
+    Color labelColor  = isSelected ? ILDSTokens.orange500 : ILDSTokens.neutral500;
+    // Token: color.orange.500 @ opacity.10 (selected bg) | transparent (default)
     Color bgColor = isSelected
-        ? _primaryOrange.withOpacity(0.08)
+        ? ILDSTokens.orange500.withOpacity(0.08)
         : Colors.transparent;
 
     if (!enabled) {
-      borderColor = _disabledGrey;
-      labelColor = _disabledGrey;
-      bgColor = Colors.transparent;
+      // Token: color.neutral.300 — disabled text / placeholder
+      borderColor = ILDSTokens.neutral300;
+      labelColor  = ILDSTokens.neutral300;
+      bgColor     = Colors.transparent;
     }
 
     return GestureDetector(
@@ -61,7 +61,8 @@ class IldsChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: bgColor,
           border: Border.all(color: borderColor),
-          borderRadius: BorderRadius.circular(height / 2),
+          // Token: borderRadius.full — pill / chip shape
+          borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusFull),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -75,7 +76,10 @@ class IldsChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: fontSize,
                 color: labelColor,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                // Token: fontWeight.bold (selected) | fontWeight.regular (default)
+                fontWeight: isSelected
+                    ? ILDSTokens.fontWeightBold
+                    : ILDSTokens.fontWeightRegular,
               ),
             ),
             if (showSuffixButton) ...[

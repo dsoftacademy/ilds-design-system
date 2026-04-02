@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'design_system/ilds_tokens.dart';
 
 enum IldsTextFieldKind { standard, password, otpX6, otpX4 }
 
@@ -37,12 +38,6 @@ class IldsTextField extends StatefulWidget {
 class _IldsTextFieldState extends State<IldsTextField> {
   bool _obscureText = true;
 
-  static const Color _primaryOrange = Color(0xFFEB440C);
-  static const Color _errorRed = Color(0xFFD32F2F);
-  static const Color _successGreen = Color(0xFF2E7D32);
-  static const Color _disabledGrey = Color(0xFFADADAD);
-  static const Color _borderDefault = Color(0xFFE0E0E0);
-
   @override
   Widget build(BuildContext context) {
     if (widget.kind == IldsTextFieldKind.otpX6 ||
@@ -54,23 +49,38 @@ class _IldsTextFieldState extends State<IldsTextField> {
 
   Widget _buildStandard() {
     final bool isPassword = widget.kind == IldsTextFieldKind.password;
-    final bool hasError = widget.errorText != null;
+    final bool hasError   = widget.errorText != null;
     final bool hasSuccess = widget.successText != null;
 
-    Color borderColor = _borderDefault;
-    if (hasError) borderColor = _errorRed;
-    if (hasSuccess) borderColor = _successGreen;
+    // Token: color.red.600 (error) | color.green.600 (success) | color.neutral.200 (default)
+    Color borderColor = ILDSTokens.neutral200;
+    if (hasError)   borderColor = ILDSTokens.red600;
+    if (hasSuccess) borderColor = ILDSTokens.green600;
 
-    String? bottomText = widget.helperText;
-    Color bottomTextColor = const Color(0xFF757575);
-    if (hasError) { bottomText = widget.errorText; bottomTextColor = _errorRed; }
-    else if (hasSuccess) { bottomText = widget.successText; bottomTextColor = _successGreen; }
+    // Token: color.neutral.400 (helper) | color.red.600 (error) | color.green.600 (success)
+    String? bottomText      = widget.helperText;
+    Color   bottomTextColor = ILDSTokens.neutral400;
+    if (hasError) {
+      bottomText      = widget.errorText;
+      bottomTextColor = ILDSTokens.red600;
+    } else if (hasSuccess) {
+      bottomText      = widget.successText;
+      bottomTextColor = ILDSTokens.green600;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(widget.label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF424242))),
+        // Token: color.neutral.500, fontWeight.medium
+        Text(
+          widget.label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: ILDSTokens.fontWeightMedium,
+            color: ILDSTokens.neutral500,
+          ),
+        ),
         const SizedBox(height: 4),
         TextField(
           controller: widget.controller,
@@ -80,25 +90,67 @@ class _IldsTextFieldState extends State<IldsTextField> {
           onChanged: widget.onChanged,
           decoration: InputDecoration(
             hintText: widget.placeholder,
-            hintStyle: const TextStyle(color: Color(0xFFBDBDBD)),
+            // Token: color.neutral.300 — placeholder / hint text
+            hintStyle: const TextStyle(color: ILDSTokens.neutral300),
             suffixIcon: widget.isLoading
-                ? const Padding(padding: EdgeInsets.all(12), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFEB440C))))
+                ? Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      // Token: color.orange.500 — loading indicator
+                      child: CircularProgressIndicator(
+                        strokeWidth: ILDSTokens.borderWidth2,
+                        color: ILDSTokens.orange500,
+                      ),
+                    ),
+                  )
                 : isPassword
                     ? IconButton(
-                        icon: Icon(_obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: const Color(0xFF757575)),
-                        onPressed: () => setState(() => _obscureText = !_obscureText))
+                        // Token: color.neutral.400 — secondary icon
+                        icon: Icon(
+                          _obscureText
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          color: ILDSTokens.neutral400,
+                        ),
+                        onPressed: () =>
+                            setState(() => _obscureText = !_obscureText),
+                      )
                     : null,
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: borderColor)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: _primaryOrange, width: 2)),
-            disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: _disabledGrey)),
+            // Token: borderRadius.md, color.neutral.200 (enabled border)
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
+              borderSide: BorderSide(color: borderColor),
+            ),
+            // Token: borderRadius.md, color.orange.500, borderWidth.2 (focus ring)
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
+              borderSide: const BorderSide(
+                color: ILDSTokens.orange500,
+                width: ILDSTokens.borderWidth2,
+              ),
+            ),
+            // Token: borderRadius.md, color.neutral.300 (disabled border)
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
+              borderSide: const BorderSide(color: ILDSTokens.neutral300),
+            ),
             filled: !widget.enabled,
-            fillColor: !widget.enabled ? const Color(0xFFF5F5F5) : null,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            // Token: color.neutral.100 — disabled fill
+            fillColor: !widget.enabled ? ILDSTokens.neutral100 : null,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: ILDSTokens.spacing4,
+              vertical: 14,
+            ),
           ),
         ),
         if (bottomText != null) ...[
           const SizedBox(height: 4),
-          Text(bottomText, style: TextStyle(fontSize: 12, color: bottomTextColor)),
+          Text(
+            bottomText,
+            style: TextStyle(fontSize: 12, color: bottomTextColor),
+          ),
         ],
       ],
     );
@@ -108,21 +160,36 @@ class _IldsTextFieldState extends State<IldsTextField> {
     final int count = widget.kind == IldsTextFieldKind.otpX6 ? 6 : 4;
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: List.generate(count, (index) => Container(
-        width: 48, height: 56,
-        margin: EdgeInsets.only(right: index < count - 1 ? 8 : 0),
-        child: TextField(
-          textAlign: TextAlign.center,
-          maxLength: 1,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            counterText: '',
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFEB440C), width: 2)),
-            contentPadding: EdgeInsets.zero,
+      children: List.generate(
+        count,
+        (index) => Container(
+          width: 48,
+          height: 56,
+          margin: EdgeInsets.only(right: index < count - 1 ? ILDSTokens.spacing2 : 0),
+          child: TextField(
+            textAlign: TextAlign.center,
+            maxLength: 1,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              counterText: '',
+              // Token: borderRadius.md, color.neutral.200
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
+                borderSide: const BorderSide(color: ILDSTokens.neutral200),
+              ),
+              // Token: borderRadius.md, color.orange.500, borderWidth.2
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
+                borderSide: const BorderSide(
+                  color: ILDSTokens.orange500,
+                  width: ILDSTokens.borderWidth2,
+                ),
+              ),
+              contentPadding: EdgeInsets.zero,
+            ),
           ),
         ),
-      )),
+      ),
     );
   }
 }

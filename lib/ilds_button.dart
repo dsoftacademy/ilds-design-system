@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'design_system/ilds_tokens.dart';
 
 /// ILDS button — component set `13472:2804`; loading variants (e.g. `13472:2884`)
 /// use a trailing progress indicator while blocking taps.
@@ -22,25 +23,6 @@ class IldsButton extends StatelessWidget {
     this.trailing,
   });
 
-  /// Token: `global.color.orange.500`
-  static const Color primaryColor = Color(0xFFE8440C);
-
-  /// Token: `global.color.orange.200` — primary disabled background
-  static const Color disabledBackground = Color(0xFFF5B399);
-
-  /// Token: `semantic.radius.button` → `global.borderRadius.md`
-  static const double borderRadius = 8.0;
-
-  /// Figma `fill_NJ5Y2N` — destructive accent
-  static const Color _destructiveColor = Color(0xFFE00903);
-
-  static const Color _white = Color(0xFFFFFFFF);
-
-  /// Secondary / tertiary disabled (Figma `fill_MUMX5M`, `stroke_QDNR5L`, text `fill_3RP421`)
-  static const Color _disabledSurface = Color(0xFFFAFAFA);
-  static const Color _disabledBorder = Color(0xFFBDBDBD);
-  static const Color _disabledLabel = Color(0xFFBDBDBD);
-
   final String label;
   final VoidCallback? onPressed;
   final IldsButtonType type;
@@ -53,8 +35,10 @@ class IldsButton extends StatelessWidget {
 
   bool get _interactive => !isDisabled && !isLoading && onPressed != null;
 
-  Color get _accent =>
-      appearance == IldsButtonAppearance.normal ? primaryColor : _destructiveColor;
+  /// Token: `color.orange.500` (normal) or `color.red.600` (destructive)
+  Color get _accent => appearance == IldsButtonAppearance.normal
+      ? ILDSTokens.orange500
+      : ILDSTokens.red600;
 
   EdgeInsets _padding() {
     switch (size) {
@@ -71,31 +55,32 @@ class IldsButton extends StatelessWidget {
     switch (size) {
       case IldsButtonSize.large:
       case IldsButtonSize.medium:
-        return 8;
+        return ILDSTokens.spacing2;
       case IldsButtonSize.small:
         return 6;
     }
   }
 
+  /// Token: `typography.fontWeight.bold` + size-specific fontSize
   TextStyle _labelStyle() {
     switch (size) {
       case IldsButtonSize.large:
         return const TextStyle(
           fontSize: 16,
           height: 1.25,
-          fontWeight: FontWeight.w700,
+          fontWeight: ILDSTokens.fontWeightBold,
         );
       case IldsButtonSize.medium:
         return const TextStyle(
           fontSize: 14,
           height: 1.1428571428571428,
-          fontWeight: FontWeight.w700,
+          fontWeight: ILDSTokens.fontWeightBold,
         );
       case IldsButtonSize.small:
         return const TextStyle(
           fontSize: 12,
           height: 1.3333333333333333,
-          fontWeight: FontWeight.w700,
+          fontWeight: ILDSTokens.fontWeightBold,
         );
     }
   }
@@ -133,23 +118,25 @@ class IldsButton extends StatelessWidget {
     if (isDisabled) {
       switch (type) {
         case IldsButtonType.primary:
+          // Token: color.orange.200 — disabled primary background
           return _ButtonColors(
-            background: disabledBackground,
-            foreground: _white,
+            background: ILDSTokens.orange200,
+            foreground: ILDSTokens.white,
             borderColor: null,
             borderWidth: 0,
           );
         case IldsButtonType.secondary:
+          // Token: color.neutral.50 surface, color.neutral.300 border + label
           return _ButtonColors(
-            background: _disabledSurface,
-            foreground: _disabledLabel,
-            borderColor: _disabledBorder,
-            borderWidth: 1,
+            background: ILDSTokens.neutral50,
+            foreground: ILDSTokens.neutral300,
+            borderColor: ILDSTokens.neutral300,
+            borderWidth: ILDSTokens.borderWidth1,
           );
         case IldsButtonType.tertiary:
           return _ButtonColors(
             background: Colors.transparent,
-            foreground: _disabledLabel,
+            foreground: ILDSTokens.neutral300,
             borderColor: null,
             borderWidth: 0,
           );
@@ -161,16 +148,16 @@ class IldsButton extends StatelessWidget {
         case IldsButtonType.primary:
           return _ButtonColors(
             background: accent,
-            foreground: _white,
+            foreground: ILDSTokens.white,
             borderColor: null,
             borderWidth: 0,
           );
         case IldsButtonType.secondary:
           return _ButtonColors(
-            background: _white,
+            background: ILDSTokens.white,
             foreground: accent,
             borderColor: accent,
-            borderWidth: 1,
+            borderWidth: ILDSTokens.borderWidth1,
           );
         case IldsButtonType.tertiary:
           return _ButtonColors(
@@ -186,16 +173,16 @@ class IldsButton extends StatelessWidget {
       case IldsButtonType.primary:
         return _ButtonColors(
           background: accent,
-          foreground: _white,
+          foreground: ILDSTokens.white,
           borderColor: null,
           borderWidth: 0,
         );
       case IldsButtonType.secondary:
         return _ButtonColors(
-          background: _white,
+          background: ILDSTokens.white,
           foreground: accent,
           borderColor: accent,
-          borderWidth: 1,
+          borderWidth: ILDSTokens.borderWidth1,
         );
       case IldsButtonType.tertiary:
         return _ButtonColors(
@@ -263,8 +250,9 @@ class IldsButton extends StatelessWidget {
       child: Padding(padding: padding, child: row),
     );
 
+    // Token: borderRadius.md
     final shape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(borderRadius),
+      borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
       side: colors.borderColor != null
           ? BorderSide(color: colors.borderColor!, width: colors.borderWidth)
           : BorderSide.none,

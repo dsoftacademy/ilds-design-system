@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'design_system/ilds_tokens.dart';
 
 enum IldsToastVariant { info, success, warning, error }
 
@@ -19,13 +20,6 @@ class IldsToast extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onAction;
 
-  static const Color _primaryOrange = Color(0xFFEB440C);
-  static const Color _textPrimary = Color(0xFF424242);
-  static const Color _surface = Color(0xFFFFFFFF);
-  static const Color _success = Color(0xFF2E7D32);
-  static const Color _warning = Color(0xFFF59E0B);
-  static const Color _error = Color(0xFFD32F2F);
-
   static void show(
     BuildContext context, {
     required String message,
@@ -42,7 +36,7 @@ class IldsToast extends StatelessWidget {
     messenger.showSnackBar(
       SnackBar(
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
+        margin: const EdgeInsets.all(ILDSTokens.spacing4),
         padding: EdgeInsets.zero,
         duration: duration,
         backgroundColor: Colors.transparent,
@@ -71,16 +65,17 @@ class IldsToast extends StatelessWidget {
     }
   }
 
+  /// Token: orange.500 (info) | green.600 (success) | amber.500 (warning) | red.600 (error)
   Color _accent() {
     switch (variant) {
       case IldsToastVariant.info:
-        return _primaryOrange;
+        return ILDSTokens.orange500;
       case IldsToastVariant.success:
-        return _success;
+        return ILDSTokens.green600;
       case IldsToastVariant.warning:
-        return _warning;
+        return ILDSTokens.amber500;
       case IldsToastVariant.error:
-        return _error;
+        return ILDSTokens.red600;
     }
   }
 
@@ -89,18 +84,23 @@ class IldsToast extends StatelessWidget {
     final accent = _accent();
 
     return Material(
-      color: _surface,
+      // Token: color.neutral.0 (white surface)
+      color: ILDSTokens.white,
       elevation: 4,
       shadowColor: Colors.black26,
-      borderRadius: BorderRadius.circular(8),
+      // Token: borderRadius.md
+      borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(
+          horizontal: ILDSTokens.spacing4,
+          vertical: ILDSTokens.spacing3,
+        ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (showIcon) ...[
               Icon(_iconForVariant(), color: accent, size: 22),
-              const SizedBox(width: 12),
+              const SizedBox(width: ILDSTokens.spacing3),
             ],
             Expanded(
               child: Text(
@@ -108,13 +108,14 @@ class IldsToast extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 14,
                   height: 1.35,
-                  fontWeight: FontWeight.w500,
-                  color: _textPrimary,
+                  // Token: fontWeight.medium, color.neutral.500
+                  fontWeight: ILDSTokens.fontWeightMedium,
+                  color: ILDSTokens.neutral500,
                 ),
               ),
             ),
             if (actionLabel != null && onAction != null) ...[
-              const SizedBox(width: 12),
+              const SizedBox(width: ILDSTokens.spacing3),
               TextButton(
                 onPressed: onAction,
                 style: TextButton.styleFrom(
@@ -126,7 +127,8 @@ class IldsToast extends StatelessWidget {
                 child: Text(
                   actionLabel!,
                   style: const TextStyle(
-                    fontWeight: FontWeight.w600,
+                    // Token: fontWeight.bold
+                    fontWeight: ILDSTokens.fontWeightBold,
                     fontSize: 14,
                   ),
                 ),
