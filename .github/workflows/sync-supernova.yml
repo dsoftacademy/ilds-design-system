@@ -1,4 +1,4 @@
-name: Sync Tokens to Supernova
+name: Supernova Auto-Sync Tokens
 
 on:
   push:
