@@ -1,0 +1,36 @@
+name: Sync Tokens to Supernova
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'tokens/tokens.json'
+
+jobs:
+  sync:
+    name: Push tokens to Supernova
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Supernova CLI
+        run: npm install -g @supernovaio/cli
+
+      - name: Sync tokens to Supernova
+        run: |
+          supernova sync-tokens \
+            --apiKey "${{ secrets.SUPERNOVA_API_KEY }}" \
+            --designSystemId "771068" \
+            --tokenFilePath "./tokens/tokens.json" \
+            --configFilePath "./supernova.settings.json"
+
+      - name: Confirm sync
+        run: echo "✅ Tokens synced to Supernova design system 771068"

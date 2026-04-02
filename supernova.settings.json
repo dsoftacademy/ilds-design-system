@@ -1,0 +1,14 @@
+{
+  "mapping": [
+    {
+      "tokensTheme": "global",
+      "supernovaTheme": null
+    }
+  ],
+  "settings": {
+    "dryRun": false,
+    "verbose": true,
+    "precision": 3,
+    "mergeWithExistingTokens": true
+  }
+}
