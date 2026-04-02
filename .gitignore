@@ -41,6 +41,12 @@ build/Release
 node_modules/
 jspm_packages/
 
+# Flutter / Dart tool output
+.dart_tool/
+
+# Local worktrees / tooling (do not commit)
+.claude/
+
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
 
