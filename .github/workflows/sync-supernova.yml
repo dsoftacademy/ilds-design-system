@@ -1,11 +1,13 @@
 name: Supernova Auto-Sync Tokens
 
 on:
+  workflow_dispatch: {}
   push:
     branches:
       - main
     paths:
       - 'tokens/tokens.json'
+      - 'supernova.settings.json'
 
 jobs:
   sync:
@@ -31,6 +33,12 @@ jobs:
             --designSystemId "771068" \
             --tokenFilePath "./tokens/tokens.json" \
             --configFilePath "./supernova.settings.json"
+          echo "EXIT_CODE=$?" >> $GITHUB_ENV
 
       - name: Confirm sync
-        run: echo "✅ Tokens synced to Supernova design system 771068"
+        run: |
+          if [ "$EXIT_CODE" != "0" ]; then
+            echo "❌ Supernova sync failed with exit code $EXIT_CODE"
+            exit 1
+          fi
+          echo "✅ Tokens synced to Supernova design system 771068"
