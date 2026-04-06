@@ -1,7 +1,7 @@
 {
+  "mode": "single-file",
   "mapping": [
     {
-      "mode": "single-file",
       "tokensTheme": "global",
       "supernovaTheme": null
     }
