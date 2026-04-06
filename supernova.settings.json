@@ -2,6 +2,7 @@
   "mode": "single-file",
   "mapping": [
     {
+      "supernovaBrand": "817254",
       "tokensTheme": "global",
       "supernovaTheme": null
     }
