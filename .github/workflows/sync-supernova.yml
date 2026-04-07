@@ -29,10 +29,22 @@ jobs:
       - name: Sync tokens to Supernova
         run: |
           set -euo pipefail
+          set -o pipefail
           supernova --version || true
+          LOG="$(mktemp)"
           supernova sync-tokens \
             --apiKey "${{ secrets.SUPERNOVA_API_KEY }}" \
             --designSystemId "771068" \
             --tokenFilePath "./tokens/tokens.json" \
-            --configFilePath "./supernova.settings.json"
+            --configFilePath "./supernova.settings.json" \
+            2>&1 | tee "$LOG"
+          SYNC_EXIT="${PIPESTATUS[0]}"
+          if [ "$SYNC_EXIT" -ne 0 ]; then
+            echo "::error::supernova sync-tokens exited with $SYNC_EXIT"
+            exit "$SYNC_EXIT"
+          fi
+          if grep -qiE 'could not find any entity|something went wrong' "$LOG"; then
+            echo "::error::Supernova CLI logged a sync failure (brand/theme mapping or API). Fix supernova.settings.json — supernovaBrand must be the brand *name* in Supernova (e.g. Default), not a numeric URL id."
+            exit 1
+          fi
           echo "✅ Tokens synced to Supernova design system 771068"
