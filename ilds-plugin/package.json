@@ -1,0 +1,11 @@
+{
+  "name": "ilds-token-sync-plugin",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.75.0",
+    "typescript": "^5.0.0"
+  }
+}
