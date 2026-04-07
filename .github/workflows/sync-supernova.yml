@@ -28,17 +28,11 @@ jobs:
 
       - name: Sync tokens to Supernova
         run: |
+          set -euo pipefail
+          supernova --version || true
           supernova sync-tokens \
             --apiKey "${{ secrets.SUPERNOVA_API_KEY }}" \
             --designSystemId "771068" \
             --tokenFilePath "./tokens/tokens.json" \
             --configFilePath "./supernova.settings.json"
-          echo "EXIT_CODE=$?" >> $GITHUB_ENV
-
-      - name: Confirm sync
-        run: |
-          if [ "$EXIT_CODE" != "0" ]; then
-            echo "❌ Supernova sync failed with exit code $EXIT_CODE"
-            exit 1
-          fi
           echo "✅ Tokens synced to Supernova design system 771068"

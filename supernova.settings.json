@@ -11,6 +11,6 @@
     "dryRun": false,
     "verbose": true,
     "precision": 3,
-    "mergeWithExistingTokens": true
+    "mergeWithExistingTokens": false
   }
 }
