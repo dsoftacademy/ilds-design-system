@@ -43,8 +43,8 @@ jobs:
             echo "::error::supernova sync-tokens exited with $SYNC_EXIT"
             exit "$SYNC_EXIT"
           fi
-          if grep -qiE 'could not find any entity|something went wrong' "$LOG"; then
-            echo "::error::Supernova CLI logged a sync failure (brand/theme mapping or API). Fix supernova.settings.json — supernovaBrand must be the brand *name* in Supernova (e.g. Default), not a numeric URL id."
+          if grep -qiE 'could not find any entity|something went wrong|incorrect plugin theme' "$LOG"; then
+            echo "::error::Supernova sync failed — check supernova.settings.json (use tokenSets [\"global\"] for DTCG single-file, not tokensTheme; supernovaBrand = brand name in Supernova)."
             exit 1
           fi
           echo "✅ Tokens synced to Supernova design system 771068"

@@ -2,8 +2,8 @@
   "mode": "single-file",
   "mapping": [
     {
+      "tokenSets": ["global"],
       "supernovaBrand": "Default",
-      "tokensTheme": "global",
       "supernovaTheme": null
     }
   ],
