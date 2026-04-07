@@ -93,16 +93,12 @@ async function runSync(): Promise<SyncResult> {
   const tokensJson = JSON.stringify(dtcg, null, 2);
   const tokenCount = variables.length;
 
-  // Step 3: Push to GitHub
+  // Step 3: Push to GitHub (with 409 retry for stale SHA)
   figma.ui.postMessage({ type: 'status', step: 'github', message: 'Pushing to GitHub...' });
-  const sha = await getCurrentFileSHA(
-    config.githubOwner, config.githubRepo,
-    config.githubFilePath, config.githubBranch, config.githubPAT
-  );
-  await pushToGitHub(
+  await pushWithRetry(
     config.githubOwner, config.githubRepo,
     config.githubFilePath, config.githubBranch,
-    config.githubPAT, tokensJson, sha,
+    config.githubPAT, tokensJson,
     `ci: sync Figma Variables to tokens.json [ILDS Plugin]`,
     config.commitAuthorName, config.commitAuthorEmail
   );
@@ -210,6 +206,26 @@ function buildDTCG(variables: Variable[], collections: VariableCollection[]): ob
 }
 
 // ── GitHub API ────────────────────────────────────────────────────────────────
+
+// Retry once on 409 (stale SHA — happens when GH Action commits between our GET and PUT)
+async function pushWithRetry(
+  owner: string, repo: string, path: string, branch: string,
+  pat: string, content: string, message: string,
+  authorName: string, authorEmail: string
+): Promise<void> {
+  let sha = await getCurrentFileSHA(owner, repo, path, branch, pat);
+  try {
+    await pushToGitHub(owner, repo, path, branch, pat, content, sha, message, authorName, authorEmail);
+  } catch (e) {
+    if (e instanceof Error && e.message.includes('409')) {
+      // SHA went stale — fetch fresh and retry once
+      sha = await getCurrentFileSHA(owner, repo, path, branch, pat);
+      await pushToGitHub(owner, repo, path, branch, pat, content, sha, message, authorName, authorEmail);
+    } else {
+      throw e;
+    }
+  }
+}
 
 async function getCurrentFileSHA(
   owner: string, repo: string, path: string, branch: string, pat: string
