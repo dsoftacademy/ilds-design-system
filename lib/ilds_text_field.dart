@@ -1,3 +1,4 @@
+// lib/components/ilds_text_field.dart
 import 'package:flutter/material.dart';
 import 'design_system/ilds_tokens.dart';
 
@@ -15,6 +16,9 @@ class IldsTextField extends StatefulWidget {
   final bool isLoading;
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
+  final Widget? leadingIcon;
+  final Widget? trailingIcon;
+  final int? maxLength;
 
   const IldsTextField({
     super.key,
@@ -29,6 +33,9 @@ class IldsTextField extends StatefulWidget {
     this.isLoading = false,
     this.controller,
     this.onChanged,
+    this.leadingIcon,
+    this.trailingIcon,
+    this.maxLength,
   });
 
   @override
@@ -37,6 +44,45 @@ class IldsTextField extends StatefulWidget {
 
 class _IldsTextFieldState extends State<IldsTextField> {
   bool _obscureText = true;
+  late TextEditingController _effectiveController;
+
+  @override
+  void initState() {
+    super.initState();
+    _effectiveController = widget.controller ?? TextEditingController();
+    if (widget.maxLength != null) {
+      _effectiveController.addListener(_onTextChanged);
+    }
+  }
+
+  @override
+  void didUpdateWidget(IldsTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != null && widget.controller != _effectiveController) {
+      if (widget.maxLength != null) {
+        _effectiveController.removeListener(_onTextChanged);
+      }
+      _effectiveController = widget.controller!;
+      if (widget.maxLength != null) {
+        _effectiveController.addListener(_onTextChanged);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    if (widget.maxLength != null) {
+      _effectiveController.removeListener(_onTextChanged);
+    }
+    if (widget.controller == null) {
+      _effectiveController.dispose();
+    }
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    setState(() {}); // Rebuild to update character count
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,30 +95,66 @@ class _IldsTextFieldState extends State<IldsTextField> {
 
   Widget _buildStandard() {
     final bool isPassword = widget.kind == IldsTextFieldKind.password;
-    final bool hasError   = widget.errorText != null;
+    final bool hasError = widget.errorText != null;
     final bool hasSuccess = widget.successText != null;
 
-    // Token: color.red.600 (error) | color.green.600 (success) | color.neutral.200 (default)
+    // Determine Border Colors
     Color borderColor = ILDSTokens.neutral200;
-    if (hasError)   borderColor = ILDSTokens.red600;
-    if (hasSuccess) borderColor = ILDSTokens.green600;
+    if (widget.isReadOnly) {
+      borderColor = ILDSTokens.neutral200;
+    } else if (hasError) {
+      borderColor = ILDSTokens.red600;
+    } else if (hasSuccess) {
+      borderColor = ILDSTokens.green600;
+    }
 
-    // Token: color.neutral.400 (helper) | color.red.600 (error) | color.green.600 (success)
-    String? bottomText      = widget.helperText;
-    Color   bottomTextColor = ILDSTokens.neutral400;
+    Color focusedBorderColor = ILDSTokens.orange500;
+    if (!widget.isReadOnly && hasError) {
+      focusedBorderColor = ILDSTokens.red600;
+    }
+
+    // Determine Bottom Text and Colors
+    String? bottomText = widget.helperText;
+    Color bottomTextColor = ILDSTokens.neutral400;
     if (hasError) {
-      bottomText      = widget.errorText;
+      bottomText = widget.errorText;
       bottomTextColor = ILDSTokens.red600;
     } else if (hasSuccess) {
-      bottomText      = widget.successText;
+      bottomText = widget.successText;
       bottomTextColor = ILDSTokens.green600;
+    }
+
+    // Determine Suffix Icon
+    Widget? activeSuffixIcon;
+    if (widget.isLoading) {
+      // TODO: add icon size tokens (e.g. iconSizeMd = 20.0) to ILDSTokens.
+      activeSuffixIcon = Padding(
+        padding: const EdgeInsets.all(12),
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(
+            strokeWidth: ILDSTokens.borderWidth2,
+            color: ILDSTokens.orange500,
+          ),
+        ),
+      );
+    } else if (isPassword) {
+      activeSuffixIcon = IconButton(
+        icon: Icon(
+          _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+          color: ILDSTokens.neutral400,
+        ),
+        onPressed: () => setState(() => _obscureText = !_obscureText),
+      );
+    } else if (widget.trailingIcon != null) {
+      activeSuffixIcon = widget.trailingIcon;
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Token: color.neutral.500, fontWeight.medium
         Text(
           widget.label,
           style: const TextStyle(
@@ -81,75 +163,99 @@ class _IldsTextFieldState extends State<IldsTextField> {
             color: ILDSTokens.neutral500,
           ),
         ),
-        const SizedBox(height: 4),
-        TextField(
-          controller: widget.controller,
-          enabled: widget.enabled && !widget.isLoading,
-          readOnly: widget.isReadOnly,
-          obscureText: isPassword ? _obscureText : false,
-          onChanged: widget.onChanged,
-          decoration: InputDecoration(
-            hintText: widget.placeholder,
-            // Token: color.neutral.300 — placeholder / hint text
-            hintStyle: const TextStyle(color: ILDSTokens.neutral300),
-            suffixIcon: widget.isLoading
-                ? Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      // Token: color.orange.500 — loading indicator
-                      child: CircularProgressIndicator(
-                        strokeWidth: ILDSTokens.borderWidth2,
-                        color: ILDSTokens.orange500,
-                      ),
-                    ),
-                  )
-                : isPassword
-                    ? IconButton(
-                        // Token: color.neutral.400 — secondary icon
-                        icon: Icon(
-                          _obscureText
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                          color: ILDSTokens.neutral400,
-                        ),
-                        onPressed: () =>
-                            setState(() => _obscureText = !_obscureText),
-                      )
-                    : null,
-            // Token: borderRadius.md, color.neutral.200 (enabled border)
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
-              borderSide: BorderSide(color: borderColor),
+        SizedBox(height: ILDSTokens.spacing1),
+        Semantics(
+          label: widget.label,
+          hint: widget.placeholder,
+          textField: true,
+          child: TextField(
+            controller: _effectiveController,
+            enabled: widget.enabled && !widget.isLoading,
+            readOnly: widget.isReadOnly,
+            obscureText: isPassword ? _obscureText : false,
+            onChanged: widget.onChanged,
+            maxLength: widget.maxLength,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: ILDSTokens.fontWeightRegular,
+              color: widget.isReadOnly ? ILDSTokens.neutral500 : ILDSTokens.neutral900,
             ),
-            // Token: borderRadius.md, color.orange.500, borderWidth.2 (focus ring)
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
-              borderSide: const BorderSide(
-                color: ILDSTokens.orange500,
-                width: ILDSTokens.borderWidth2,
+            decoration: InputDecoration(
+              hintText: widget.placeholder,
+              hintStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: ILDSTokens.fontWeightRegular,
+                color: ILDSTokens.neutral300,
               ),
-            ),
-            // Token: borderRadius.md, color.neutral.300 (disabled border)
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
-              borderSide: const BorderSide(color: ILDSTokens.neutral300),
-            ),
-            filled: !widget.enabled,
-            // Token: color.neutral.100 — disabled fill
-            fillColor: !widget.enabled ? ILDSTokens.neutral100 : null,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: ILDSTokens.spacing4,
-              vertical: 14,
+              counterText: '',
+              prefixIcon: widget.leadingIcon,
+              prefixIconColor: WidgetStateColor.resolveWith((states) {
+                if (widget.isReadOnly) return ILDSTokens.neutral400;
+                if (hasError) return ILDSTokens.red600;
+                if (hasSuccess) return ILDSTokens.green600;
+                if (states.contains(WidgetState.focused)) return ILDSTokens.orange500;
+                return ILDSTokens.neutral400;
+              }),
+              suffixIcon: activeSuffixIcon,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
+                borderSide: BorderSide(color: borderColor, width: ILDSTokens.borderWidth1),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
+                borderSide: BorderSide(
+                  color: focusedBorderColor,
+                  width: ILDSTokens.borderWidth2,
+                ),
+              ),
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
+                borderSide: const BorderSide(color: ILDSTokens.neutral300, width: ILDSTokens.borderWidth1),
+              ),
+              filled: !widget.enabled || widget.isReadOnly,
+              fillColor: !widget.enabled
+                  ? ILDSTokens.neutral100
+                  : (widget.isReadOnly ? ILDSTokens.neutral50 : null),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: ILDSTokens.spacing4,
+                // TODO: verify Figma spec if spacing3 should be spacing4 here.
+                vertical: ILDSTokens.spacing3,
+              ),
             ),
           ),
         ),
-        if (bottomText != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            bottomText,
-            style: TextStyle(fontSize: 12, color: bottomTextColor),
+        if (bottomText != null || widget.maxLength != null) ...[
+          SizedBox(height: ILDSTokens.spacing1),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (bottomText != null)
+                Expanded(
+                  child: Text(
+                    bottomText,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: ILDSTokens.fontWeightRegular,
+                      color: bottomTextColor,
+                    ),
+                  ),
+                )
+              else
+                const Spacer(),
+              if (widget.maxLength != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: ILDSTokens.spacing2),
+                  child: Text(
+                    '${_effectiveController.text.length}/${widget.maxLength}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: ILDSTokens.fontWeightRegular,
+                      color: ILDSTokens.neutral400,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ],
       ],
@@ -163,29 +269,39 @@ class _IldsTextFieldState extends State<IldsTextField> {
       children: List.generate(
         count,
         (index) => Container(
+          // TODO: add otp cell size tokens to ILDSTokens.
           width: 48,
           height: 56,
-          margin: EdgeInsets.only(right: index < count - 1 ? ILDSTokens.spacing2 : 0),
-          child: TextField(
-            textAlign: TextAlign.center,
-            maxLength: 1,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              counterText: '',
-              // Token: borderRadius.md, color.neutral.200
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
-                borderSide: const BorderSide(color: ILDSTokens.neutral200),
+          margin: EdgeInsets.only(
+            right: index < count - 1 ? ILDSTokens.spacing2 : 0,
+          ),
+          child: Semantics(
+            label: 'OTP digit ${index + 1}',
+            textField: true,
+            child: TextField(
+              textAlign: TextAlign.center,
+              maxLength: 1,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: ILDSTokens.fontWeightBold,
+                color: ILDSTokens.neutral900,
               ),
-              // Token: borderRadius.md, color.orange.500, borderWidth.2
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
-                borderSide: const BorderSide(
-                  color: ILDSTokens.orange500,
-                  width: ILDSTokens.borderWidth2,
+              decoration: InputDecoration(
+                counterText: '',
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
+                  borderSide: const BorderSide(color: ILDSTokens.neutral200),
                 ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
+                  borderSide: const BorderSide(
+                    color: ILDSTokens.orange500,
+                    width: ILDSTokens.borderWidth2,
+                  ),
+                ),
+                contentPadding: EdgeInsets.zero,
               ),
-              contentPadding: EdgeInsets.zero,
             ),
           ),
         ),

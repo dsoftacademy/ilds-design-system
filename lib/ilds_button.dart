@@ -112,6 +112,13 @@ class IldsButton extends StatelessWidget {
     return null;
   }
 
+  Color? _pressedOverlayColor() {
+    if (type == IldsButtonType.primary && appearance == IldsButtonAppearance.normal) {
+      return ILDSTokens.orange700;
+    }
+    return null;
+  }
+
   _ButtonColors _resolveColors() {
     final accent = _accent;
 
@@ -269,6 +276,14 @@ class IldsButton extends StatelessWidget {
         child: InkWell(
           onTap: _interactive ? onPressed : null,
           customBorder: shape,
+          overlayColor: _pressedOverlayColor() == null
+              ? null
+              : WidgetStateProperty.resolveWith<Color?>((states) {
+                  if (states.contains(WidgetState.pressed)) {
+                    return _pressedOverlayColor();
+                  }
+                  return null;
+                }),
           child: child,
         ),
       ),
