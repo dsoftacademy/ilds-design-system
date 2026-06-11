@@ -1,0 +1,15 @@
+name: ilds_design_system_example
+description: Real-time playground for ILDS components
+publish_to: none
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  ilds_design_system:
+    path: ../
+
+flutter:
+  uses-material-design: true

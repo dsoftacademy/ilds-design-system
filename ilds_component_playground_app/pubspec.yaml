@@ -1,0 +1,16 @@
+name: ilds_component_playground_app
+description: Standalone real-time ILDS component playground
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  ilds_design_system:
+    path: ../
+
+flutter:
+  uses-material-design: true
