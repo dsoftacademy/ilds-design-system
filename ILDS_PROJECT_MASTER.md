@@ -638,18 +638,33 @@ Work through these in the order listed. Do not skip ahead.
 
 ### 🔴 IMMEDIATE — Close Phase 2 (must complete before Phase 3 starts)
 
-#### Task 0 — 🔐 SECURITY: Rotate Figma PAT
+#### Task 0 — ✅ COMPLETE — 🔐 SECURITY: Rotate Figma PAT
 **Why:** The Figma PAT (`figd_…xr9O`) was committed in plaintext in `N8N_FIGMA_TOKENS_WORKFLOW.md` (3×) and `ILDS_PROJECT_REPORT.md` (2×). Both files have been redacted and the amended commit pushed. However, the PAT was live in chat history and docs — it must be considered compromised regardless of redaction.
 
-**Who:** Pratishek only (Figma account access required)
-**Steps:**
-1. Figma → Profile → Settings → Personal access tokens
-2. Revoke the old token (`figd_…xr9O`)
-3. Issue a new PAT
-4. Store it in `.env` (gitignored) or `figma.clientStorage` only — never in any `.md` file
+**Resolution (Jun 2026):** Old token revoked in Figma. New pipeline token issued and stored in `config.py`, verified against the Figma API. Git history confirmed clean — `git log -S` shows **0 commits** ever contained the leaked token (secret-scanning blocked it before it landed), so no history rewrite is needed.
 
-- [ ] Old PAT revoked in Figma
-- [ ] New PAT issued and stored securely
+**Who:** Pratishek only (Figma account access required)
+
+**Note:** The Figma PAT is consumed **only by REST clients outside Figma** — the Python pipeline (`~/ai-system-setup/pipelines/config.py` → `FIGMA_TOKEN`) and the legacy n8n workflow (superseded by the plugin, per D8). The `ilds-plugin/` does **not** use a Figma PAT — it reads variables via the in-file Plugin API and only stores a *GitHub* PAT in `figma.clientStorage`. Do not put a Figma PAT in the plugin.
+
+**Steps:**
+1. Figma → avatar (home: top-right) → Settings → **Security** tab → Personal access tokens
+2. Revoke the old token (`figd_…xr9O`)
+3. Generate a new PAT — **set scopes** (e.g. `file_content:read`); copy once
+4. Store it in `~/ai-system-setup/pipelines/config.py` (not a git repo — safe) and/or the n8n credential if still used — never in any `.md`, `.env` committed to a repo, or `figma.clientStorage`
+
+- [x] Old PAT revoked in Figma (confirmed by Pratishek, Jun 2026)
+- [x] New PAT issued and stored securely (in `config.py`; verified `/me` + `/files/{id}/components` return 200, Jun 2026)
+
+**Figma token inventory (3 distinct PATs — keep them straight):**
+
+| Token | Where it lives | Consumed by | Status |
+|---|---|---|---|
+| `figd_…xr9O` | (none — was in docs/chat) | legacy n8n workflow only | ✅ **Revoked** |
+| `figd_…Bu2` | `~/ai-system-setup/pipelines/config.py` → `FIGMA_TOKEN` | Python pipelines: `ilds_pipeline.py`, `figma_pipeline.py`, `generate_stubs.py` | ✅ Active (new) |
+| `figd_…lQ0u` | this repo's `.env` (gitignored) → `FIGMA_ACCESS_TOKEN` | Code Connect publish (`npm run code-connect:publish`) | ✅ Active (separate, never leaked) |
+
+**Not affected by Figma-PAT rotation** (verified Jun 2026): `ilds-plugin/` stores only a *GitHub* PAT in `figma.clientStorage`; `sync-supernova.yml` uses `secrets.SUPERNOVA_API_KEY`. Neither uses a Figma token. The only consumer that breaks on revoke is the legacy n8n workflow, which is superseded by the plugin (D8) — disable/delete it.
 
 ---
 
