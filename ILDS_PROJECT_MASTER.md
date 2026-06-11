@@ -771,11 +771,16 @@ SizedBox(
 6. Verify Slack `#design-system-updates` received notification
 7. Revert the test token change in Figma → Sync again
 
-- [ ] Token change synced to GitHub
-- [ ] GitHub Action ran green
-- [ ] Supernova shows updated value
-- [ ] Slack notification received
-- [ ] Token reverted and resynced cleanly
+**Live test results (Jun 11, 2026):**
+- Plugin Sync → commit `d91d3c5` on `main` (`white-000` `#FFFFFF` → `#FFFFFE`).
+- Same export also confirmed the **informative-blue trailing-space fix end-to-end** — keys now export clean (`"50"/"100"/"200"/"300"`, correctly ordered) instead of `"50 "` etc.
+- Action run `27367921596` → **success**.
+
+- [x] Token change synced to GitHub (`d91d3c5`)
+- [x] GitHub Action ran green (run `27367921596`)
+- [ ] Supernova shows updated value  ← *visual check, Pratishek*
+- [ ] Slack notification received  ← *visual check, Pratishek*
+- [ ] Token reverted and resynced cleanly  ← *revert `white-000` to `#FFFFFF` in Figma + Sync*
 
 ---
 
