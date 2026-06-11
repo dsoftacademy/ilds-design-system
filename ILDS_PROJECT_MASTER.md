@@ -695,8 +695,8 @@ Radius + spacing unchanged (not yet in `tokens.json` pipeline — separate futur
 
 ---
 
-#### Task 2 — Republish All Code Connect Files + Dev Mode Verification
-**Why:** Multiple `*.figma.ts` files were edited locally since the last publish — not just Scrollbar. A full republish is required. Verify all 18 components show correct bindings in Dev Mode afterwards.
+#### Task 2 — ✅ COMPLETE — Republish All Code Connect Files + Dev Mode Verification
+**Why:** Multiple `*.figma.ts` files were edited locally since the last publish — not just Scrollbar. A full republish is required. Verify all 17 active components show correct bindings in Dev Mode afterwards.
 
 **Who:** Cursor or developer
 **Command:**
@@ -704,6 +704,11 @@ Radius + spacing unchanged (not yet in `tokens.json` pipeline — separate futur
 cd /path/to/ilds-design-system
 npm run code-connect:publish
 ```
+
+**Resolution (Jun 2026):**
+- **Duplicate-publish bug fixed.** `figma.config.json` `include` matched both `**/*.figma.ts` (18 canonical, tracked) and `**/*.figma.tsx` (18 gitignored stubs) → every component double-published. Removed the `.tsx` glob (commit `8011da2`) and **deleted the 18 stray `ilds_*.figma.tsx` stubs** from disk.
+- **Chip/Tag node collision deferred.** Both `chip.figma.ts` (IldsChip) and `tag.figma.ts` (IldsTag) targeted the **same** Figma node `14018-6786`. Per the documented note, that node is the Figma "Tag/Filter" component whose real Flutter widget is `IldsChip`; `IldsTag` (display variant) has **no Figma node yet**. Resolution: `tag.figma.ts` renamed to `tag.figma.ts.disabled` (preserved in git, not published) so `IldsChip` owns the node. **Re-enable when the designer publishes a real Tag Display component set** — rename back and update the node URL.
+- **Republished cleanly:** 17 distinct nodes, each mapped once. No duplicates.
 
 **Verify these 4 in Dev Mode (highest change risk):**
 | Component | Node ID | What to verify |
@@ -713,10 +718,10 @@ npm run code-connect:publish
 | Accordion | 17726:494 | `isExpanded` |
 | Scrollbar | 17730:521 | `orientation` |
 
-- [ ] `npm run code-connect:publish` run successfully
-- [ ] Radio Dev Mode verified
-- [ ] Accordion Dev Mode verified
-- [ ] Scrollbar Dev Mode verified (after Task 1)
+- [x] `npm run code-connect:publish` run successfully (17 components, no duplicate node mappings)
+- [ ] Radio Dev Mode verified  ← *visual check in Figma, Pratishek*
+- [ ] Accordion Dev Mode verified  ← *visual check in Figma, Pratishek*
+- [ ] Scrollbar Dev Mode verified  ← *visual check in Figma, Pratishek*
 
 ---
 
@@ -866,10 +871,10 @@ All components live in `lib/`. All pass `flutter analyze` with zero issues as of
 | 11 | Pagination | `ilds_pagination.dart` | 2 | Default · Current · Disabled · Ellipsis · Compact | `pagination.figma.ts` | ✅ Live |
 | 12 | Selection Button | `ilds_selection_button.dart` | 2 | Unselected · Selected · Hover · Focused · Disabled | `selection_button.figma.ts` | ✅ Live |
 | 13 | Badge | `ilds_badge.dart` | 2 | Subtle · Intense · Success · Error · Warning · Info · Loading | `badge.figma.ts` | ✅ Live |
-| 14 | Tag | `ilds_tag.dart` | 2 | Default · Selected · Disabled | `tag.figma.ts` | ✅ Live |
+| 14 | Tag | `ilds_tag.dart` | 2 | Default · Selected · Disabled | `tag.figma.ts.disabled` | ⏸️ Deferred — no Figma node yet (shared chip node) |
 | 15 | Accordion | `ilds_accordion.dart` | 2 | Collapsed · Expanded · Hover · Disabled | `accordion.figma.ts` | ✅ Live |
 | 16 | Text Link | `ilds_text_link.dart` | 2 | Default · Hover · Pressed · Visited · Disabled · White | `text_link.figma.ts` | ✅ Live |
-| 17 | Scrollbar | `ilds_scrollbar.dart` | 2 | Default(6px) · Hover(12px) · Dragged · V · H | `scrollbar.figma.ts` | ⚠️ Republish needed |
+| 17 | Scrollbar | `ilds_scrollbar.dart` | 2 | Default(6px) · Hover(12px) · Dragged · V · H | `scrollbar.figma.ts` | ✅ Live (republished Jun 2026) |
 | 18 | Search | `ilds_search.dart` | 2 | Default · Focused · Filled · Suggestions · Disabled | `search.figma.ts` | ✅ Live |
 
 *Tab scrollable indicator is a placeholder — see Known TODOs §10.
