@@ -755,6 +755,13 @@ SizedBox(
 #### Task 4 — End-to-End Pipeline Test
 **Why:** Admin Action 11. A full sync test confirms the entire pipeline is live and correctly wired: Figma → Plugin → GitHub → Supernova → Slack.
 
+**Pre-flight verified from repo (Jun 2026):**
+- GitHub Action `sync-supernova.yml` — **last 5 runs all `success`** (Apr 8 → May 19, 2026); 19 runs total. Backbone proven repeatedly.
+- Last real sync commit: `e31033e` (2026-05-19) `ci: sync Figma Variables to tokens.json [ILDS Plugin]`.
+- Plugin defaults correct (`dsoftacademy/ilds-design-system`, `main`, `tokens/tokens.json`).
+- `supernova.settings.json` correct per D10 (`tokenSets:["global"]`, brand `Default`, `merge:false`, DS `771068`).
+- ⚠️ Slack notification (step 6) is posted by the **plugin**, not the Action — ensure the plugin Settings has the Slack webhook saved, else step 6 won't fire even on a green sync.
+
 **Steps:**
 1. Open Figma → change any token value by 1 step (e.g., `orange500` hex by 1 digit)
 2. Open ILDS plugin → click Sync
