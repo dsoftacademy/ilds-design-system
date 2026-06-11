@@ -1,126 +1,74 @@
-import figma, { html } from "@figma/code-connect/html";
+import figma, { html } from '@figma/code-connect/html'
 
-// ── NORMAL PRIMARY (default) ─────────────────────────────────────────────────
+// Button component set — Figma node: 13472:2804
+// All property names verified from componentPropertyDefinitions.
+// Properties: Appearance, Type, Size, State, Variant, isLoading
+
 figma.connect(
-  "https://www.figma.com/design/PCUj412f0Z1zZLLxQUX22e/ILDS-Master-%7C-Design?node-id=13472-2804",
+  'https://www.figma.com/design/PCUj412f0Z1zZLLxQUX22e/ILDS-Master-%7C-Design?node-id=13472-2804',
   {
-  variant: {
-    Appearance: "Normal",
-    Type: "Primary",
-    State: "Default",
-    isLoading: "False",
-  },
-  example: () => html`IldsButton(
+    props: {
+      type: figma.enum('Type', {
+        'Primary':   'IldsButtonType.primary',
+        'Secondary': 'IldsButtonType.secondary',
+        'Tertiary':  'IldsButtonType.tertiary',
+      }),
+
+      appearance: figma.enum('Appearance', {
+        'Normal':      'IldsButtonAppearance.normal',
+        'Destructive': 'IldsButtonAppearance.destructive',
+      }),
+
+      size: figma.enum('Size', {
+        'Large':  'IldsButtonSize.large',
+        'Medium': 'IldsButtonSize.medium',
+        'Small':  'IldsButtonSize.small',
+      }),
+
+      // State → isDisabled. Hover/Focused/Pressed/Skeleton are runtime — not set in code.
+      isDisabled: figma.enum('State', {
+        'Disabled': 'true',
+        'Default':  'false',
+        'Hover':    'false',
+        'Focused':  'false',
+        'Pressed':  'false',
+        'Skeleton': 'false',
+      }),
+
+      isLoading: figma.enum('isLoading', {
+        'True':  'true',
+        'False': 'false',
+      }),
+
+      // Variant drives leading/trailing icon slots
+      hasLeadingIcon: figma.enum('Variant', {
+        'Prefix Icon + Label':  'true',
+        'Both Icon + Label':    'true',
+        'Label + Suffix Icon':  'false',
+        'Label Only':           'false',
+        'Icon Only':            'false',
+      }),
+
+      hasTrailingIcon: figma.enum('Variant', {
+        'Label + Suffix Icon': 'true',
+        'Both Icon + Label':   'true',
+        'Prefix Icon + Label': 'false',
+        'Label Only':          'false',
+        'Icon Only':           'false',
+      }),
+    },
+
+    example: ({ type, appearance, size, isDisabled, isLoading, hasLeadingIcon, hasTrailingIcon }) => html`
+IldsButton(
   label: 'Button',
   onPressed: () {},
-  appearance: IldsButtonAppearance.normal,
-  type: IldsButtonType.primary,
-  size: IldsButtonSize.medium,
+  type: ${type},
+  appearance: ${appearance},
+  size: ${size},
+  isDisabled: ${isDisabled},
+  isLoading: ${isLoading},
+  leading: ${hasLeadingIcon} ? const Icon(Icons.favorite_border) : null,
+  trailing: ${hasTrailingIcon} ? const Icon(Icons.arrow_forward) : null,
 )`,
   },
-);
-
-// ── NORMAL PRIMARY DISABLED ──────────────────────────────────────────────────
-figma.connect(
-  "https://www.figma.com/design/PCUj412f0Z1zZLLxQUX22e/ILDS-Master-%7C-Design?node-id=13472-2804",
-  {
-  variant: { Appearance: "Normal", Type: "Primary", State: "Disabled" },
-  example: () => html`IldsButton(
-  label: 'Button',
-  onPressed: null,
-  appearance: IldsButtonAppearance.normal,
-  type: IldsButtonType.primary,
-  size: IldsButtonSize.medium,
-)`,
-  },
-);
-
-// ── NORMAL PRIMARY LOADING ───────────────────────────────────────────────────
-figma.connect(
-  "https://www.figma.com/design/PCUj412f0Z1zZLLxQUX22e/ILDS-Master-%7C-Design?node-id=13472-2804",
-  {
-  variant: { Appearance: "Normal", Type: "Primary", isLoading: "True" },
-  example: () => html`IldsButton(
-  label: 'Button',
-  onPressed: () {},
-  appearance: IldsButtonAppearance.normal,
-  type: IldsButtonType.primary,
-  isLoading: true,
-)`,
-  },
-);
-
-// ── NORMAL SECONDARY ─────────────────────────────────────────────────────────
-figma.connect(
-  "https://www.figma.com/design/PCUj412f0Z1zZLLxQUX22e/ILDS-Master-%7C-Design?node-id=13472-2804",
-  {
-  variant: { Appearance: "Normal", Type: "Secondary", State: "Default" },
-  example: () => html`IldsButton(
-  label: 'Button',
-  onPressed: () {},
-  appearance: IldsButtonAppearance.normal,
-  type: IldsButtonType.secondary,
-  size: IldsButtonSize.medium,
-)`,
-  },
-);
-
-// ── NORMAL TERTIARY ──────────────────────────────────────────────────────────
-figma.connect(
-  "https://www.figma.com/design/PCUj412f0Z1zZLLxQUX22e/ILDS-Master-%7C-Design?node-id=13472-2804",
-  {
-  variant: { Appearance: "Normal", Type: "Tertiary", State: "Default" },
-  example: () => html`IldsButton(
-  label: 'Button',
-  onPressed: () {},
-  appearance: IldsButtonAppearance.normal,
-  type: IldsButtonType.tertiary,
-  size: IldsButtonSize.medium,
-)`,
-  },
-);
-
-// ── DESTRUCTIVE PRIMARY ───────────────────────────────────────────────────────
-figma.connect(
-  "https://www.figma.com/design/PCUj412f0Z1zZLLxQUX22e/ILDS-Master-%7C-Design?node-id=13472-2804",
-  {
-  variant: { Appearance: "Destructive", Type: "Primary", State: "Default" },
-  example: () => html`IldsButton(
-  label: 'Button',
-  onPressed: () {},
-  appearance: IldsButtonAppearance.destructive,
-  type: IldsButtonType.primary,
-  size: IldsButtonSize.medium,
-)`,
-  },
-);
-
-// ── LARGE SIZE ───────────────────────────────────────────────────────────────
-figma.connect(
-  "https://www.figma.com/design/PCUj412f0Z1zZLLxQUX22e/ILDS-Master-%7C-Design?node-id=13472-2804",
-  {
-  variant: { Size: "Large", Type: "Primary", State: "Default" },
-  example: () => html`IldsButton(
-  label: 'Button',
-  onPressed: () {},
-  appearance: IldsButtonAppearance.normal,
-  type: IldsButtonType.primary,
-  size: IldsButtonSize.large,
-)`,
-  },
-);
-
-// ── SMALL SIZE ───────────────────────────────────────────────────────────────
-figma.connect(
-  "https://www.figma.com/design/PCUj412f0Z1zZLLxQUX22e/ILDS-Master-%7C-Design?node-id=13472-2804",
-  {
-  variant: { Size: "Small", Type: "Primary", State: "Default" },
-  example: () => html`IldsButton(
-  label: 'Button',
-  onPressed: () {},
-  appearance: IldsButtonAppearance.normal,
-  type: IldsButtonType.primary,
-  size: IldsButtonSize.small,
-)`,
-  },
-);
+)
