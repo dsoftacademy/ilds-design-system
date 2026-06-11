@@ -143,3 +143,9 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# macOS finder metadata
+.DS_Store
+
+# Duplicate Code Connect stubs (canonical mappings are *.figma.ts at repo root)
+ilds_*.figma.tsx
