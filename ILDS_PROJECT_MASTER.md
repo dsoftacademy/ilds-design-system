@@ -752,7 +752,7 @@ SizedBox(
 
 ---
 
-#### Task 4 — End-to-End Pipeline Test
+#### Task 4 — ✅ COMPLETE — End-to-End Pipeline Test
 **Why:** Admin Action 11. A full sync test confirms the entire pipeline is live and correctly wired: Figma → Plugin → GitHub → Supernova → Slack.
 
 **Pre-flight verified from repo (Jun 2026):**
@@ -778,9 +778,9 @@ SizedBox(
 
 - [x] Token change synced to GitHub (`d91d3c5`)
 - [x] GitHub Action ran green (run `27367921596`)
-- [ ] Supernova shows updated value  ← *visual check, Pratishek*
-- [ ] Slack notification received  ← *visual check, Pratishek*
-- [ ] Token reverted and resynced cleanly  ← *revert `white-000` to `#FFFFFF` in Figma + Sync*
+- [x] Supernova shows updated value (confirmed by Pratishek)
+- [x] Slack notification received (confirmed by Pratishek)
+- [x] Token reverted and resynced cleanly (`13bdf1c` → Action success, `white-000` back to `#FFFFFF`)
 
 ---
 
@@ -801,7 +801,7 @@ SizedBox(
 
 ### 🟡 SOON — Code Quality
 
-#### Task 5 — Tab Scrollable Indicator (GlobalKey-based)
+#### Task 6 — Tab Scrollable Indicator (GlobalKey-based)
 **Why:** `ilds_tab.dart` has a TODO comment in the scrollable mode implementation. Current state shows a full-width neutral bar instead of a scroll-linked indicator that tracks the selected tab.
 
 **Location:** `lib/ilds_tab.dart` — search for `TODO: scroll-linked selected-tab indicator`
@@ -827,7 +827,7 @@ SizedBox(
 
 ---
 
-### 🟢 PHASE 3 — Start When Phase 2 Closure Tasks (1–4) Are Complete
+### 🟢 PHASE 3 — Phase 2 Closure Complete ✅ (Tasks 0–5 done) — Ready to Start
 
 See Section 5, Phase 3 for full scope.
 
@@ -929,7 +929,7 @@ These are tracked issues inside source files that need to be addressed.
 
 | Priority | File | Line | Issue | Fix |
 |---|---|---|---|---|
-| Medium | `lib/ilds_tab.dart` | line 191 | Scrollable mode indicator is a full-width neutral bar placeholder | Implement GlobalKey-based scroll-linked indicator (see Task 5 in §7) |
+| Medium | `lib/ilds_tab.dart` | line 191 | Scrollable mode indicator is a full-width neutral bar placeholder | Implement GlobalKey-based scroll-linked indicator (see Task 6 in §7) |
 | ~~Low~~ ✅ | `ilds_component_playground_app/lib/main.dart` | NavigationRail section | ~~RenderFlex overflow~~ Fixed Jun 2026 | LayoutBuilder + ConstrainedBox(minHeight) + IntrinsicHeight (see Task 3 in §7) |
 | Low | `scrollbar.figma.ts` | Orientation binding | Updated but not republished | Run `npm run code-connect:publish` — full republish (see Task 2 in §7) |
 
