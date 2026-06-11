@@ -766,6 +766,19 @@ SingleChildScrollView(
 
 ---
 
+#### Task 5 — Disable Legacy n8n Figma→GitHub Workflow
+**Why:** The n8n workflow that previously pushed Figma Variables to GitHub has been superseded by the custom Figma plugin. The workflow's PAT (`figd_…xr9O`) was revoked as part of Task 0 — so the workflow is already broken. Leaving a broken, unmonitored workflow in n8n is noise. Disable or delete it to keep the pipeline clean and avoid future confusion about which mechanism is authoritative.
+
+**What to do:**
+1. Open your n8n instance
+2. Find the workflow named something like "Figma Variables → GitHub" (or similar)
+3. Disable it (or delete it if you're certain it has no other dependencies)
+4. Note: the plugin (`ilds-plugin/`) is the authoritative Figma→GitHub sync mechanism — no other path should exist
+
+- [ ] Legacy n8n Figma workflow disabled/deleted
+
+---
+
 ### 🟡 SOON — Code Quality
 
 #### Task 5 — Tab Scrollable Indicator (GlobalKey-based)
