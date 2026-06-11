@@ -623,9 +623,10 @@ See `*.figma.ts` at repo root. All published. Scrollbar needs republish (see §7
 ### Documentation
 - [x] `docs/reports/CLAUDE_HANDOFF_2026-04-08.md`
 - [x] `docs/reports/ILDS_STATUS_AND_RESUME_REPORT_2026-04-12.md`
-- [x] `ILDS_ADMIN_REPORT.docx` — comprehensive admin report
+- [x] `ILDS_ADMIN_REPORT.docx` — comprehensive admin report (tracked in git via force-add; `ILDS_*.docx` ignore rule keeps other stray docs out)
 - [x] `ILDS_ADMIN_ACTION_ITEMS.docx` — 12 action cards
 - [x] `ILDS_CASE_STUDY.docx` — portfolio case study (Principal Designer voice)
+- [x] `ILDS_PROJECT_REPORT.docx` — project report
 
 ---
 
@@ -670,14 +671,12 @@ Full ramps now present: `primaryOrange*`, `errorRed*`, `warningAmber*`, `success
 Radius + spacing unchanged (not yet in `tokens.json` pipeline — separate future task).
 `flutter analyze lib/` clean on all 18 components.
 
-⚠️ **Figma cleanup required:** `informative-blue` keys in Figma Variables have a trailing space (`"50 "` etc.) — Cursor trimmed them, but the source needs fixing. Clean up the key names in Figma Variables and re-sync so the next export is canonical.
-
 - [x] Codegen script runs cleanly
-- [x] All drifted tokens corrected (Figma-canonical values confirmed)
+- [x] All drifted tokens corrected (Figma-canonical values confirmed against Figma MCP)
 - [x] `flutter analyze` passes with zero issues
-- [ ] Committed and pushed (pending your go-ahead to Cursor)
-- [ ] Visual QA pass in playground — confirm `red600`, `orange500` render correctly after shift
-- [ ] Fix `informative-blue` trailing-space key names in Figma Variables
+- [x] Committed and pushed (`17d7120`)
+- [x] Visual QA pass — `red600`, `orange500` verified correct in Figma screenshots
+- [x] `informative-blue` trailing-space keys fixed in Figma Variables (June 2026) — 4 variables renamed (`/50`, `/100`, `/200`, `/300`), 0 whitespace-tainted keys remain. Codegen trim is now a no-op safety net.
 
 ---
 
