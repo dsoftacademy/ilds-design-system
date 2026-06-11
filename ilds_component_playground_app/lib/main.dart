@@ -97,17 +97,30 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
         children: [
           SizedBox(
             width: 128,
-            child: NavigationRail(
-              selectedIndex: selectedNav,
-              onDestinationSelected: (index) => setState(() => selectedNav = index),
-              labelType: NavigationRailLabelType.all,
-              destinations: sections
-                  .map((label) => NavigationRailDestination(
-                        icon: const Icon(Icons.circle_outlined, size: 16),
-                        selectedIcon: const Icon(Icons.check_circle_outline, size: 16),
-                        label: Text(label),
-                      ))
-                  .toList(),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: IntrinsicHeight(
+                      child: NavigationRail(
+                        selectedIndex: selectedNav,
+                        onDestinationSelected: (index) =>
+                            setState(() => selectedNav = index),
+                        labelType: NavigationRailLabelType.all,
+                        destinations: sections
+                            .map((label) => NavigationRailDestination(
+                                  icon: const Icon(Icons.circle_outlined, size: 16),
+                                  selectedIcon:
+                                      const Icon(Icons.check_circle_outline, size: 16),
+                                  label: Text(label),
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           const VerticalDivider(width: 1),

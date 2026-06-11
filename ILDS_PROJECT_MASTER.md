@@ -725,29 +725,30 @@ npm run code-connect:publish
 
 ---
 
-#### Task 3 — Fix Playground NavigationRail Overflow
+#### Task 3 — ✅ COMPLETE — Fix Playground NavigationRail Overflow
 **Why:** `RenderFlex overflow` error in the playground app. Not a production issue (playground is dev tooling), but it makes the playground unusable for testing.
 
 **File:** `ilds_component_playground_app/lib/main.dart`
-**Fix:** Wrap the `destinations` list in a `SingleChildScrollView`.
+
+**Fix applied (Jun 2026):** Wrapping `NavigationRail` directly in a `SingleChildScrollView` throws an *unbounded height* error (the rail needs a bounded height). The correct recipe uses `LayoutBuilder` to get the viewport height, then `ConstrainedBox(minHeight)` + `IntrinsicHeight` so the rail fills the viewport when content is short and scrolls when content is tall:
 
 ```dart
-// Before (causes overflow with many destinations):
-NavigationRail(
-  destinations: [...],
-)
-
-// After:
-SingleChildScrollView(
-  child: IntrinsicHeight(
-    child: NavigationRail(
-      destinations: [...],
+SizedBox(
+  width: 128,
+  child: LayoutBuilder(
+    builder: (context, constraints) => SingleChildScrollView(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+        child: IntrinsicHeight(
+          child: NavigationRail(/* selectedIndex, destinations, ... */),
+        ),
+      ),
     ),
   ),
 )
 ```
-- [ ] Fix applied
-- [ ] Playground runs without overflow on all screen sizes
+- [x] Fix applied (`flutter analyze` clean)
+- [ ] Playground runs without overflow on all screen sizes  ← *visual check, Pratishek*
 
 ---
 
@@ -917,7 +918,7 @@ These are tracked issues inside source files that need to be addressed.
 | Priority | File | Line | Issue | Fix |
 |---|---|---|---|---|
 | Medium | `lib/ilds_tab.dart` | line 191 | Scrollable mode indicator is a full-width neutral bar placeholder | Implement GlobalKey-based scroll-linked indicator (see Task 5 in §7) |
-| Low | `ilds_component_playground_app/lib/main.dart` | NavigationRail section | RenderFlex overflow | Wrap destinations in `SingleChildScrollView` (see Task 3 in §7) |
+| ~~Low~~ ✅ | `ilds_component_playground_app/lib/main.dart` | NavigationRail section | ~~RenderFlex overflow~~ Fixed Jun 2026 | LayoutBuilder + ConstrainedBox(minHeight) + IntrinsicHeight (see Task 3 in §7) |
 | Low | `scrollbar.figma.ts` | Orientation binding | Updated but not republished | Run `npm run code-connect:publish` — full republish (see Task 2 in §7) |
 
 ---
