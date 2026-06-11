@@ -1,0 +1,1001 @@
+# ILDS — Automated Design System · Project Master Document
+
+> **This is the single source of project truth.**
+> All other briefs, status reports, and handoff docs in this repo are superseded by this file.
+> Last updated: June 11, 2026 · Maintained by: Pratishek (Principal Designer & DS Lead)
+
+---
+
+## For Agents Reading This File
+
+If you are Cursor, Claude, or any other AI assistant working on this project, read this entire document before taking any action. It tells you:
+
+- What this project is and what it is trying to become
+- Exactly what has been built and where the files live
+- What is incomplete, broken, or deferred — and in what order to address it
+- What the architecture looks like and why decisions were made
+- What you must never do (hardcode values, change the token source, skip review)
+
+When the user says "continue", "next step", or "what's left" — consult **Section 7: Pending Tasks** first, in the listed priority order.
+
+---
+
+## Table of Contents
+
+1. [Project Identity](#1-project-identity)
+2. [The Terminal Vision](#2-the-terminal-vision)
+3. [Current State — Honest Assessment](#3-current-state--honest-assessment)
+4. [Architecture](#4-architecture)
+5. [Phase Breakdown & Progress](#5-phase-breakdown--progress)
+6. [Completed Work — Full Log](#6-completed-work--full-log)
+7. [Pending Tasks — Priority Order](#7-pending-tasks--priority-order)
+8. [Component Registry](#8-component-registry)
+9. [Token Registry](#9-token-registry)
+10. [Known In-Code TODOs](#10-known-in-code-todos)
+11. [File Map](#11-file-map)
+12. [Non-Negotiable Rules](#12-non-negotiable-rules)
+13. [Tech Stack Reference](#13-tech-stack-reference)
+
+---
+
+## 1. Project Identity
+
+| Field | Value |
+|---|---|
+| **Project name** | ICICI Lombard Design System (ILDS) |
+| **Organisation** | ICICI Lombard — India's largest private general insurer |
+| **Repo** | `dsoftacademy/ilds-design-system` (GitHub, `main` branch) |
+| **Package type** | Flutter package — NOT a Flutter app. No `main.dart` at root. Components live in `lib/`. |
+| **Primary platform** | Flutter (iOS + Android) |
+| **DS Lead** | Pratishek — Principal Designer, 11 years experience |
+| **Started** | March 2026 |
+| **Current phase** | Phase 2 complete. Phase 3 not started. |
+| **Automation stack** | Figma · Custom Figma Plugin · GitHub · GitHub Actions · Supernova · Slack |
+
+### What ILDS Is
+
+ILDS is a token-driven Flutter component library with a fully automated publish pipeline. A designer changes a token value in Figma, clicks Sync in the custom plugin, and within ~2 minutes that change is reflected in the GitHub repository, the Supernova documentation portal, and the #design-system-updates Slack channel — with no human relay in the chain.
+
+The library contains 18 production-ready Flutter components, 112 design tokens, and 18 Figma Code Connect files. Every component references only the `ILDSTokens` Dart class — zero hardcoded values exist anywhere in the codebase.
+
+---
+
+## 2. The Terminal Vision
+
+> The goal is not a component library. The goal is a design infrastructure that creates, manages, evaluates, and evolves itself — with one or two humans in a steering and approval role, not an execution role.
+
+### What "Done" looks like at the terminal state
+
+- A designer submits a PRD, brief, or user flow doc — and at ingestion defines the design language (style, brand direction) and pastes reference links (Figma files, screens, inspiration). The AI Design Assistant reads all of it, queries the ILDS component library, and composes complete UI screens — layouts, flows, spacing, and interactions — using ILDS components, guided by the defined design style, pasted references, and universal design guidelines. Everything lands in Figma frames, ready for designer review.
+- If the AI Design Assistant encounters a gap — a screen that requires a component that doesn't exist or needs an update — it creates a best-effort DS-aligned version, flags it clearly as unvalidated, completes all screens without blocking, and simultaneously channels the requirement to the DS Management Agent to handle in parallel. When the DS Management Agent releases the validated update, the designer decides whether to update the flow.
+- A developer inspects any Figma component in Dev Mode and sees executable code in their target language (Flutter, React, SwiftUI, Compose, or any configured platform) — already aligned to the latest token values.
+- Token changes propagate to **all platforms** (Flutter, React, iOS SwiftUI, Android Compose) automatically via a single Style Dictionary pipeline triggered by a Figma save.
+- The DS Management Agent — working alongside human design and dev managers — owns the design system entirely. It receives component requests (from the AI Design Assistant or any other source), validates them against the existing system, builds or updates the component, and simultaneously pushes the update to every touch-point: Supernova, Figma, Storybook, DS website, Slack. Human managers approve what ships. The agent handles everything else.
+- Documentation is always current because it is generated, not written — and when it is regenerated, it validates against the previous version and propagates updates simultaneously across all touch-points: the DS website, Storybook, Supernova, and Figma.
+
+### Autonomy levels (honest framing)
+
+| Level | Description | Current status |
+|---|---|---|
+| **L1 — Token propagation** | Token changes flow automatically to `tokens.json` + Supernova + Slack. Flutter not yet reached (codegen script missing; Dart class drifted). | ⚠️ Partial |
+| **L2 — Component consistency** | All components built to a single architectural pattern, zero hardcoded values | ✅ Achieved |
+| **L3 — Handoff automation** | Dev Mode shows real Flutter code for all 18 components. Multi-language handoff (React, SwiftUI, Compose) requires Phases 3–4. | ✅ Flutter only |
+| **L4 — Platform parity** | Same token file drives Flutter, React, iOS, Android simultaneously | ❌ Phase 3–4 |
+| **L5 — Evolution infrastructure** | System proposes, visually regression-tests, and stages component updates via PRs for human sign-off | ❌ Phase 5 |
+| **L6 — DS Management Agent** | Intelligent agent owns DS end-to-end alongside human managers — validates, builds, deploys, and communicates all changes across all platforms simultaneously | ❌ Phase 6 |
+| **L7 — AI-assisted screen design** | AI generates complete UI screens from PRD + design style + references, with non-blocking component gap routing to the DS Management Agent | ❌ Phase 7 |
+
+**We are at L3 of 7.** The foundation is the right foundation — every future level builds directly on what exists.
+
+---
+
+## 3. Current State — Honest Assessment
+
+### What is fully working today
+
+- The Figma plugin extracts 112 tokens from Figma Variables, converts to W3C DTCG JSON, and pushes to `tokens/tokens.json` on GitHub with SHA-retry conflict handling
+- The GitHub Action (`sync-supernova.yml`) detects changes to `tokens/tokens.json`, syncs to Supernova **token pages**, and fails loudly on any CLI error
+- Slack receives a notification every time a sync completes
+- 18 Flutter components are in `lib/` — all passing `flutter analyze` with zero issues
+- 18 Code Connect files are published — Dev Mode shows real Flutter code for all components
+
+### What is functionally incomplete (known gaps)
+
+- **`ILDSTokens` Dart class drift — resolved (June 2026).** Codegen script (`tool/generate_ilds_tokens.dart`) built and run. All 112 tokens now Figma-canonical. Commit pending visual QA sign-off. Do not manually edit the class — always regenerate via script after any Figma token sync.
+- **Supernova component documentation is ~20% complete** — token pages sync automatically; component pages (usage, anatomy, states, guidance) are written manually and lag behind implementation. This is a separate workstream from the token pipeline and needs explicit resourcing.
+- **Several `*.figma.ts` Code Connect files edited locally but not republished** — scope of Task 1 below is full republish + Dev Mode verification, not Scrollbar only.
+- **Tab scrollable indicator** — TODO at line 191 of `ilds_tab.dart`; current implementation shows a full-width neutral bar placeholder.
+- **Playground app NavigationRail overflow** — `RenderFlex` overflow in `ilds_component_playground_app/lib/main.dart`.
+
+### What has not been started
+
+- `tokens.json → ilds_tokens.dart` codegen script (Phase 2 closure — in progress by Cursor)
+- Style Dictionary config (zero% started — prerequisite for all of Phases 3, 4, 6, 7)
+- Multi-platform token export (React, iOS, Android) — Phase 3 & 4
+- Component Evolution Engine (visual regression + PR infrastructure) — Phase 5
+- DS Management Agent (intelligent DS ownership alongside human managers) — Phase 6
+- AI Design Assistant Figma plugin (full screen UI generation from PRD) — Phase 7
+
+---
+
+## 4. Architecture
+
+### The Live Automation Pipeline
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  FIGMA VARIABLES (Single Source of Truth)               │
+│  Designer updates token values in Figma Variables panel │
+└───────────────────────┬─────────────────────────────────┘
+                        │
+                        ▼  (Designer clicks "Sync" in plugin)
+┌─────────────────────────────────────────────────────────┐
+│  ILDS FIGMA PLUGIN  (ilds-plugin/)                      │
+│  • Reads all Variables via figma.variables API          │
+│  • Converts to W3C DTCG JSON format                     │
+│  • Pushes to GitHub via Contents API                    │
+│  • SHA-retry on 409 Conflict                            │
+│  • Credentials stored in figma.clientStorage (never git)│
+└───────────────────────┬─────────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────────┐
+│  GITHUB — tokens/tokens.json (main branch)              │
+│  • Version-controlled, full commit history              │
+│  • Triggers CI on every push to this file               │
+│  • Full rollback available via git revert               │
+└──────────┬────────────────────────┬──────────────────────┘
+           │                        │
+           ▼                        ▼
+┌──────────────────┐   ┌──────────────────────────────────┐
+│  GitHub Action   │   │  Flutter codebase                │
+│  sync-supernova  │   │  ILDSTokens.dart regenerated     │
+│  .yml            │   │  from tokens.json on demand      │
+│                  │   │  (manual script, not CI-auto yet)│
+│  path trigger:   │   └──────────────────────────────────┘
+│  tokens/*.json   │
+│                  │
+│  Fails loudly:   │
+│  grep-based      │
+│  error detection │
+└──────────┬───────┘
+           │
+           ▼
+┌─────────────────────────────────────────────────────────┐
+│  SUPERNOVA — Documentation Portal                       │
+│  • Receives live token updates                          │
+│  • Always current — not manually maintained             │
+└───────────────────────┬─────────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────────┐
+│  SLACK — #design-system-updates                         │
+│  • Webhook notification on every successful sync        │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Key Architectural Decisions (Do Not Reverse Without Justification)
+
+| Decision | Rationale |
+|---|---|
+| Custom Figma Plugin over REST API | Plugin API runs inside Figma with full Variable access regardless of REST permission level. No REST tokens needed. Credentials stay in `figma.clientStorage`. |
+| W3C DTCG token format | Platform-agnostic standard. Supernova, Style Dictionary, and all modern tooling support it natively. Every future platform target consumes the same `tokens.json` without transformation. |
+| GitHub Actions for Supernova sync, not n8n | Sync must only run when `tokens.json` changes on `main`. Path-based GitHub Actions triggers make this exact. n8n is reserved for cross-service orchestration. |
+| Grep-based CI failure detection | Supernova CLI exits 0 even on internal errors. Explicit grep-based exit-1 on known failure strings prevents silent drift. |
+| All components consume `ILDSTokens` only | No hardcoded values anywhere. Token changes flow to components automatically. Brand refresh = one Figma save. |
+
+### Component Architecture Pattern (applies to all 18 components)
+
+Every ILDS Flutter component is built to this structural contract:
+
+```
+AnimatedContainer(duration: 150ms)          ← all state transitions
+  └── MouseRegion                            ← cursor feedback (desktop/web)
+        └── GestureDetector(opaque)          ← full bounding-box touch target
+              └── Focus + FocusNode          ← keyboard navigation + orange500 ring
+                    └── Semantics(...)       ← screen reader — meaningful, not generic
+                          └── [widget tree]  ← ILDSTokens.* only, zero hardcoded values
+```
+
+---
+
+## 5. Phase Breakdown & Progress
+
+### Phase 1 — Foundation ✅ COMPLETE
+
+**Goal:** Establish the token pipeline and prove the architecture with 5 core components.
+
+- [x] Figma Variables structure defined (112 tokens across 10 groups)
+- [x] Custom Figma plugin built (`ilds-plugin/`) — TypeScript, compiles clean
+- [x] W3C DTCG token format implemented
+- [x] GitHub push with SHA-retry conflict handling
+- [x] `tokens/tokens.json` on main branch — version controlled
+- [x] `ILDSTokens` Dart class generated — all 112 tokens (⚠️ currently drifted; codegen script regeneration pending)
+- [x] GitHub Action `sync-supernova.yml` — hardened with grep-based failure detection
+- [x] Supernova `supernova.settings.json` — `tokenSets: ["global"]`, `supernovaBrand: "Default"` (fixed from numeric ID)
+- [x] Slack webhook notification on sync
+- [x] 5 Phase 1 components: Button, TextField, Chip, Dropdown, Toast
+- [x] All Phase 1 components pass `flutter analyze` — zero issues
+
+**Files delivered:** `ilds-plugin/`, `tokens/tokens.json`, `.github/workflows/sync-supernova.yml`, `supernova.settings.json`, `lib/design_system/ilds_tokens.dart`, `lib/ilds_button.dart`, `lib/ilds_text_field.dart`, `lib/ilds_chip.dart`, `lib/ilds_dropdown.dart`, `lib/ilds_toast.dart`
+
+---
+
+### Phase 2 — Component Library + Code Connect ✅ COMPLETE
+
+**Goal:** Expand to 18 components, publish Code Connect for all, clean up deprecations.
+
+#### Tier 1 — Form Controls
+- [x] `ilds_radio.dart` — Radio + RadioGroup, error state uses `red600` (corrected from `red500`)
+- [x] `ilds_checkbox.dart` — tri-state (unchecked/checked/indeterminate), error uses `red600`
+- [x] `ilds_switch.dart` — AnimatedPositioned thumb, 200ms (documented deviation from 150ms standard)
+- [x] `ilds_text_area.dart` — full lifecycle (initState/didUpdateWidget/dispose), error uses `red600`
+
+#### Tier 2 — Navigation & Selection
+- [x] `ilds_tab.dart` — Fixed mode (Stack+Positioned orange indicator) + Scrollable mode (full-width neutral bar, see TODO §10)
+- [x] `ilds_pagination.dart` — threshold uses `7` not `ILDSTokens.spacing2` (semantic misuse corrected)
+- [x] `ilds_selection_button.dart` — uses `neutral600` (Cursor self-corrected from nonexistent `neutral700`)
+
+#### Tier 3 — Display & Utility
+- [x] `ilds_badge.dart` — `borderRadiusFull` pill, semantic colours (green50/700, red50/700, etc.)
+- [x] `ilds_tag.dart` — filter tag, pill shape
+- [x] `ilds_accordion.dart` — collapse/expand with AnimatedContainer
+- [x] `ilds_text_link.dart` — `Semantics(link: true)`, focus ring adapts to colour variant
+- [x] `ilds_scrollbar.dart` — full token depth: 6px default, 12px hover/drag, track/thumb/active colours
+
+#### Bonus
+- [x] `ilds_search.dart` — suggestions, disabled state
+
+#### Deprecation Cleanup (commit 53533d2)
+- [x] `MaterialStateProperty` → `WidgetStateProperty` (ilds_button.dart, ilds_text_field.dart)
+- [x] `MaterialState` → `WidgetState`
+- [x] `MaterialStateColor` → `WidgetStateColor`
+- [x] `withOpacity(0.08)` → `withValues(alpha: 0.08)` (ilds_chip.dart)
+- [x] Unreachable `default` case removed from switch (ilds_chip.dart)
+
+#### Code Connect
+- [x] 18 `.figma.ts` Code Connect files authored and published
+- [x] All files use `figma.enum()` for variant property mapping
+- ℹ️ `.figma.tsx` shim files are **gitignored and local-only** — they exist on individual machines as Code Connect tooling artefacts but are NOT tracked in the repo and are NOT completed deliverables
+
+#### Playground App
+- [x] `ilds_component_playground_app/` created — all 18 components rendered
+- [x] `NavigationRail` overflow present (see Pending Tasks §7 — Item 3)
+
+#### Handoff Report
+- [x] `docs/reports/CLAUDE_HANDOFF_2026-04-08.md` — Cursor-authored handoff doc
+- [x] `docs/reports/ILDS_STATUS_AND_RESUME_REPORT_2026-04-12.md`
+
+**Figma component node IDs (for Dev Mode verification):**
+| Component | Node ID |
+|---|---|
+| Radio | 13486:38485 |
+| Tab | 17667:2334 |
+| Accordion | 17726:494 |
+| Scrollbar | 17730:521 |
+
+---
+
+### Phase 3 — Web Platform (React) 🔴 NOT STARTED
+
+**Goal:** Extend ILDS to React. Deliver a Storybook site and a live public design system website.
+
+> ⚠️ **Style Dictionary prerequisite:** No Style Dictionary config exists in this repo — zero percent started. This is the first real cross-platform task and the mandatory first step of Phase 3. It is also a prerequisite for Phases 4, 6, and 7. Do not treat it as a minor add-on. It must be planned, scoped, and completed before any other Phase 3 work can proceed.
+
+#### Phase 3a — Token Export via Style Dictionary (prerequisite for everything else)
+
+**Goal:** Configure Style Dictionary to transform `tokens/tokens.json` → CSS custom properties + Tailwind config. Extend the GitHub Action to run this export on every `tokens/tokens.json` push.
+
+**Scope:**
+- Style Dictionary config file (`style-dictionary.config.js`) authored and committed
+- Output: `dist/tokens.css` (CSS custom properties) + `dist/tailwind-tokens.js` (Tailwind theme extension)
+- GitHub Action extended: multi-platform token export runs on `tokens/tokens.json` push
+- Validated: changing a token in Figma → plugin push → GitHub Action → CSS output updates automatically
+
+**Status:** `- [ ]` Not started — **start here**
+
+#### Phase 3b — React Component Parity (depends on Phase 3a)
+
+**Goal:** Build 18 React components matching Flutter component states, styled via the Phase 3a token output.
+
+**Scope:**
+- React + TypeScript component library (same 18 components, same 18 × states)
+- Tailwind CSS as styling utility layer, consuming Phase 3a token output
+- Storybook 8 — all components, all states documented
+- Public design system website — Vercel, auto-deploys on every merge to `main`
+- This is significant engineering effort: 18 components × full state coverage = 18× the effort of Phase 3a
+
+**Why this phase matters:** ILDS currently only serves Flutter. Web engineers have no design system. Phase 3 closes that gap and makes ILDS a true cross-platform system.
+
+**Suggested tech decisions:**
+- Style Dictionary for token export from `tokens.json` → CSS custom properties (Phase 3a)
+- Vercel for DS website hosting (connects to GitHub, auto-deploys)
+- Storybook 8 with Chromatic for visual regression
+
+**Status:** `- [ ]` Not started
+
+---
+
+### Phase 4 — Native Platform Parity (iOS + Android) 🔴 NOT STARTED
+
+**Goal:** Same `tokens.json` drives SwiftUI (iOS) and Compose (Android) — one token change reaches all 4 platforms.
+
+> ⚠️ **Style Dictionary prerequisite:** Same as Phase 3. Style Dictionary must be configured before any Phase 4 work begins. Phase 4 extends the same Style Dictionary config to emit Swift and Kotlin token classes.
+
+#### Phase 4a — Token Export for Native Platforms (depends on Phase 3a Style Dictionary foundation)
+
+**Goal:** Extend Style Dictionary to output Swift color/spacing constants (iOS) and a Kotlin/Compose token class (Android). Extend GitHub Action to emit these on every `tokens/tokens.json` push.
+
+**Status:** `- [ ]` Not started
+
+#### Phase 4b — Native Component Parity (depends on Phase 4a)
+
+**Goal:** 18 SwiftUI components (iOS) + 18 Jetpack Compose components (Android), consuming Phase 4a token output. Same states and architecture pattern as Flutter.
+
+**Why this phase matters:** ICICI Lombard's product spans iOS and Android natively. Today only Flutter gets token updates. Phase 4 completes the platform story.
+
+**Status:** `- [ ]` Not started
+
+---
+
+### Phase 5 — Component Evolution Engine 🔴 NOT STARTED
+
+**Goal:** Build the mechanical infrastructure that Phase 6 (DS Management Agent) will run on. The system can propose component changes as GitHub PRs, run visual regression against a baseline, and surface them for human sign-off. This phase does not introduce autonomous decision-making — it establishes the tooling and workflow that makes autonomous management possible in Phase 6.
+
+**What Phase 5 delivers (infrastructure, not intelligence):**
+- Chromatic visual regression baseline established for all 18 components
+- GitHub Branch API integration — automated PR creation from a component diff
+- PR template with mandatory fields: what changed, which screens affected, visual diff
+- Slack integration — PR notification with approve/reject action
+- Human sign-off loop — merge only on explicit approval
+- Automated post-merge trigger — approved component update flows through the existing token pipeline to all platforms
+
+**Architecture:**
+
+```
+Change proposal (manual or triggered)
+        │
+        ▼
+GitHub Branch API — creates feature branch + PR
+        │
+        ▼
+Chromatic — visual regression against component baseline
+        │
+        ▼
+Slack notification — diff shown, human approval required
+        │
+        ▼  (on human approve)
+GitHub merge → existing token + platform pipeline triggers
+        │
+        ▼
+All platforms updated simultaneously
+```
+
+**Why Phase 5 before Phase 6:** Phase 6 (DS Management Agent) needs a validated, working PR + regression + approval pipeline to operate through. Phase 5 builds that pipeline with humans still initiating the proposals. Phase 6 adds the intelligence layer that initiates proposals autonomously.
+
+**Status:** `- [ ]` Not started
+
+---
+
+### Phase 6 — DS Management Agent 🔴 NOT STARTED
+
+**Goal:** An intelligent agent that is the primary owner and manager of the ILDS design system — working alongside human design and dev managers. It receives component requirements (from the AI Design Assistant or any source), validates them, builds or updates the component across all platforms, and simultaneously deploys to every touch-point. Humans approve. The agent executes everything else.
+
+**Requires:** Phase 5 complete (PR + regression + approval pipeline must exist before the agent can use it).
+
+#### Role and Authority
+
+| Responsibility | Agent | Human managers |
+|---|---|---|
+| Receive and triage DS change requests | ✅ Agent | — |
+| Validate request against existing system | ✅ Agent | — |
+| Propose component build / update | ✅ Agent | Reviews and approves |
+| Build component (all platforms) | ✅ Agent | — |
+| Run visual regression (Chromatic) | ✅ Agent | — |
+| Approve and merge | — | ✅ Human required |
+| Deploy to all touch-points post-merge | ✅ Agent | — |
+| Communicate update to all comms | ✅ Agent | — |
+| Override or reject agent proposal | — | ✅ Human authority |
+
+#### Trigger Sources
+
+The DS Management Agent can be triggered by:
+1. **Phase 7 AI Design Assistant** — flagged new/updated component requirement (primary trigger once Phase 7 is live)
+2. **Human manager** — direct request via Slack command or GitHub issue
+3. **Proactive monitoring** — agent detects drift, inconsistency, or missing states across platforms
+
+#### What "managing the DS" means operationally
+
+When a requirement arrives, the agent:
+1. Reads the requirement and queries the existing component library
+2. Determines: new component / variant addition / token change / state update
+3. Validates it against DS rules (zero hardcoded values, architecture pattern, WCAG)
+4. Builds the update — Flutter first, then React, iOS, Android via Style Dictionary
+5. Raises a PR through the Phase 5 pipeline — includes visual regression, diff, affected screens
+6. Notifies human design + dev managers in Slack with full context for approval decision
+7. On approval: merges PR → token pipeline triggers → all platforms updated simultaneously → all touch-points notified
+
+#### Communication on Release
+
+When an update is approved and deployed, the agent simultaneously notifies:
+- Slack `#design-system-updates` — what changed, which component, which platforms
+- Supernova — documentation auto-updated
+- DS website — regenerated
+- Storybook — updated and redeployed
+- Figma — component and Code Connect updated
+- Phase 7 AI Design Assistant — notified to update any flagged screens using the new validated component
+
+**Architecture:**
+
+```
+Requirement received (from Phase 7 / human / monitoring)
+        │
+        ▼
+Claude API — analyses requirement vs. existing DS
+  • What type of change? (new / update / token / variant)
+  • Does it conflict with existing patterns?
+  • What platforms are affected?
+        │
+        ▼
+Agent builds component update
+  • Flutter (Dart) — lib/ + ILDSTokens
+  • React (via Style Dictionary) — Phase 3 output
+  • iOS SwiftUI + Android Compose (via Style Dictionary) — Phase 4 output
+  • Code Connect updated — all platforms
+        │
+        ▼
+Phase 5 pipeline — PR raised, Chromatic regression run
+        │
+        ▼
+Slack — human design + dev manager approval required
+        │
+        ▼  (on approval)
+GitHub merge → existing token pipeline → all platforms
+        │
+        ▼
+Simultaneous notification: Supernova + DS website + Storybook + Figma + Slack + Phase 7
+```
+
+**Key technical requirements:**
+- Claude API — requirement analysis, DS rules validation, component code generation
+- GitHub Branch + PR API — automated PR creation with structured description
+- Chromatic — visual regression against established baseline (Phase 5 prerequisite)
+- Style Dictionary — multi-platform output from single component definition
+- Figma Plugin API — component and Code Connect update on release
+- Slack API — approval workflow with action buttons (Approve / Request Changes)
+- All Phase 5 pipeline infrastructure
+
+#### Phase 6 Guardrails (required before going live)
+
+| Guardrail | Description |
+|---|---|
+| **Eval harness** | Automated test suite that validates agent outputs against a known-good component set before any agent-proposed PR is raised |
+| **Human approval hard gate** | No component change can merge without explicit human approval in Slack. This is enforced at the GitHub PR level — no auto-merge rules may be set on this repo |
+| **Rollback plan** | Every agent-initiated merge must include a one-command rollback (git revert + re-publish). Agent must confirm rollback path before raising PR |
+| **Thin vertical slice first** | Before building all Phase 6 capabilities, build and validate a single end-to-end flow: one component update → PR → visual regression → Slack approval → merge → multi-platform deploy. Ship nothing else until this slice is proven |
+| **Scope firewall** | Agent operates on `lib/` components only. It may not modify `tokens/tokens.json`, GitHub Action files, or CI configuration without explicit human instruction |
+
+**Status:** `- [ ]` Not started
+
+---
+
+### Phase 7 — AI Design Assistant Figma Plugin 🔴 NOT STARTED
+
+**Goal:** A Figma plugin that takes a PRD or brief as input, accepts design style definitions and reference links from the designer at ingestion, and generates complete UI screens — layouts, flows, components, spacing, and interactions — using ILDS components exclusively, placed directly into Figma frames.
+
+**Requires:** Phase 3 and Phase 4 complete (component index must cover all platforms and all 18+ components must have Code Connect published). Phase 6 (DS Management Agent) must also be operational — the Design Assistant routes all component gap requests to it.
+
+#### Ingestion Stage (what the designer provides at session start)
+
+| Input | Format | Purpose |
+|---|---|---|
+| PRD / brief / user flow | Text doc or paste | Defines screens, goals, user journeys |
+| Design language definition | Text or short doc | Brand voice, visual style, tone, design direction |
+| Reference links | Figma file links, image URLs | Visual references — style, layout patterns, inspiration |
+
+The plugin reads all three inputs at session start before generating anything.
+
+#### Generation Rules (enforced on every screen)
+
+1. **ILDS components only** — every interactive or UI element must be an ILDS component. No custom one-off elements.
+2. **Design style adherence** — layout decisions, density, typographic hierarchy must align with the designer's ingested style definition.
+3. **Universal design guidelines** — WCAG accessibility contrast ratios, minimum touch target sizes, logical reading order, meaningful labels on all interactive elements.
+4. **Reference alignment** — layout patterns and visual language must be consistent with pasted reference links.
+
+#### Component Gap Handling (non-blocking parallel flow)
+
+```
+AI identifies a screen requires Component X
+        │
+        ├── Component X exists in ILDS?
+        │       │
+        │       YES → place it, continue
+        │       │
+        │       NO (or needs update)
+        │              │
+        │              ├── Create best-effort version in Figma
+        │              │   (DS-aligned, visually correct, NOT thoroughly validated)
+        │              │
+        │              ├── Flag clearly: ⚠️ NEW COMPONENT — REQUIRES DS ADHERENCE CHECK
+        │              │
+        │              ├── Complete remaining screens without blocking
+        │              │
+        │              └── Fire requirement → DS Management Agent (Phase 6) [parallel]
+        │
+        ▼
+All screens completed and delivered to designer
+        │
+        (Later, async)
+        ▼
+DS Management Agent releases validated component update
+        │
+        ▼
+Designer / AI Assistant updates the flagged screens accordingly
+```
+
+#### Technical Architecture
+
+```
+Designer inputs (PRD + style definition + reference links)
+        │
+        ▼
+Claude API — reads all inputs, extracts:
+  • Screen list and user flows
+  • Per-screen component requirements
+  • Layout intent and design style constraints
+        │
+        ▼
+ILDS Component Index (Figma API — reads published components)
+  — searched semantically to match requirements to components
+        │
+        ▼
+figma.importComponentByKeyAsync — places components into frames
+  — applies variants, spacing (ILDSTokens), layout structure
+  — follows WCAG and universal guidelines as generation constraints
+        │
+        ├── All known components → placed and complete
+        │
+        └── Unknown/gap components → flagged + routed to Phase 6 (DS Management Agent) in parallel
+        │
+        ▼
+Figma frames delivered — designer reviews, iterates, or approves
+```
+
+**Key technical requirements:**
+- Figma Plugin API — `figma.importComponentByKeyAsync`, `figma.createFrame`, layout APIs
+- Claude API — multimodal (reads reference images) + text (reads PRD, style doc)
+- ILDS Component Index — built from published Figma components + Code Connect metadata
+- Reference link reading — Figma API for Figma links; Claude vision for image references
+- Flagging mechanism — Figma annotation layer or plugin panel listing all unvalidated components
+- Slack/webhook — fires gap requirements to Phase 6 (DS Management Agent) pipeline on detection
+
+**Note on Supabase pgvector:** Not in scope for initial Phase 7 build. Component index uses Figma API directly. pgvector-based persistent indexing is a future upgrade once the Phase 7 plugin is validated.
+
+#### Phase 7 Guardrails (required before going live)
+
+| Guardrail | Description |
+|---|---|
+| **Eval harness** | Test suite that validates generated screens against: WCAG contrast ratios, correct ILDS component usage, no custom one-off elements, design style adherence. Must pass before any screen is delivered to the designer |
+| **Designer review gate** | All generated screens land in a Figma frame clearly labelled `[AI DRAFT — REVIEW REQUIRED]`. Designer explicitly approves or revises before screens are used |
+| **Component gap transparency** | Every ⚠️ flagged component must appear in a visible plugin panel summary at session end — component name, screen(s) affected, DS Management Agent ticket reference |
+| **Thin vertical slice first** | Before building the full plugin, validate: one PRD → one screen → correct ILDS components placed in Figma → component gap correctly flagged and routed to Phase 6. Ship nothing else until this is proven |
+| **No hallucinated components** | The plugin must refuse to place any Figma component that is not in the published ILDS component index. Best-effort gap components must be visually distinct (dashed border or annotation layer) |
+
+**Status:** `- [ ]` Not started
+
+---
+
+## 6. Completed Work — Full Log
+
+### Infrastructure
+- [x] Custom Figma Plugin (TypeScript) — `ilds-plugin/code.ts`
+  - Reads Figma Variables via Plugin API (not REST)
+  - Converts to W3C DTCG format
+  - Pushes to GitHub with SHA-retry
+  - Credentials in `figma.clientStorage`
+  - Fixed: RGB interface renamed to `FigmaColor` (naming conflict with Figma typings)
+  - Fixed: `btoa` replaced with pure TS implementation (not available in ES2017)
+  - Fixed: `skipLibCheck: true` in `tsconfig.json`
+
+- [x] GitHub Action `sync-supernova.yml`
+  - Path trigger: `tokens/tokens.json`
+  - Supernova CLI sync
+  - Grep-based failure detection (exits 1 on known error strings)
+  - Fixed: `supernovaBrand: "Default"` (was numeric ID `817254`)
+  - Fixed: `tokenSets: ["global"]` (was `tokensTheme: "global"`)
+
+- [x] `ILDSTokens` Dart class — `lib/design_system/ilds_tokens.dart`
+  - Regenerated from `tokens.json` via `tool/generate_ilds_tokens.dart` (June 2026). All 112 tokens. Full Figma ramp now present, including `secondaryMaroon*` (previously missing entirely).
+  - Single import for all components
+  - Zero hardcoded values enforced via code review
+  - `flutter analyze lib/` clean on all 18 components post-regeneration
+
+- [x] `tool/generate_ilds_tokens.dart` — codegen script
+  - Run: `dart run tool/generate_ilds_tokens.dart`
+  - Regenerates `lib/design_system/ilds_tokens.dart` from `tokens/tokens.json`. Always re-run after any Figma token sync.
+
+### Components — 18 total, all passing `flutter analyze`
+See Section 8 for full component registry.
+
+### Code Connect — 18 files
+See `*.figma.ts` at repo root. All published. Scrollbar needs republish (see §7).
+
+### Documentation
+- [x] `docs/reports/CLAUDE_HANDOFF_2026-04-08.md`
+- [x] `docs/reports/ILDS_STATUS_AND_RESUME_REPORT_2026-04-12.md`
+- [x] `ILDS_ADMIN_REPORT.docx` — comprehensive admin report
+- [x] `ILDS_ADMIN_ACTION_ITEMS.docx` — 12 action cards
+- [x] `ILDS_CASE_STUDY.docx` — portfolio case study (Principal Designer voice)
+
+---
+
+## 7. Pending Tasks — Priority Order
+
+Work through these in the order listed. Do not skip ahead.
+
+---
+
+### 🔴 IMMEDIATE — Close Phase 2 (must complete before Phase 3 starts)
+
+#### Task 0 — 🔐 SECURITY: Rotate Figma PAT
+**Why:** The Figma PAT (`figd_…xr9O`) was committed in plaintext in `N8N_FIGMA_TOKENS_WORKFLOW.md` (3×) and `ILDS_PROJECT_REPORT.md` (2×). Both files have been redacted and the amended commit pushed. However, the PAT was live in chat history and docs — it must be considered compromised regardless of redaction.
+
+**Who:** Pratishek only (Figma account access required)
+**Steps:**
+1. Figma → Profile → Settings → Personal access tokens
+2. Revoke the old token (`figd_…xr9O`)
+3. Issue a new PAT
+4. Store it in `.env` (gitignored) or `figma.clientStorage` only — never in any `.md` file
+
+- [ ] Old PAT revoked in Figma
+- [ ] New PAT issued and stored securely
+
+---
+
+#### Task 1 — ✅ COMPLETE — Token Codegen Script (`tokens.json → ilds_tokens.dart`)
+
+**Completed June 2026.** Script is `tool/generate_ilds_tokens.dart`. Run with `dart run tool/generate_ilds_tokens.dart`.
+
+Key value shifts confirmed on commit:
+| Token | Old (drifted) | New (Figma-canonical) |
+|---|---|---|
+| `orange500` | `#E8440C` | `#E3530F` |
+| `orange600` | `#B93409` | `#C74C01` |
+| `red600` | `#DC2626` | `#E00903` |
+| `green600` | `#16A34A` | `#038542` |
+| `amber500` | `#F59E0B` | `#E49F04` |
+| `blue500` | `#2563EB` | `#2168F6` |
+
+Full ramps now present: `primaryOrange*`, `errorRed*`, `warningAmber*`, `successGreen*`, `neutralWarmgray*`, `neutralCoolgray*`, `secondaryMaroon*` (new), `secondaryBlue*`, `informativeBlue*`, `globalWhite000/Black1000`.
+Radius + spacing unchanged (not yet in `tokens.json` pipeline — separate future task).
+`flutter analyze lib/` clean on all 18 components.
+
+⚠️ **Figma cleanup required:** `informative-blue` keys in Figma Variables have a trailing space (`"50 "` etc.) — Cursor trimmed them, but the source needs fixing. Clean up the key names in Figma Variables and re-sync so the next export is canonical.
+
+- [x] Codegen script runs cleanly
+- [x] All drifted tokens corrected (Figma-canonical values confirmed)
+- [x] `flutter analyze` passes with zero issues
+- [ ] Committed and pushed (pending your go-ahead to Cursor)
+- [ ] Visual QA pass in playground — confirm `red600`, `orange500` render correctly after shift
+- [ ] Fix `informative-blue` trailing-space key names in Figma Variables
+
+---
+
+#### Task 2 — Republish All Code Connect Files + Dev Mode Verification
+**Why:** Multiple `*.figma.ts` files were edited locally since the last publish — not just Scrollbar. A full republish is required. Verify all 18 components show correct bindings in Dev Mode afterwards.
+
+**Who:** Cursor or developer
+**Command:**
+```bash
+cd /path/to/ilds-design-system
+npm run code-connect:publish
+```
+
+**Verify these 4 in Dev Mode (highest change risk):**
+| Component | Node ID | What to verify |
+|---|---|---|
+| Radio | 13486:38485 | `isSelected`, `isDisabled`, `hasError` bindings |
+| Tab | 17667:2334 | `type` (fixed/scrollable), `isDisabled` |
+| Accordion | 17726:494 | `isExpanded` |
+| Scrollbar | 17730:521 | `orientation` |
+
+- [ ] `npm run code-connect:publish` run successfully
+- [ ] Radio Dev Mode verified
+- [ ] Accordion Dev Mode verified
+- [ ] Scrollbar Dev Mode verified (after Task 1)
+
+---
+
+#### Task 3 — Fix Playground NavigationRail Overflow
+**Why:** `RenderFlex overflow` error in the playground app. Not a production issue (playground is dev tooling), but it makes the playground unusable for testing.
+
+**File:** `ilds_component_playground_app/lib/main.dart`
+**Fix:** Wrap the `destinations` list in a `SingleChildScrollView`.
+
+```dart
+// Before (causes overflow with many destinations):
+NavigationRail(
+  destinations: [...],
+)
+
+// After:
+SingleChildScrollView(
+  child: IntrinsicHeight(
+    child: NavigationRail(
+      destinations: [...],
+    ),
+  ),
+)
+```
+- [ ] Fix applied
+- [ ] Playground runs without overflow on all screen sizes
+
+---
+
+#### Task 4 — End-to-End Pipeline Test
+**Why:** Admin Action 11. A full sync test confirms the entire pipeline is live and correctly wired: Figma → Plugin → GitHub → Supernova → Slack.
+
+**Steps:**
+1. Open Figma → change any token value by 1 step (e.g., `orange500` hex by 1 digit)
+2. Open ILDS plugin → click Sync
+3. Verify `tokens/tokens.json` commit appears on GitHub (`main` branch)
+4. Verify GitHub Action `sync-supernova.yml` runs green
+5. Verify Supernova shows updated token value
+6. Verify Slack `#design-system-updates` received notification
+7. Revert the test token change in Figma → Sync again
+
+- [ ] Token change synced to GitHub
+- [ ] GitHub Action ran green
+- [ ] Supernova shows updated value
+- [ ] Slack notification received
+- [ ] Token reverted and resynced cleanly
+
+---
+
+### 🟡 SOON — Code Quality
+
+#### Task 5 — Tab Scrollable Indicator (GlobalKey-based)
+**Why:** `ilds_tab.dart` has a TODO comment in the scrollable mode implementation. Current state shows a full-width neutral bar instead of a scroll-linked indicator that tracks the selected tab.
+
+**Location:** `lib/ilds_tab.dart` — search for `TODO: scroll-linked selected-tab indicator`
+
+**What the TODO says:**
+```dart
+// TODO: scroll-linked selected-tab indicator (measure tab positions via GlobalKey /
+// LayoutBuilder). Until then, full-width neutral bar only — selection is text/icon color.
+```
+
+**Implementation approach:**
+- Assign a `GlobalKey` to each tab widget
+- After render, use `key.currentContext?.findRenderObject()` to get tab positions
+- Use a `ScrollController` to track scroll offset
+- Compute indicator `left` position from selected tab's `GlobalKey` position minus scroll offset
+- Animate with `AnimatedPositioned`
+
+- [ ] GlobalKey assigned to each tab
+- [ ] Tab positions measured post-render
+- [ ] Indicator left position computed from selected tab key
+- [ ] ScrollController linked to indicator position
+- [ ] Animated transition between selected tabs
+
+---
+
+### 🟢 PHASE 3 — Start When Phase 2 Closure Tasks (1–4) Are Complete
+
+See Section 5, Phase 3 for full scope.
+
+**Phase 3a (token export — start here first):**
+- [ ] Style Dictionary config (`style-dictionary.config.js`) authored and committed — ⚠️ zero config exists today; this is the prerequisite for Phases 3, 4, 6, and 7
+- [ ] Output: `dist/tokens.css` + `dist/tailwind-tokens.js`
+- [ ] GitHub Action extended: token export runs on `tokens/tokens.json` push
+- [ ] End-to-end validated: Figma → plugin → GitHub → CSS output updated
+
+**Phase 3b (React components — depends on 3a):**
+- [ ] React + TypeScript component library (18 components, full state parity with Flutter)
+- [ ] Tailwind CSS consuming Phase 3a token output
+- [ ] Storybook 8 — all components, all states
+- [ ] Public DS website — Vercel, auto-deploys on merge
+- [ ] Visual regression via Chromatic
+
+---
+
+### 🟢 PHASE 4 — Start After Phase 3 Is Shipped
+
+See Section 5, Phase 4.
+
+**Phase 4a:** Style Dictionary extended to Swift + Kotlin. Token export runs on CI.
+**Phase 4b:** 18 SwiftUI (iOS) + 18 Compose (Android) components consuming Phase 4a output.
+
+---
+
+### 🟢 PHASES 5, 6 & 7 — Future
+
+See Section 5 for full scope of each phase.
+
+- **Phase 5** (Component Evolution Engine) — can begin after Phase 4. Builds the PR + regression + approval infrastructure that Phase 6 depends on.
+- **Phase 6** (DS Management Agent) — requires Phase 5 complete. The agent operates through the Phase 5 pipeline; the pipeline must exist and be validated first.
+- **Phase 7** (AI Design Assistant) — requires Phases 3, 4, and 6 complete. Component index must cover all platforms, and the DS Management Agent must be operational to receive component gap requests.
+
+---
+
+## 8. Component Registry
+
+All components live in `lib/`. All pass `flutter analyze` with zero issues as of Phase 2 completion.
+
+| # | Component | File | Phase | States | Code Connect | Status |
+|---|---|---|---|---|---|---|
+| 1 | Button | `ilds_button.dart` | 1 | Default · Hover · Pressed · Focused · Disabled · Loading · Destructive | `button.figma.ts` | ✅ Live |
+| 2 | TextField | `ilds_text_field.dart` | 1 | Default · Focused · Filled · Error · Success · Disabled | `text_field.figma.ts` | ✅ Live |
+| 3 | Chip | `ilds_chip.dart` | 1 | Unselected · Selected · Disabled · Large · Medium | `chip.figma.ts` | ✅ Live |
+| 4 | Dropdown | `ilds_dropdown.dart` | 1 | Closed · Open · Error · Disabled | `dropdown.figma.ts` | ✅ Live |
+| 5 | Toast | `ilds_toast.dart` | 1 | Info · Success · Warning · Error · Auto-dismiss | `toast.figma.ts` | ✅ Live |
+| 6 | Radio | `ilds_radio.dart` | 2 | Default · Selected · Focused · Disabled · Error · H/V layout | `radio.figma.ts` | ✅ Live |
+| 7 | Checkbox | `ilds_checkbox.dart` | 2 | Unchecked · Checked · Indeterminate · Disabled · Error | `checkbox.figma.ts` | ✅ Live |
+| 8 | Switch | `ilds_switch.dart` | 2 | Off · On · Focused · Disabled-Off · Disabled-On | `switch.figma.ts` | ✅ Live |
+| 9 | Text Area | `ilds_text_area.dart` | 2 | Default · Focused · Error · Success · ReadOnly · Loading | `text_area.figma.ts` | ✅ Live |
+| 10 | Tab Bar | `ilds_tab.dart` | 2 | Fixed · Scrollable · Active · Hover · Pressed · Disabled | `tab.figma.ts` | ✅ Live* |
+| 11 | Pagination | `ilds_pagination.dart` | 2 | Default · Current · Disabled · Ellipsis · Compact | `pagination.figma.ts` | ✅ Live |
+| 12 | Selection Button | `ilds_selection_button.dart` | 2 | Unselected · Selected · Hover · Focused · Disabled | `selection_button.figma.ts` | ✅ Live |
+| 13 | Badge | `ilds_badge.dart` | 2 | Subtle · Intense · Success · Error · Warning · Info · Loading | `badge.figma.ts` | ✅ Live |
+| 14 | Tag | `ilds_tag.dart` | 2 | Default · Selected · Disabled | `tag.figma.ts` | ✅ Live |
+| 15 | Accordion | `ilds_accordion.dart` | 2 | Collapsed · Expanded · Hover · Disabled | `accordion.figma.ts` | ✅ Live |
+| 16 | Text Link | `ilds_text_link.dart` | 2 | Default · Hover · Pressed · Visited · Disabled · White | `text_link.figma.ts` | ✅ Live |
+| 17 | Scrollbar | `ilds_scrollbar.dart` | 2 | Default(6px) · Hover(12px) · Dragged · V · H | `scrollbar.figma.ts` | ⚠️ Republish needed |
+| 18 | Search | `ilds_search.dart` | 2 | Default · Focused · Filled · Suggestions · Disabled | `search.figma.ts` | ✅ Live |
+
+*Tab scrollable indicator is a placeholder — see Known TODOs §10.
+
+---
+
+## 9. Token Registry
+
+All tokens live in `tokens/tokens.json` (W3C DTCG format) and are mirrored in `lib/design_system/ilds_tokens.dart`.
+
+> ℹ️ **Canonical values:** All values below are from `tokens.json` (Figma source of truth). The Dart class was regenerated via `tool/generate_ilds_tokens.dart` in June 2026 — commit pending visual QA. Always run `dart run tool/generate_ilds_tokens.dart` after any Figma token sync.
+
+| Token Group | Count | Description | Example Flutter ref |
+|---|---|---|---|
+| `primary-orange` | 10 | Brand orange — primary actions, interactive states, focus rings | `ILDSTokens.orange500` (#E3530F) |
+| `secondary-maroon` | 10 | Secondary brand — supporting CTAs, selected states | `ILDSTokens.maroon500` |
+| `secondary-blue` | 10 | ICICI blue accent | `ILDSTokens.secondaryBlue500` |
+| `neutral-warmgray` | 12 | Warm-toned neutrals — backgrounds, dividers, disabled | `ILDSTokens.neutralWarmgray200` |
+| `neutral-coolgray` | 12 | Cool-toned neutrals — text, borders, icons | `ILDSTokens.neutralCoolgray900` |
+| `informative-blue` | 8 | Informational states | `ILDSTokens.informativeBlue500` |
+| `success-green` | 8 | Success / positive states | `ILDSTokens.successGreen600` (#16A34A) |
+| `warning-amber` | 8 | Warning states | `ILDSTokens.warningAmber500` |
+| `error-red` | 8 | Error / destructive states | `ILDSTokens.errorRed600` (#DC2626) |
+| `global` | 16 | Spacing (12), border radius (8) | `ILDSTokens.spacing4` (16px), `ILDSTokens.borderRadiusMd` (8px) |
+| **Total** | **112** | 92 colour + 12 spacing + 8 radius | |
+
+### Critical token usage rules (enforced in code review)
+- `orange500 = #E3530F` (canonical brand orange). Do not confuse with the drifted Dart value `#E8440C` — codegen will fix this.
+- `red600` (#DC2626) is the error/destructive colour — NOT `red500`
+- `neutral300` is the disabled text colour — NOT `neutral200` (neutral200 is a border)
+- Spacing tokens (`spacingN`) are for layout/padding/margin only — never as numeric thresholds in logic
+- `borderRadiusFull` (9999px) is for pills — `borderRadiusMd` (8px) is for standard components
+
+---
+
+## 10. Known In-Code TODOs
+
+These are tracked issues inside source files that need to be addressed.
+
+| Priority | File | Line | Issue | Fix |
+|---|---|---|---|---|
+| Medium | `lib/ilds_tab.dart` | line 191 | Scrollable mode indicator is a full-width neutral bar placeholder | Implement GlobalKey-based scroll-linked indicator (see Task 5 in §7) |
+| Low | `ilds_component_playground_app/lib/main.dart` | NavigationRail section | RenderFlex overflow | Wrap destinations in `SingleChildScrollView` (see Task 3 in §7) |
+| Low | `scrollbar.figma.ts` | Orientation binding | Updated but not republished | Run `npm run code-connect:publish` — full republish (see Task 2 in §7) |
+
+---
+
+## 11. File Map
+
+### Repository Root (key files)
+```
+ilds-design-system/
+├── ILDS_PROJECT_MASTER.md          ← THIS FILE — project source of truth
+├── tokens/
+│   └── tokens.json                 ← W3C DTCG token file — DO NOT edit manually
+├── lib/
+│   ├── design_system/
+│   │   └── ilds_tokens.dart        ← Single token source for Flutter — DO NOT hardcode
+│   ├── ilds_button.dart
+│   ├── ilds_text_field.dart
+│   ├── ilds_chip.dart
+│   ├── ilds_dropdown.dart
+│   ├── ilds_toast.dart
+│   ├── ilds_radio.dart
+│   ├── ilds_checkbox.dart
+│   ├── ilds_switch.dart
+│   ├── ilds_text_area.dart
+│   ├── ilds_tab.dart               ← has TODO for scrollable indicator
+│   ├── ilds_pagination.dart
+│   ├── ilds_selection_button.dart
+│   ├── ilds_badge.dart
+│   ├── ilds_tag.dart
+│   ├── ilds_accordion.dart
+│   ├── ilds_text_link.dart
+│   ├── ilds_scrollbar.dart
+│   └── ilds_search.dart
+├── tool/
+│   └── generate_ilds_tokens.dart   ← run: dart run tool/generate_ilds_tokens.dart
+├── ilds-plugin/
+│   ├── code.ts                     ← Figma plugin source (TypeScript)
+│   ├── code.js                     ← compiled output
+│   ├── manifest.json
+│   └── ui.html
+├── .github/
+│   └── workflows/
+│       └── sync-supernova.yml      ← token sync CI — hardened with grep failure detection
+├── supernova.settings.json         ← tokenSets: ["global"], supernovaBrand: "Default"
+├── figma.config.json               ← Code Connect config
+├── *.figma.ts                      ← 18 Code Connect files (one per component) — tracked in git
+├── *.figma.tsx                     ← local-only Code Connect tooling artefacts — gitignored, NOT deliverables
+├── ilds_component_playground_app/  ← dev playground — NavigationRail overflow (Task 3)
+└── docs/
+    └── reports/
+        ├── CLAUDE_HANDOFF_2026-04-08.md
+        └── ILDS_STATUS_AND_RESUME_REPORT_2026-04-12.md
+```
+
+### Files to NEVER edit manually
+- `tokens/tokens.json` — updated only by the Figma plugin
+- `lib/design_system/ilds_tokens.dart` — regenerated from `tokens.json` via the codegen script (script is being built by Cursor — do NOT manually edit values)
+
+> ⚠️ **Commit reminder:** `ILDS_PROJECT_MASTER.md` is currently untracked. After finishing the errata sweep, run `git add ILDS_PROJECT_MASTER.md && git commit -m "docs: add project master document (single source of truth)"` to bring it under version control.
+
+---
+
+## 12. Non-Negotiable Rules
+
+These apply to every agent, every session, every PR.
+
+1. **Zero hardcoded values.** Every colour, spacing, radius, and weight in every Flutter component must reference `ILDSTokens`. If a value is not in the token class, add it to the token class first. No exceptions. Verified by `flutter analyze` + code review on every PR.
+
+2. **One source of truth.** Tokens are defined in Figma Variables only. `tokens.json` is downstream. `ILDSTokens.dart` is downstream. If you need a new token, add it in Figma first, sync via plugin, regenerate the class.
+
+3. **Error colour is `red600`, not `red500`.** `red600` = #DC2626. This was a real bug caught in Phase 2. Any error state, destructive action, or validation failure uses `red600`. The focus ring colour is `orange500` = #E3530F (canonical, from `tokens.json`).
+
+4. **Spacing tokens are for spacing.** `ILDSTokens.spacingN` values must never be used as numeric thresholds in business logic. Use plain integer literals for logic gates.
+
+5. **The pipeline must fail loudly.** If any CI step produces ambiguous output, add explicit failure detection. Silent success with wrong output is worse than a visible failure.
+
+6. **Every interactive component follows the architecture pattern.** AnimatedContainer (150ms) → MouseRegion → GestureDetector (opaque) → Focus + FocusNode → Semantics (contextual) → token-only widget tree. No shortcuts.
+
+7. **Do not touch `sync-supernova.yml` without understanding the grep failure detection.** The Supernova CLI exits 0 on failure. The grep-based exit-1 logic is intentional and critical.
+
+---
+
+## 13. Tech Stack Reference
+
+| Layer | Tool | Version / Notes |
+|---|---|---|
+| Component platform | Flutter (Dart) | Package — no `main.dart` |
+| Token format | W3C DTCG JSON | `tokens/tokens.json` |
+| Design tool | Figma | Variables API (Plugin) |
+| Plugin language | TypeScript | `ilds-plugin/` |
+| Version control | GitHub | `dsoftacademy/ilds-design-system` |
+| CI/CD | GitHub Actions | `.github/workflows/` |
+| Documentation portal | Supernova | Synced via CLI in CI |
+| Notifications | Slack | `#design-system-updates` webhook |
+| Code Connect | Figma Code Connect | 18 `.figma.ts` files at repo root |
+| Phase 3 target | React + TypeScript | Not started |
+| Phase 3 styling | Tailwind CSS | Not started |
+| Phase 3 docs | Storybook 8 | Not started |
+| Phase 3 hosting | Vercel | Not started |
+| Phase 4 export | Style Dictionary | Not started |
+| Phase 4 iOS | SwiftUI | Not started |
+| Phase 4 Android | Jetpack Compose | Not started |
+| Phase 5 visual regression | Chromatic | Not started |
+| Phase 5 PR automation | GitHub Branch + PR API | Not started |
+| Phase 6 DS agent intelligence | Claude API (requirement analysis + code generation) | Not started |
+| Phase 6 approval workflow | Slack API with action buttons | Not started |
+| Phase 6 multi-platform deploy | Style Dictionary + existing token pipeline | Not started |
+| Phase 7 AI (screen generation) | Claude API (multimodal) + Figma Plugin API | Not started |
+| Phase 7 references | Claude vision + Figma API for reference link reading | Not started |
+| Phase 5–7 future upgrade | Supabase pgvector (component + project indexing) | Post-validation |
+
+---
+
+*End of ILDS_PROJECT_MASTER.md*
+*To update this file: edit directly and commit to `main`. This is a living document.*
