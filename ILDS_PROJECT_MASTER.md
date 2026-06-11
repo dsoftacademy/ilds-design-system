@@ -77,7 +77,7 @@ The library contains 18 production-ready Flutter components, 112 design tokens, 
 
 | Level | Description | Current status |
 |---|---|---|
-| **L1 — Token propagation** | Token changes flow automatically to `tokens.json` + Supernova + Slack. Flutter not yet reached (codegen script missing; Dart class drifted). | ⚠️ Partial |
+| **L1 — Token propagation** | Token changes flow automatically to `tokens.json` + Supernova + Slack + Flutter (`dart run tool/generate_ilds_tokens.dart` regenerates the Dart class from `tokens.json`). Multi-platform (React, iOS, Android) requires Phases 3–4. | ✅ Flutter achieved |
 | **L2 — Component consistency** | All components built to a single architectural pattern, zero hardcoded values | ✅ Achieved |
 | **L3 — Handoff automation** | Dev Mode shows real Flutter code for all 18 components. Multi-language handoff (React, SwiftUI, Compose) requires Phases 3–4. | ✅ Flutter only |
 | **L4 — Platform parity** | Same token file drives Flutter, React, iOS, Android simultaneously | ❌ Phase 3–4 |
@@ -101,7 +101,7 @@ The library contains 18 production-ready Flutter components, 112 design tokens, 
 
 ### What is functionally incomplete (known gaps)
 
-- **`ILDSTokens` Dart class drift — resolved (June 2026).** Codegen script (`tool/generate_ilds_tokens.dart`) built and run. All 112 tokens now Figma-canonical. Commit pending visual QA sign-off. Do not manually edit the class — always regenerate via script after any Figma token sync.
+- **`ILDSTokens` Dart class drift — resolved (June 2026).** Codegen script (`tool/generate_ilds_tokens.dart`) built, run, Figma-verified, and committed (`17d7120`). All 112 tokens now Figma-canonical. Do not manually edit the class — always regenerate via script after any Figma token sync.
 - **Supernova component documentation is ~20% complete** — token pages sync automatically; component pages (usage, anatomy, states, guidance) are written manually and lag behind implementation. This is a separate workstream from the token pipeline and needs explicit resourcing.
 - **Several `*.figma.ts` Code Connect files edited locally but not republished** — scope of Task 1 below is full republish + Dev Mode verification, not Scrollbar only.
 - **Tab scrollable indicator** — TODO at line 191 of `ilds_tab.dart`; current implementation shows a full-width neutral bar placeholder.
@@ -210,7 +210,7 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 - [x] W3C DTCG token format implemented
 - [x] GitHub push with SHA-retry conflict handling
 - [x] `tokens/tokens.json` on main branch — version controlled
-- [x] `ILDSTokens` Dart class generated — all 112 tokens (⚠️ currently drifted; codegen script regeneration pending)
+- [x] `ILDSTokens` Dart class generated from `tokens.json` via `tool/generate_ilds_tokens.dart` — all 112 tokens, Figma-canonical
 - [x] GitHub Action `sync-supernova.yml` — hardened with grep-based failure detection
 - [x] Supernova `supernova.settings.json` — `tokenSets: ["global"]`, `supernovaBrand: "Default"` (fixed from numeric ID)
 - [x] Slack webhook notification on sync

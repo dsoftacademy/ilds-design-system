@@ -149,3 +149,6 @@ vite.config.ts.timestamp-*
 
 # Duplicate Code Connect stubs (canonical mappings are *.figma.ts at repo root)
 ilds_*.figma.tsx
+
+# Generated Word reports (derived from markdown sources)
+ILDS_*.docx
