@@ -27,7 +27,7 @@ class IldsPagination extends StatelessWidget {
   final List<int> pageSizeOptions;
 
   List<int> _visiblePages() {
-    if (totalPages <= ILDSTokens.spacing2) {
+    if (totalPages <= 7) {
       return List<int>.generate(totalPages, (index) => index + 1);
     }
     final Set<int> pages = <int>{1, totalPages, currentPage};

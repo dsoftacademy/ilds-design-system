@@ -64,7 +64,7 @@ class _IldsTabBarState extends State<IldsTabBar> {
 
   Color _textColor(int index) {
     final IldsTabItem tab = widget.tabs[index];
-    if (tab.isDisabled) return ILDSTokens.neutral200;
+    if (tab.isDisabled) return ILDSTokens.neutral300;
     if (_selectedIndex == index) {
       return widget.emphasis == IldsTabEmphasis.high ? ILDSTokens.orange500 : ILDSTokens.neutral900;
     }
@@ -169,25 +169,35 @@ class _IldsTabBarState extends State<IldsTabBar> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Stack(
-          children: [
-            tabsRow,
-            Positioned(
-              bottom: 0,
-              left: widget.type == IldsTabType.fixed
-                  ? (MediaQuery.of(context).size.width / widget.tabs.length) * _selectedIndex
-                  : null,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                height: ILDSTokens.borderWidth2 + ILDSTokens.borderWidth1,
-                width: widget.type == IldsTabType.fixed
-                    ? MediaQuery.of(context).size.width / widget.tabs.length
-                    : ILDSTokens.spacing12 + ILDSTokens.spacing4,
-                color: _indicatorColor(),
+        if (widget.type == IldsTabType.fixed)
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              tabsRow,
+              Positioned(
+                bottom: 0,
+                left: (MediaQuery.of(context).size.width / widget.tabs.length) * _selectedIndex,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  height: ILDSTokens.borderWidth2 + ILDSTokens.borderWidth1,
+                  width: MediaQuery.of(context).size.width / widget.tabs.length,
+                  color: _indicatorColor(),
+                ),
               ),
+            ],
+          )
+        else ...[
+          tabsRow,
+          // TODO: scroll-linked selected-tab indicator (measure tab positions via GlobalKey /
+          // LayoutBuilder). Until then, full-width neutral bar only — selection is text/icon color.
+          SizedBox(
+            width: double.infinity,
+            child: ColoredBox(
+              color: ILDSTokens.neutral200,
+              child: SizedBox(height: ILDSTokens.borderWidth2 + ILDSTokens.borderWidth1),
             ),
-          ],
-        ),
+          ),
+        ],
         const Divider(
           height: ILDSTokens.borderWidth1,
           thickness: ILDSTokens.borderWidth1,
