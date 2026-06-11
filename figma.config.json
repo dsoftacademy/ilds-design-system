@@ -1,6 +1,6 @@
 {
   "codeConnect": {
-    "include": ["**/*.figma.ts", "**/*.figma.tsx"],
+    "include": ["**/*.figma.ts"],
     "label": "Flutter",
     "language": "dart"
   }
