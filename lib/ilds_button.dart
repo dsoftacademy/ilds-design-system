@@ -41,6 +41,16 @@ class IldsButton extends StatelessWidget {
       : ILDSTokens.red600;
 
   EdgeInsets _padding() {
+    if (type == IldsButtonType.tertiary) {
+      switch (size) {
+        case IldsButtonSize.large:
+          return const EdgeInsets.symmetric(vertical: 12);
+        case IldsButtonSize.medium:
+          return const EdgeInsets.symmetric(vertical: 8);
+        case IldsButtonSize.small:
+          return const EdgeInsets.symmetric(vertical: 6);
+      }
+    }
     switch (size) {
       case IldsButtonSize.large:
         return const EdgeInsets.symmetric(horizontal: 16, vertical: 12);
@@ -108,13 +118,23 @@ class IldsButton extends StatelessWidget {
   }
 
   double? _minHeight() {
-    if (size == IldsButtonSize.small) return 28;
-    return null;
+    switch (size) {
+      case IldsButtonSize.large:
+        return 48;
+      case IldsButtonSize.medium:
+        return 36;
+      case IldsButtonSize.small:
+        return 28;
+    }
   }
 
+  /// Figma pressed primary normal — primary-orange-600 (not 700).
   Color? _pressedOverlayColor() {
     if (type == IldsButtonType.primary && appearance == IldsButtonAppearance.normal) {
-      return ILDSTokens.orange700;
+      return ILDSTokens.orange600;
+    }
+    if (type == IldsButtonType.primary && appearance == IldsButtonAppearance.destructive) {
+      return ILDSTokens.red700;
     }
     return null;
   }
@@ -125,25 +145,25 @@ class IldsButton extends StatelessWidget {
     if (isDisabled) {
       switch (type) {
         case IldsButtonType.primary:
-          // Token: color.orange.200 — disabled primary background
+          // Figma disabled primary — neutral-coolgray-400 surface, white label
           return _ButtonColors(
-            background: ILDSTokens.orange200,
+            background: ILDSTokens.neutralCoolgray400,
             foreground: ILDSTokens.white,
             borderColor: null,
             borderWidth: 0,
           );
         case IldsButtonType.secondary:
-          // Token: color.neutral.50 surface, color.neutral.300 border + label
+          // Figma disabled secondary — coolgray-50 / coolgray-400 border + label
           return _ButtonColors(
-            background: ILDSTokens.neutral50,
-            foreground: ILDSTokens.neutral300,
-            borderColor: ILDSTokens.neutral300,
+            background: ILDSTokens.neutralCoolgray50,
+            foreground: ILDSTokens.neutralCoolgray400,
+            borderColor: ILDSTokens.neutralCoolgray400,
             borderWidth: ILDSTokens.borderWidth1,
           );
         case IldsButtonType.tertiary:
           return _ButtonColors(
             background: Colors.transparent,
-            foreground: ILDSTokens.neutral300,
+            foreground: ILDSTokens.neutralCoolgray400,
             borderColor: null,
             borderWidth: 0,
           );

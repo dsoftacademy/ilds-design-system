@@ -88,6 +88,39 @@ export const WithBothIcons: Story = {
   },
 };
 
+export const SkeletonPrimary: Story = {
+  name: 'Skeleton (PRESUMED visual)',
+  args: { type: 'primary', isSkeleton: true, label: 'Loading…' },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'PRESUMED — no Figma Skeleton node pulled. Placeholder pulse using coolgray-200; not parity-verified.',
+      },
+    },
+  },
+};
+
+export const HoverCheckPrimary: Story = {
+  name: 'QA — hover primary',
+  args: { type: 'primary', size: 'large', label: 'Hover me' },
+  parameters: {
+    docs: { description: { story: 'Figma 13472:3060 — hover bg primary-orange-400' } },
+  },
+};
+
+export const FocusCheckPrimary: Story = {
+  name: 'QA — focus outline (Tab)',
+  args: { type: 'primary', size: 'large', label: 'Tab to focus' },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Figma 13472:3135 — outline-2 primary-orange-600, outline-offset 1px',
+      },
+    },
+  },
+};
+
 export const SizeMatrix: Story = {
   render: () => (
     <div className="flex flex-col gap-sp-16">

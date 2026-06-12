@@ -12,77 +12,135 @@ export interface IldsButtonProps
   appearance?: IldsButtonAppearance;
   isDisabled?: boolean;
   isLoading?: boolean;
+  /** Figma State=Skeleton — visual PRESUMED (no Figma node pulled); basic pulse placeholder. */
+  isSkeleton?: boolean;
   leading?: ReactNode;
   trailing?: ReactNode;
 }
 
-const sizeClasses: Record<IldsButtonSize, string> = {
-  large: 'px-sp-16 py-sp-12 text-16 min-h-0',
-  medium: 'px-sp-12 py-sp-8 text-14',
-  small: 'px-sp-12 py-sp-6 text-12 min-h-[28px]',
+type SizeConfig = {
+  padding: string;
+  tertiaryPadding: string;
+  text: string;
+  minHeight: string;
+  gap: string;
+  spinner: string;
+  labelBox: string;
 };
 
-const gapClasses: Record<IldsButtonSize, string> = {
-  large: 'gap-sp-2',
-  medium: 'gap-sp-2',
-  small: 'gap-sp-6',
+const sizeConfig: Record<IldsButtonSize, SizeConfig> = {
+  large: {
+    padding: 'px-sp-16 py-sp-12',
+    tertiaryPadding: 'px-0 py-sp-12',
+    text: 'text-16 leading-[20px]',
+    minHeight: 'h-sp-48',
+    gap: 'gap-sp-8',
+    spinner: 'size-sp-24',
+    labelBox: 'h-sp-24',
+  },
+  medium: {
+    padding: 'px-sp-12 py-sp-8',
+    tertiaryPadding: 'px-0 py-sp-8',
+    text: 'text-14 leading-[16px]',
+    minHeight: 'h-[36px]',
+    gap: 'gap-sp-8',
+    spinner: 'size-sp-20',
+    labelBox: 'h-sp-20',
+  },
+  small: {
+    padding: 'px-sp-12 py-sp-6',
+    tertiaryPadding: 'px-0 py-sp-6',
+    text: 'text-12 leading-[16px]',
+    minHeight: 'h-[28px]',
+    gap: 'gap-sp-6',
+    spinner: 'size-sp-16',
+    labelBox: 'h-sp-16',
+  },
 };
 
-const spinnerSize: Record<IldsButtonSize, string> = {
-  large: 'size-sp-24',
-  medium: 'size-sp-20',
-  small: 'size-sp-16',
-};
+const disabledFg = 'text-neutral-coolgray-400';
 
-function resolveClasses(
+function interactiveClasses(
   buttonType: IldsButtonType,
   appearance: IldsButtonAppearance,
-  isDisabled: boolean,
-  isLoading: boolean,
 ): string {
-  const accent =
-    appearance === 'destructive'
-      ? 'bg-error-red-600 border-error-red-600 text-white'
-      : 'bg-primary-orange-500 border-primary-orange-500 text-white';
-
-  const accentText =
-    appearance === 'destructive' ? 'text-error-red-600' : 'text-primary-orange-500';
-
-  const accentBorder =
-    appearance === 'destructive' ? 'border-error-red-600' : 'border-primary-orange-500';
-
-  if (isDisabled) {
-    switch (buttonType) {
-      case 'primary':
-        return 'bg-primary-orange-200 text-white border-transparent';
-      case 'secondary':
-        return 'bg-neutral-coolgray-50 text-neutral-coolgray-500 border-neutral-coolgray-500';
-      case 'tertiary':
-        return 'bg-transparent text-neutral-coolgray-500 border-transparent';
-    }
+  if (buttonType === 'primary' && appearance === 'normal') {
+    return [
+      'bg-primary-orange-500 text-white-000 border-transparent',
+      'hover:bg-primary-orange-400',
+      'active:bg-primary-orange-600',
+    ].join(' ');
   }
 
-  if (isLoading) {
-    switch (buttonType) {
-      case 'primary':
-        return `${accent} border-transparent`;
-      case 'secondary':
-        return `bg-white ${accentText} border ${accentBorder}`;
-      case 'tertiary':
-        return `bg-transparent ${accentText} border-transparent`;
-    }
+  if (buttonType === 'primary' && appearance === 'destructive') {
+    return [
+      'bg-error-red-600 text-white-000 border-transparent',
+      'hover:bg-error-red-500',
+      'active:bg-error-red-700',
+    ].join(' ');
   }
 
+  if (buttonType === 'secondary' && appearance === 'normal') {
+    // Pressed: Figma 13472:3024 — bg error-red-100, border/text primary-orange-600
+    return [
+      'bg-white-000 text-primary-orange-500 border-primary-orange-500',
+      'hover:bg-primary-orange-50 hover:text-primary-orange-500 hover:border-primary-orange-500',
+      'active:bg-error-red-100 active:text-primary-orange-600 active:border-primary-orange-600',
+    ].join(' ');
+  }
+
+  if (buttonType === 'secondary' && appearance === 'destructive') {
+    return [
+      'bg-white-000 text-error-red-600 border-error-red-600',
+      'hover:bg-error-red-50 hover:text-error-red-600 hover:border-error-red-600',
+      'active:bg-error-red-100 active:text-error-red-700 active:border-error-red-700',
+    ].join(' ');
+  }
+
+  if (buttonType === 'tertiary' && appearance === 'normal') {
+    // Hover 13472:3114 (orange-400), pressed 13472:3042 (orange-600)
+    return [
+      'bg-transparent text-primary-orange-500 border-transparent',
+      'hover:text-primary-orange-400',
+      'active:text-primary-orange-600',
+    ].join(' ');
+  }
+
+  return [
+    'bg-transparent text-error-red-600 border-transparent',
+    'hover:text-error-red-500',
+    'active:text-error-red-700',
+  ].join(' ');
+}
+
+function disabledClasses(buttonType: IldsButtonType): string {
   switch (buttonType) {
     case 'primary':
-      return `${accent} border-transparent ${
-        appearance === 'normal' ? 'active:bg-primary-orange-700' : ''
-      }`;
+      return 'bg-neutral-coolgray-400 text-white-000 border-transparent';
     case 'secondary':
-      return `bg-white ${accentText} border ${accentBorder}`;
+      return `bg-neutral-coolgray-50 ${disabledFg} border-neutral-coolgray-400`;
     case 'tertiary':
-      return `bg-transparent ${accentText} border-transparent`;
+      return `bg-transparent ${disabledFg} border-transparent`;
   }
+}
+
+function loadingClasses(
+  buttonType: IldsButtonType,
+  appearance: IldsButtonAppearance,
+): string {
+  if (buttonType === 'primary') {
+    return appearance === 'destructive'
+      ? 'bg-error-red-600 text-white-000 border-transparent'
+      : 'bg-primary-orange-500 text-white-000 border-transparent';
+  }
+  if (buttonType === 'secondary') {
+    return appearance === 'destructive'
+      ? 'bg-white-000 text-error-red-600 border-error-red-600'
+      : 'bg-white-000 text-primary-orange-500 border-primary-orange-500';
+  }
+  return appearance === 'destructive'
+    ? 'bg-transparent text-error-red-600 border-transparent'
+    : 'bg-transparent text-primary-orange-500 border-transparent';
 }
 
 function Spinner({ className }: { className: string }) {
@@ -101,27 +159,45 @@ export function IldsButton({
   appearance = 'normal',
   isDisabled = false,
   isLoading = false,
+  isSkeleton = false,
   leading,
   trailing,
   className = '',
   ...rest
 }: IldsButtonProps) {
-  const interactive = !isDisabled && !isLoading;
-  const showLeading = Boolean(leading) && !isLoading;
-  const showTrailing = Boolean(trailing) && !isLoading;
+  const interactive = !isDisabled && !isLoading && !isSkeleton;
+  const showLeading = Boolean(leading) && !isLoading && !isSkeleton;
+  const showTrailing = Boolean(trailing) && !isLoading && !isSkeleton;
+  const cfg = sizeConfig[size];
+  const padding =
+    buttonType === 'tertiary' ? cfg.tertiaryPadding : cfg.padding;
+  const borderClass = buttonType === 'secondary' ? 'border' : 'border-0';
+
+  const stateClasses = isSkeleton
+    ? 'bg-neutral-coolgray-200 text-transparent border-transparent animate-pulse pointer-events-none'
+    : isDisabled
+      ? disabledClasses(buttonType)
+      : isLoading
+        ? loadingClasses(buttonType, appearance)
+        : interactiveClasses(buttonType, appearance);
 
   return (
     <button
       type="button"
       disabled={!interactive}
       aria-busy={isLoading}
+      aria-disabled={isDisabled || isSkeleton}
       className={[
-        'inline-flex items-center justify-center font-primary font-bold rounded-large border',
-        'transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-orange-500',
+        'inline-flex items-center justify-center font-primary font-bold rounded-large',
+        borderClass,
+        'transition-colors',
+        'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-orange-600',
         'disabled:pointer-events-none',
-        sizeClasses[size],
-        gapClasses[size],
-        resolveClasses(buttonType, appearance, isDisabled, isLoading),
+        cfg.minHeight,
+        cfg.gap,
+        cfg.text,
+        padding,
+        stateClasses,
         className,
       ]
         .filter(Boolean)
@@ -129,8 +205,10 @@ export function IldsButton({
       {...rest}
     >
       {showLeading ? <span className="inline-flex shrink-0">{leading}</span> : null}
-      <span className="truncate">{label}</span>
-      {isLoading ? <Spinner className={spinnerSize[size]} /> : null}
+      <span className={`truncate ${cfg.labelBox} flex items-center justify-center`}>
+        {isSkeleton ? '\u00A0' : label}
+      </span>
+      {isLoading ? <Spinner className={cfg.spinner} /> : null}
       {showTrailing ? <span className="inline-flex shrink-0">{trailing}</span> : null}
     </button>
   );
