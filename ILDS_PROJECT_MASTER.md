@@ -95,9 +95,9 @@ The library contains 18 production-ready Flutter components, 112 design tokens, 
 
 - The Figma plugin extracts 112 tokens from Figma Variables, converts to W3C DTCG JSON, and pushes to `tokens/tokens.json` on GitHub with SHA-retry conflict handling
 - The GitHub Action (`sync-supernova.yml`) detects changes to `tokens/tokens.json`, syncs to Supernova **token pages**, and fails loudly on any CLI error
-- Slack receives a notification every time a sync completes — posted by the **plugin** (`postToSlack` in `ilds-plugin/code.ts`), gated on the plugin having a Slack webhook saved in `clientStorage`.
+- Slack notifications — see the verified mechanism note below (the working source was n8n, not the plugin).
 
-> **Slack source clarification (Jun 2026):** A *separate* legacy n8n workflow, "GitHub Push Notifier to Slack" (`P82tigHMhMfUl25s`), also posted to `#design-system-updates` on **every** push (docs commits included), causing duplicate and out-of-order messages. Decision: **disable it** — the plugin already notifies on real token syncs, so the n8n notifier is pure noise. After disabling, verify a token sync still posts to Slack; if it goes silent, the plugin's Slack webhook isn't configured — add it in the plugin Settings. This removes n8n from the stack entirely (the Figma→GitHub n8n leg was already disabled in Task 5).
+> **Slack source — VERIFIED via Slack API (Jun 2026):** Every message in `#design-system-updates` came from the n8n "GitHub Push Notifier to Slack" workflow (`P82tigHMhMfUl25s`, bot `ILDS Notifier`), which fired on **every push** (docs commits included) — confirmed by the `Automated with this n8n workflow` footer and the GitHub-push message format. The plugin's `postToSlack` (`ilds-plugin/code.ts`) has **never actually fired** — its `slackWebhookUrl` is not saved in `clientStorage`, so zero plugin-format (`🎨 ILDS Token Sync`) messages exist in the channel. Decision (Jun 2026): the n8n push-notifier was **unpublished** (too noisy / every-push). **Slack is now silent until the plugin webhook is configured** — add the Slack incoming webhook in the plugin Settings, Sync once, and confirm the `🎨 ILDS Token Sync` message appears. Once done, the plugin is the sole Slack source and n8n is fully out of the stack (the Figma→GitHub n8n leg was already disabled in Task 5).
 - 18 Flutter components are in `lib/` — all passing `flutter analyze` with zero issues
 - 18 Code Connect files are published — Dev Mode shows real Flutter code for all components
 
@@ -619,7 +619,7 @@ Figma frames delivered — designer reviews, iterates, or approves
 See Section 8 for full component registry.
 
 ### Code Connect — 18 files
-See `*.figma.ts` at repo root. All published. Scrollbar needs republish (see §7).
+See `*.figma.ts` at repo root. **17 active files published** (Jun 2026, Task 2); `tag.figma.ts.disabled` is held back until a real Figma Tag Display component exists. Scrollbar republished.
 
 ### Documentation
 - [x] `docs/reports/CLAUDE_HANDOFF_2026-04-08.md`
