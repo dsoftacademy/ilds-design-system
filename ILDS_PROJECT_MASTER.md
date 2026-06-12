@@ -113,8 +113,8 @@ The library contains 18 production-ready Flutter components, 112 design tokens, 
 
 ### What has not been started
 
-- Style Dictionary config (zero% started — prerequisite for all of Phases 3, 4, 6, 7)
-- Multi-platform token export (React, iOS, Android) — Phase 3 & 4
+- ~~Style Dictionary config (zero% started — prerequisite for all of Phases 3, 4, 6, 7)~~ **Done (Jun 2026, Phase 3a):** `style-dictionary.config.mjs` → `dist/tokens.css` + `dist/tailwind-tokens.js`, auto-built in CI.
+- Multi-platform token export — **web done (Phase 3a)**; iOS/Android (Swift/Kotlin) still pending — Phase 4a
 - Component Evolution Engine (visual regression + PR infrastructure) — Phase 5
 - DS Management Agent (intelligent DS ownership alongside human managers) — Phase 6
 - AI Design Assistant Figma plugin (full screen UI generation from PRD) — Phase 7
@@ -283,19 +283,22 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 
 **Goal:** Extend ILDS to React. Deliver a Storybook site and a live public design system website.
 
-> ⚠️ **Style Dictionary prerequisite:** No Style Dictionary config exists in this repo — zero percent started. This is the first real cross-platform task and the mandatory first step of Phase 3. It is also a prerequisite for Phases 4, 6, and 7. Do not treat it as a minor add-on. It must be planned, scoped, and completed before any other Phase 3 work can proceed.
+> ✅ **Style Dictionary foundation now exists (Jun 2026, Phase 3a complete).** The token-export pipeline (CSS + Tailwind) is built, runs in CI, and is the base that Phases 4, 6, and 7 extend. Phase 3b (React components) can now proceed.
 
-#### Phase 3a — Token Export via Style Dictionary (prerequisite for everything else)
+#### Phase 3a — Token Export via Style Dictionary ✅ COMPLETE (Jun 2026)
 
-**Goal:** Configure Style Dictionary to transform `tokens/tokens.json` → CSS custom properties + Tailwind config. Extend the GitHub Action to run this export on every `tokens/tokens.json` push.
+**Goal:** Configure Style Dictionary to transform `tokens/tokens.json` → CSS custom properties + Tailwind config. Run this export in CI on every `tokens/tokens.json` push.
 
-**Scope:**
-- Style Dictionary config file (`style-dictionary.config.js`) authored and committed
-- Output: `dist/tokens.css` (CSS custom properties) + `dist/tailwind-tokens.js` (Tailwind theme extension)
-- GitHub Action extended: multi-platform token export runs on `tokens/tokens.json` push
-- Validated: changing a token in Figma → plugin push → GitHub Action → CSS output updates automatically
+**What shipped:**
+- `style-dictionary.config.mjs` — Style Dictionary **v4.4.0** programmatic build (DTCG `usesDtcg: true`). Custom hooks: `ilds/name/kebab` (drops the `global` set, kebab-cases segments → `--color-primary-orange-500`), `ilds/size/px` (appends `px` to the unitless `spacing`/`borderRadius` values), and the `ilds/tailwind` format (raw values nested by family).
+- `dist/tokens.css` — CSS custom properties under `:root` (11 color families + 12 spacing + 8 borderRadius).
+- `dist/tailwind-tokens.js` — CommonJS `module.exports` Tailwind theme extension (`colors`/`spacing`/`borderRadius`, raw values) for Phase 3b consumption.
+- `npm run build:tokens` script; `style-dictionary` added as devDependency.
+- CI: `.github/workflows/build-tokens.yml` — on push to `main` touching `tokens/tokens.json` (or the generator), runs `npm ci && npm run build:tokens` and **auto-commits** refreshed `dist/` back (`[skip ci]`, `contents: write`). `dist/*` is gitignored except the two committed exports.
 
-**Status:** `- [ ]` Not started — **start here**
+**Scope notes:** Token source currently covers **color + spacing + borderRadius only**; typography/font-weight is not yet tokenized in `tokens.json` (hardcoded in Dart) — tokenize later before native/typography export. Phase 4a extends this same config to Swift + Kotlin.
+
+**Status:** `- [x]` Complete — validated locally (`npm run build:tokens` regenerates both files); CI auto-commit path wired for the Figma → plugin → push → rebuild loop.
 
 #### Phase 3b — React Component Parity (depends on Phase 3a)
 
@@ -829,11 +832,11 @@ SizedBox(
 
 See Section 5, Phase 3 for full scope.
 
-**Phase 3a (token export — start here first):**
-- [ ] Style Dictionary config (`style-dictionary.config.js`) authored and committed — ⚠️ zero config exists today; this is the prerequisite for Phases 3, 4, 6, and 7
-- [ ] Output: `dist/tokens.css` + `dist/tailwind-tokens.js`
-- [ ] GitHub Action extended: token export runs on `tokens/tokens.json` push
-- [ ] End-to-end validated: Figma → plugin → GitHub → CSS output updated
+**Phase 3a (token export) — ✅ COMPLETE (Jun 2026):**
+- [x] Style Dictionary config (`style-dictionary.config.mjs`, v4.4.0) authored and committed
+- [x] Output: `dist/tokens.css` + `dist/tailwind-tokens.js`
+- [x] GitHub Action (`build-tokens.yml`): token export runs + auto-commits `dist/` on `tokens/tokens.json` push
+- [x] Validated locally; CI auto-commit path wired for Figma → plugin → GitHub → CSS rebuild
 
 **Phase 3b (React components — depends on 3a):**
 - [ ] React + TypeScript component library (18 components, full state parity with Flutter)
@@ -1028,7 +1031,8 @@ These apply to every agent, every session, every PR.
 | Phase 3 styling | Tailwind CSS | Not started |
 | Phase 3 docs | Storybook 8 | Not started |
 | Phase 3 hosting | Vercel | Not started |
-| Phase 4 export | Style Dictionary | Not started |
+| Phase 3a token export | Style Dictionary v4 (CSS + Tailwind) | ✅ Done (Jun 2026) — `style-dictionary.config.mjs`, CI `build-tokens.yml` |
+| Phase 4 export | Style Dictionary (Swift + Kotlin) | Not started — extends the Phase 3a config |
 | Phase 4 iOS | SwiftUI | Not started |
 | Phase 4 Android | Jetpack Compose | Not started |
 | Phase 5 visual regression | Chromatic (Storybook/web only) + **Flutter golden tests** | Not started — ⚠️ Chromatic covers React/Storybook only; Flutter components need golden tests (repo currently has none beyond one boilerplate `widget_test.dart`). Phase 5 also only depends on 3b (Storybook), not all of Phase 4 |

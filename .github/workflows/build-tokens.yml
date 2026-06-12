@@ -1,0 +1,58 @@
+name: Build Design Tokens
+
+# Regenerates the multi-platform token exports (CSS custom properties + Tailwind
+# theme extension) whenever the token source or the generator changes, and commits
+# the refreshed dist/ outputs back to main so consumers always have current values.
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+    paths:
+      - 'tokens/tokens.json'
+      - 'style-dictionary.config.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-tokens-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Export tokens (CSS + Tailwind)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build token exports
+        run: npm run build:tokens
+
+      - name: Commit regenerated dist/ (if changed)
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain dist/)" ]; then
+            echo "No token export changes — nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist/tokens.css dist/tailwind-tokens.js
+          git commit -m "ci: rebuild design token exports (CSS + Tailwind) [skip ci]"
+          git push
+          echo "✅ Committed refreshed token exports."

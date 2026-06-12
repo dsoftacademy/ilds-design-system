@@ -86,7 +86,13 @@ out
 
 # Nuxt.js build / generate output
 .nuxt
-dist
+
+# Build output: ignore dist/* but version-control the generated design-token
+# exports (Phase 3a — Style Dictionary). Parent dir must stay un-ignored so the
+# allow-list below can take effect.
+dist/*
+!dist/tokens.css
+!dist/tailwind-tokens.js
 
 # Gatsby files
 .cache/

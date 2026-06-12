@@ -4,12 +4,14 @@
   "description": "ICICI Lombard Design System",
   "scripts": {
     "prepare": "git config core.hooksPath .githooks",
-    "code-connect:publish": "dotenv -e .env -- npx figma connect publish"
+    "code-connect:publish": "dotenv -e .env -- npx figma connect publish",
+    "build:tokens": "node style-dictionary.config.mjs"
   },
   "dependencies": {
     "@figma/code-connect": "^1.4.3"
   },
   "devDependencies": {
-    "dotenv-cli": "^8.0.0"
+    "dotenv-cli": "^8.0.0",
+    "style-dictionary": "^4.4.0"
   }
 }
