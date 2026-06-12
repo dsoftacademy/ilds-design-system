@@ -101,7 +101,10 @@ async function runSync(): Promise<SyncResult> {
       config.githubFilePath, config.githubBranch,
       config.githubPAT,
     );
-    const merged = mergePreservedTokenFile(figmaTokens, parsed);
+    const merged = mergePreservedTokenFile(
+      figmaTokens as Record<string, unknown>,
+      parsed,
+    );
     return { content: JSON.stringify(merged, null, 2), sha };
   };
   await pushWithRetry(

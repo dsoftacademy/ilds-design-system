@@ -140,9 +140,25 @@ module.exports = {
     "massive": "1000px"
   },
   "typography": {
-    "fontFamily": {},
-    "fontSize": {},
-    "fontWeight": {},
-    "lineHeight": {}
+    "fontFamily": {
+      "primary": "'Mulish', sans-serif"
+    },
+    "fontSize": {
+      "12": "12px",
+      "14": "14px",
+      "16": "16px",
+      "20": "20px"
+    },
+    "fontWeight": {
+      "regular": "400",
+      "medium": "500",
+      "bold": "700"
+    },
+    "lineHeight": {
+      "12": "1.333",
+      "14": "1.143",
+      "16": "1.25",
+      "20": "1.2"
+    }
   }
 };
