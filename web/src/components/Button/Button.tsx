@@ -81,11 +81,11 @@ function interactiveClasses(
   }
 
   if (buttonType === 'secondary' && appearance === 'normal') {
-    // Pressed: Figma 13472:3024 — bg error-red-100, border/text primary-orange-600
+    // Pressed: Figma 13472:3024 (updated 2026-06-12) — bg primary-orange-100, border/text primary-orange-600
     return [
       'bg-white-000 text-primary-orange-500 border-primary-orange-500',
       'hover:bg-primary-orange-50 hover:text-primary-orange-500 hover:border-primary-orange-500',
-      'active:bg-error-red-100 active:text-primary-orange-600 active:border-primary-orange-600',
+      'active:bg-primary-orange-100 active:text-primary-orange-600 active:border-primary-orange-600',
     ].join(' ');
   }
 

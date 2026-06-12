@@ -103,6 +103,19 @@
       }
     },
     {
+      "name": "secondary-large-pressed",
+      "storyId": "components-button--playground",
+      "storyArgs": { "type": "secondary", "size": "large" },
+      "figmaNodeId": "13472:3024",
+      "interaction": "active",
+      "verified": true,
+      "expect": {
+        "background-color": "#ffd6c8",
+        "color": "#c74c01",
+        "border-color": "#c74c01"
+      }
+    },
+    {
       "name": "tertiary-large-default",
       "storyId": "components-button--playground",
       "storyArgs": { "type": "tertiary", "size": "large" },
