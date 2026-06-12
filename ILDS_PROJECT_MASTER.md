@@ -316,6 +316,18 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 
 **Tailwind default reset (mandatory in 3b scaffold):** `dist/tokens.theme.css` resets `--spacing: initial` and `--color-*` / `--radius-*: initial` before ILDS tokens, so utilities like `p-2` / `bg-red-500` do **not** resolve to Tailwind defaults — only ILDS names (`p-sp-2`, `bg-primary-orange-500`, etc.). Verify in Storybook that no component uses default Tailwind scale classes.
 
+**Tailwind reset warnings (read before first component):**
+1. **`--color-*: initial` removes Tailwind's built-in `white`/`black` utilities.** ILDS exports `--color-white-000` / `--color-black-1000` (Figma keys `white-000` / `black-1000`) — **not** `--color-white` / `--color-black`. Use `bg-white-000`, not `bg-white`, or add explicit `--color-white` aliases in Style Dictionary before 3b if you want the short name.
+2. **`--spacing: initial` removes all numeric spacing utilities** (`p-2`, `gap-4`, and numeric `w-*` / `h-*` / `size-*` derived from the default scale). Only ILDS names (`p-sp-2`, `gap-sp-4`, etc.) and arbitrary values (`p-[12px]`) work. First scaffolded component will "lose" widths if it uses `w-4` — enforce ILDS spacing names in code review.
+
+**Pre-3b gate (manual — plugin runs in Figma):** Revert test drift (`primary-orange-500` `#E35310` → `#E3530F` from Figma) via one plugin **Sync**. Commit diff must show **only** the color revert in Figma-managed groups; **`typography` block untouched**. Any other change = preserve-merge bug. Do not scaffold 3b until this passes.
+
+**3b delivery sequence (do not sprint five components):**
+1. Scaffold: Vite + React + TS + **Tailwind 4.3** + **Storybook 10.4** (`npm view tailwindcss storybook` before install).
+2. **Milestone 1 — Button only:** full state parity with `lib/ilds_button.dart`; one Storybook story per state; tokens via `@import` of `dist/tokens.theme.css` only.
+3. Side-by-side check vs Flutter playground **before** Chip, TextField, Dropdown, Toast.
+4. Gate remaining four Phase-1 components on Button sign-off.
+
 **Scope:**
 - React + TypeScript component library (same 18 components, same 18 × states)
 - Tailwind CSS v4 consuming `dist/tokens.theme.css` + typography tokens
