@@ -147,8 +147,8 @@ function interactiveClasses(
   return [
     'bg-transparent text-error-red-600 border-transparent',
     'hover:text-error-red-500',
-    // Pressed: Figma 16186:2581 — label stays red-600 (no visual change vs default; flagged as possible design gap)
-    'active:text-error-red-600',
+    // Pressed: Figma 16186:2581 — label error-red-700 (designer updated 2026-06-12, was 600/no-feedback)
+    'active:text-error-red-700',
   ].join(' ');
 }
 

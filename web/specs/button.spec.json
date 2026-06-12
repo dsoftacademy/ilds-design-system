@@ -137,7 +137,7 @@
       "verified": true,
       "expect": {
         "background-color": "transparent",
-        "color": "#e00903"
+        "color": "#a30100"
       }
     },
     {

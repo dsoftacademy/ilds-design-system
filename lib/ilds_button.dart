@@ -181,10 +181,10 @@ class _IldsButtonState extends State<IldsButton> {
             borderWidth: 0,
           );
         }
-        // Figma 16186:2581 — label stays red-600 (no visual change vs default; flagged as possible design gap)
+        // Figma 16186:2581 — label error-red-700 (designer updated 2026-06-12)
         return _ButtonColors(
           background: Colors.transparent,
-          foreground: ILDSTokens.red600,
+          foreground: ILDSTokens.red700,
           borderColor: null,
           borderWidth: 0,
         );
