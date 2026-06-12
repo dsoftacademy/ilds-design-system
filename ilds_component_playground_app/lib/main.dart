@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ilds_design_system/ilds_button.dart';
 import 'package:ilds_design_system/ilds_accordion.dart';
 import 'package:ilds_design_system/ilds_badge.dart';
 import 'package:ilds_design_system/ilds_checkbox.dart';
@@ -59,6 +60,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
   @override
   Widget build(BuildContext context) {
     final List<String> sections = <String>[
+      'Button',
       'Radio',
       'Checkbox',
       'Switch',
@@ -138,6 +140,37 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
   Widget _buildSelectedPanel(int index) {
     switch (index) {
       case 0:
+        return _panel('Button — press & hold secondary/tertiary', [
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              IldsButton(
+                label: 'Secondary',
+                type: IldsButtonType.secondary,
+                onPressed: () {},
+              ),
+              IldsButton(
+                label: 'Secondary destructive',
+                type: IldsButtonType.secondary,
+                appearance: IldsButtonAppearance.destructive,
+                onPressed: () {},
+              ),
+              IldsButton(
+                label: 'Tertiary',
+                type: IldsButtonType.tertiary,
+                onPressed: () {},
+              ),
+              IldsButton(
+                label: 'Tertiary destructive',
+                type: IldsButtonType.tertiary,
+                appearance: IldsButtonAppearance.destructive,
+                onPressed: () {},
+              ),
+            ],
+          ),
+        ]);
+      case 1:
         return _panel('Radio', [
           IldsRadioGroup(
             options: const [
@@ -148,7 +181,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             onChanged: (v) => setState(() => radioValue = v),
           ),
         ]);
-      case 1:
+      case 2:
         return _panel('Checkbox', [
           IldsCheckbox(
             label: 'Accept terms',
@@ -156,7 +189,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             onChanged: (value) => setState(() => checkboxState = value),
           ),
         ]);
-      case 2:
+      case 3:
         return _panel('Switch', [
           IldsSwitch(
             value: switchValue,
@@ -164,7 +197,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             onChanged: (value) => setState(() => switchValue = value),
           ),
         ]);
-      case 3:
+      case 4:
         return _panel('Text Area', [
           IldsTextArea(
             label: 'Notes',
@@ -175,7 +208,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             onChanged: (_) => setState(() {}),
           ),
         ]);
-      case 4:
+      case 5:
         return _panel('Tab', [
           IldsTabBar(
             tabs: const [
@@ -187,7 +220,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             onTabChanged: (index) => setState(() => selectedTab = index),
           ),
         ]);
-      case 5:
+      case 6:
         return _panel('Pagination', [
           IldsPagination(
             currentPage: currentPage,
@@ -196,7 +229,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             variant: IldsPaginationVariant.extended,
           ),
         ]);
-      case 6:
+      case 7:
         return _panel('Selection Button', [
           IldsSelectionButton(
             label: 'Filter',
@@ -206,7 +239,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             onTap: () => setState(() => selectionOn = !selectionOn),
           ),
         ]);
-      case 7:
+      case 8:
         return _panel('Badge', const [
           IldsBadge(
             label: 'Success',
@@ -214,7 +247,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             prefixIcon: Icons.check_circle_outline,
           ),
         ]);
-      case 8:
+      case 9:
         return _panel('Tag', [
           IldsTag(
             label: 'Active tag',
@@ -224,7 +257,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             onRemove: () => setState(() => tagActive = false),
           ),
         ]);
-      case 9:
+      case 10:
         return _panel('Accordion', const [
           IldsAccordion(
             title: 'What is ILDS?',
@@ -232,7 +265,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             content: Text('This area helps validate open/close interactions in real time.'),
           ),
         ]);
-      case 10:
+      case 11:
         return _panel('Text Link', [
           IldsTextLink(
             label: 'Open docs',
@@ -240,7 +273,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             suffixIcon: Icons.open_in_new,
           ),
         ]);
-      case 11:
+      case 12:
         return _panel('Search', [
           IldsSearch(
             controller: searchController,

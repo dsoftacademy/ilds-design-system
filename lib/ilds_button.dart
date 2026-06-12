@@ -3,13 +3,15 @@ import 'design_system/ilds_tokens.dart';
 
 /// ILDS button — component set `13472:2804`; loading variants (e.g. `13472:2884`)
 /// use a trailing progress indicator while blocking taps.
+///
+/// TODO(web/desktop): hover states (orange-400 / red-500) — out of scope for mobile-first.
 enum IldsButtonType { primary, secondary, tertiary }
 
 enum IldsButtonSize { large, medium, small }
 
 enum IldsButtonAppearance { normal, destructive }
 
-class IldsButton extends StatelessWidget {
+class IldsButton extends StatefulWidget {
   const IldsButton({
     super.key,
     required this.label,
@@ -33,16 +35,24 @@ class IldsButton extends StatelessWidget {
   final Widget? leading;
   final Widget? trailing;
 
-  bool get _interactive => !isDisabled && !isLoading && onPressed != null;
+  @override
+  State<IldsButton> createState() => _IldsButtonState();
+}
+
+class _IldsButtonState extends State<IldsButton> {
+  bool _pressed = false;
+
+  bool get _interactive =>
+      !widget.isDisabled && !widget.isLoading && widget.onPressed != null;
 
   /// Token: `color.orange.500` (normal) or `color.red.600` (destructive)
-  Color get _accent => appearance == IldsButtonAppearance.normal
+  Color get _accent => widget.appearance == IldsButtonAppearance.normal
       ? ILDSTokens.orange500
       : ILDSTokens.red600;
 
   EdgeInsets _padding() {
-    if (type == IldsButtonType.tertiary) {
-      switch (size) {
+    if (widget.type == IldsButtonType.tertiary) {
+      switch (widget.size) {
         case IldsButtonSize.large:
           return const EdgeInsets.symmetric(vertical: 12);
         case IldsButtonSize.medium:
@@ -51,7 +61,7 @@ class IldsButton extends StatelessWidget {
           return const EdgeInsets.symmetric(vertical: 6);
       }
     }
-    switch (size) {
+    switch (widget.size) {
       case IldsButtonSize.large:
         return const EdgeInsets.symmetric(horizontal: 16, vertical: 12);
       case IldsButtonSize.medium:
@@ -62,7 +72,7 @@ class IldsButton extends StatelessWidget {
   }
 
   double _gap() {
-    switch (size) {
+    switch (widget.size) {
       case IldsButtonSize.large:
       case IldsButtonSize.medium:
         return ILDSTokens.spacing2;
@@ -73,7 +83,7 @@ class IldsButton extends StatelessWidget {
 
   /// Token: `typography.fontWeight.bold` + size-specific fontSize
   TextStyle _labelStyle() {
-    switch (size) {
+    switch (widget.size) {
       case IldsButtonSize.large:
         return const TextStyle(
           fontSize: 16,
@@ -96,7 +106,7 @@ class IldsButton extends StatelessWidget {
   }
 
   double _progressSize() {
-    switch (size) {
+    switch (widget.size) {
       case IldsButtonSize.large:
         return 24;
       case IldsButtonSize.medium:
@@ -107,7 +117,7 @@ class IldsButton extends StatelessWidget {
   }
 
   double _progressStrokeWidth() {
-    switch (size) {
+    switch (widget.size) {
       case IldsButtonSize.large:
         return 2.5;
       case IldsButtonSize.medium:
@@ -118,7 +128,7 @@ class IldsButton extends StatelessWidget {
   }
 
   double? _minHeight() {
-    switch (size) {
+    switch (widget.size) {
       case IldsButtonSize.large:
         return 48;
       case IldsButtonSize.medium:
@@ -128,22 +138,67 @@ class IldsButton extends StatelessWidget {
     }
   }
 
-  /// Figma pressed primary normal — primary-orange-600 (not 700).
-  Color? _pressedOverlayColor() {
-    if (type == IldsButtonType.primary && appearance == IldsButtonAppearance.normal) {
+  /// Primary only — Figma pressed primary normal `13472:2988` (orange-600 overlay).
+  Color? _primaryPressedOverlayColor() {
+    if (widget.type != IldsButtonType.primary) return null;
+    if (widget.appearance == IldsButtonAppearance.normal) {
       return ILDSTokens.orange600;
     }
-    if (type == IldsButtonType.primary && appearance == IldsButtonAppearance.destructive) {
-      return ILDSTokens.red700;
+    return ILDSTokens.red700;
+  }
+
+  /// Secondary/tertiary pressed — bg/border/label change; overlay cannot express this.
+  _ButtonColors? _pressedColors() {
+    if (!_pressed || !_interactive) return null;
+
+    switch (widget.type) {
+      case IldsButtonType.primary:
+        return null;
+      case IldsButtonType.secondary:
+        if (widget.appearance == IldsButtonAppearance.normal) {
+          // Figma 13472:3024 — bg primary-orange-100, border + label primary-orange-600
+          return _ButtonColors(
+            background: ILDSTokens.orange100,
+            foreground: ILDSTokens.orange600,
+            borderColor: ILDSTokens.orange600,
+            borderWidth: ILDSTokens.borderWidth1,
+          );
+        }
+        // PRESUMED-from-React-parity — no Figma node pulled for secondary destructive pressed
+        return _ButtonColors(
+          background: ILDSTokens.red100,
+          foreground: ILDSTokens.red700,
+          borderColor: ILDSTokens.red700,
+          borderWidth: ILDSTokens.borderWidth1,
+        );
+      case IldsButtonType.tertiary:
+        if (widget.appearance == IldsButtonAppearance.normal) {
+          // Figma 13472:3042 — label primary-orange-600, bg transparent
+          return _ButtonColors(
+            background: Colors.transparent,
+            foreground: ILDSTokens.orange600,
+            borderColor: null,
+            borderWidth: 0,
+          );
+        }
+        // PRESUMED-from-React-parity — no Figma node pulled for tertiary destructive pressed
+        return _ButtonColors(
+          background: Colors.transparent,
+          foreground: ILDSTokens.red700,
+          borderColor: null,
+          borderWidth: 0,
+        );
     }
-    return null;
   }
 
   _ButtonColors _resolveColors() {
+    final pressed = _pressedColors();
+    if (pressed != null) return pressed;
+
     final accent = _accent;
 
-    if (isDisabled) {
-      switch (type) {
+    if (widget.isDisabled) {
+      switch (widget.type) {
         case IldsButtonType.primary:
           // Figma disabled primary — neutral-coolgray-400 surface, white label
           return _ButtonColors(
@@ -170,8 +225,8 @@ class IldsButton extends StatelessWidget {
       }
     }
 
-    if (isLoading) {
-      switch (type) {
+    if (widget.isLoading) {
+      switch (widget.type) {
         case IldsButtonType.primary:
           return _ButtonColors(
             background: accent,
@@ -196,7 +251,7 @@ class IldsButton extends StatelessWidget {
       }
     }
 
-    switch (type) {
+    switch (widget.type) {
       case IldsButtonType.primary:
         return _ButtonColors(
           background: accent,
@@ -221,6 +276,12 @@ class IldsButton extends StatelessWidget {
     }
   }
 
+  void _onHighlightChanged(bool highlighted) {
+    if (widget.type == IldsButtonType.primary) return;
+    if (_pressed == highlighted) return;
+    setState(() => _pressed = highlighted);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = _resolveColors();
@@ -237,8 +298,8 @@ class IldsButton extends StatelessWidget {
       ),
     );
 
-    final showLeading = leading != null && !isLoading;
-    final showTrailing = trailing != null && !isLoading;
+    final showLeading = widget.leading != null && !widget.isLoading;
+    final showTrailing = widget.trailing != null && !widget.isLoading;
 
     final row = Row(
       mainAxisSize: MainAxisSize.min,
@@ -247,18 +308,18 @@ class IldsButton extends StatelessWidget {
         if (showLeading) ...[
           IconTheme.merge(
             data: IconThemeData(size: dim, color: colors.foreground),
-            child: leading!,
+            child: widget.leading!,
           ),
           SizedBox(width: gap),
         ],
         Text(
-          label,
+          widget.label,
           style: style,
           textAlign: TextAlign.center,
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
         ),
-        if (isLoading) ...[
+        if (widget.isLoading) ...[
           SizedBox(width: gap),
           progress,
         ],
@@ -266,7 +327,7 @@ class IldsButton extends StatelessWidget {
           SizedBox(width: gap),
           IconTheme.merge(
             data: IconThemeData(size: dim, color: colors.foreground),
-            child: trailing!,
+            child: widget.trailing!,
           ),
         ],
       ],
@@ -285,22 +346,25 @@ class IldsButton extends StatelessWidget {
           : BorderSide.none,
     );
 
+    final primaryOverlay = _primaryPressedOverlayColor();
+
     return Semantics(
       button: true,
       enabled: _interactive,
-      label: label,
+      label: widget.label,
       child: Material(
         color: colors.background,
         shape: shape,
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: _interactive ? onPressed : null,
+          onTap: _interactive ? widget.onPressed : null,
+          onHighlightChanged: _onHighlightChanged,
           customBorder: shape,
-          overlayColor: _pressedOverlayColor() == null
-              ? null
+          overlayColor: primaryOverlay == null
+              ? const WidgetStatePropertyAll(Colors.transparent)
               : WidgetStateProperty.resolveWith<Color?>((states) {
                   if (states.contains(WidgetState.pressed)) {
-                    return _pressedOverlayColor();
+                    return primaryOverlay;
                   }
                   return null;
                 }),
