@@ -103,13 +103,12 @@ The library contains 18 production-ready Flutter components, 112 design tokens, 
 
 - **`ILDSTokens` Dart class drift — resolved (June 2026).** Codegen script (`tool/generate_ilds_tokens.dart`) built, run, Figma-verified, and committed (`17d7120`). All 112 tokens now Figma-canonical. Do not manually edit the class — always regenerate via script after any Figma token sync.
 - **Supernova component documentation is ~20% complete** — token pages sync automatically; component pages (usage, anatomy, states, guidance) are written manually and lag behind implementation. This is a separate workstream from the token pipeline and needs explicit resourcing.
-- **Several `*.figma.ts` Code Connect files edited locally but not republished** — scope of Task 1 below is full republish + Dev Mode verification, not Scrollbar only.
+- ~~Several `*.figma.ts` Code Connect files edited locally but not republished~~ **Resolved (Jun 2026, Task 2):** full republish done — 17 active `.figma.ts` published, no duplicate node mappings. Dev Mode spot-check remains a manual visual step.
 - **Tab scrollable indicator** — TODO at line 191 of `ilds_tab.dart`; current implementation shows a full-width neutral bar placeholder.
 - **Playground app NavigationRail overflow** — `RenderFlex` overflow in `ilds_component_playground_app/lib/main.dart`.
 
 ### What has not been started
 
-- `tokens.json → ilds_tokens.dart` codegen script (Phase 2 closure — in progress by Cursor)
 - Style Dictionary config (zero% started — prerequisite for all of Phases 3, 4, 6, 7)
 - Multi-platform token export (React, iOS, Android) — Phase 3 & 4
 - Component Evolution Engine (visual regression + PR infrastructure) — Phase 5
@@ -898,7 +897,7 @@ All components live in `lib/`. All pass `flutter analyze` with zero issues as of
 
 All tokens live in `tokens/tokens.json` (W3C DTCG format) and are mirrored in `lib/design_system/ilds_tokens.dart`.
 
-> ℹ️ **Canonical values:** All values below are from `tokens.json` (Figma source of truth). The Dart class was regenerated via `tool/generate_ilds_tokens.dart` in June 2026 — commit pending visual QA. Always run `dart run tool/generate_ilds_tokens.dart` after any Figma token sync.
+> ℹ️ **Canonical values:** All values below are from `tokens.json` (Figma source of truth). The Dart class was regenerated via `tool/generate_ilds_tokens.dart` in June 2026 and committed (`17d7120`), Figma-verified. Always run `dart run tool/generate_ilds_tokens.dart` after any Figma token sync.
 
 | Token Group | Count | Description | Example Flutter ref |
 |---|---|---|---|
@@ -915,7 +914,7 @@ All tokens live in `tokens/tokens.json` (W3C DTCG format) and are mirrored in `l
 | **Total** | **112** | 92 colour + 12 spacing + 8 radius | |
 
 ### Critical token usage rules (enforced in code review)
-- `orange500 = #E3530F` (canonical brand orange). Do not confuse with the drifted Dart value `#E8440C` — codegen will fix this.
+- `orange500 = #E3530F` (canonical brand orange). The old drifted Dart value `#E8440C` was corrected by the codegen (`17d7120`); `ilds_tokens.dart` now matches Figma.
 - `red600` (#DC2626) is the error/destructive colour — NOT `red500`
 - `neutral300` is the disabled text colour — NOT `neutral200` (neutral200 is a border)
 - Spacing tokens (`spacingN`) are for layout/padding/margin only — never as numeric thresholds in logic
@@ -931,7 +930,7 @@ These are tracked issues inside source files that need to be addressed.
 |---|---|---|---|---|
 | Medium | `lib/ilds_tab.dart` | line 191 | Scrollable mode indicator is a full-width neutral bar placeholder | Implement GlobalKey-based scroll-linked indicator (see Task 6 in §7) |
 | ~~Low~~ ✅ | `ilds_component_playground_app/lib/main.dart` | NavigationRail section | ~~RenderFlex overflow~~ Fixed Jun 2026 | LayoutBuilder + ConstrainedBox(minHeight) + IntrinsicHeight (see Task 3 in §7) |
-| Low | `scrollbar.figma.ts` | Orientation binding | Updated but not republished | Run `npm run code-connect:publish` — full republish (see Task 2 in §7) |
+| ~~Low~~ ✅ | `scrollbar.figma.ts` | Orientation binding | ~~Updated but not republished~~ Republished Jun 2026 (Task 2) | Done — full Code Connect republish completed |
 
 ---
 
@@ -989,7 +988,7 @@ ilds-design-system/
 - `tokens/tokens.json` — updated only by the Figma plugin
 - `lib/design_system/ilds_tokens.dart` — regenerated from `tokens.json` via the codegen script (script is being built by Cursor — do NOT manually edit values)
 
-> ⚠️ **Commit reminder:** `ILDS_PROJECT_MASTER.md` is currently untracked. After finishing the errata sweep, run `git add ILDS_PROJECT_MASTER.md && git commit -m "docs: add project master document (single source of truth)"` to bring it under version control.
+> ℹ️ `ILDS_PROJECT_MASTER.md` is tracked and version-controlled (committed since `17d7120`; updated through Phase 2 closure).
 
 ---
 
@@ -1033,7 +1032,7 @@ These apply to every agent, every session, every PR.
 | Phase 4 export | Style Dictionary | Not started |
 | Phase 4 iOS | SwiftUI | Not started |
 | Phase 4 Android | Jetpack Compose | Not started |
-| Phase 5 visual regression | Chromatic | Not started |
+| Phase 5 visual regression | Chromatic (Storybook/web only) + **Flutter golden tests** | Not started — ⚠️ Chromatic covers React/Storybook only; Flutter components need golden tests (repo currently has none beyond one boilerplate `widget_test.dart`). Phase 5 also only depends on 3b (Storybook), not all of Phase 4 |
 | Phase 5 PR automation | GitHub Branch + PR API | Not started |
 | Phase 6 DS agent intelligence | Claude API (requirement analysis + code generation) | Not started |
 | Phase 6 approval workflow | Slack API with action buttons | Not started |
