@@ -111,6 +111,19 @@ StyleDictionary.registerFormat({
     const lines = dictionary.allTokens
       .map((token) => `  ${toThemeVar(token)}: ${resolvedValue(token)};`)
       .sort();
+    const whiteToken = dictionary.allTokens.find(
+      (token) => toThemeVar(token) === '--color-white-000',
+    );
+    const blackToken = dictionary.allTokens.find(
+      (token) => toThemeVar(token) === '--color-black-1000',
+    );
+    const aliasLines = ['  /* Phase 3b: short names (reset removes Tailwind defaults) */'];
+    if (whiteToken) {
+      aliasLines.push(`  --color-white: ${resolvedValue(whiteToken)};`);
+    }
+    if (blackToken) {
+      aliasLines.push(`  --color-black: ${resolvedValue(blackToken)};`);
+    }
     return (
       '/* GENERATED FILE — DO NOT EDIT BY HAND. */\n' +
       '/* Source: tokens/tokens.json  Generator: style-dictionary.config.mjs */\n' +
@@ -122,6 +135,8 @@ StyleDictionary.registerFormat({
       '  --color-*: initial;\n' +
       '  --radius-*: initial;\n' +
       lines.join('\n') +
+      '\n' +
+      aliasLines.join('\n') +
       '\n}\n'
     );
   },

@@ -5,7 +5,9 @@
   "scripts": {
     "prepare": "git config core.hooksPath .githooks",
     "code-connect:publish": "dotenv -e .env -- npx figma connect publish",
-    "build:tokens": "node style-dictionary.config.mjs"
+    "build:tokens": "node style-dictionary.config.mjs",
+    "storybook": "npm run storybook --prefix web",
+    "build:storybook": "npm run build-storybook --prefix web"
   },
   "dependencies": {
     "@figma/code-connect": "^1.4.3"

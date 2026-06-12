@@ -317,16 +317,18 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 **Tailwind default reset (mandatory in 3b scaffold):** `dist/tokens.theme.css` resets `--spacing: initial` and `--color-*` / `--radius-*: initial` before ILDS tokens, so utilities like `p-2` / `bg-red-500` do **not** resolve to Tailwind defaults — only ILDS names (`p-sp-2`, `bg-primary-orange-500`, etc.). Verify in Storybook that no component uses default Tailwind scale classes.
 
 **Tailwind reset warnings (read before first component):**
-1. **`--color-*: initial` removes Tailwind's built-in `white`/`black` utilities.** ILDS exports `--color-white-000` / `--color-black-1000` (Figma keys `white-000` / `black-1000`) — **not** `--color-white` / `--color-black`. Use `bg-white-000`, not `bg-white`, or add explicit `--color-white` aliases in Style Dictionary before 3b if you want the short name.
+1. **`--color-*: initial` removes Tailwind's built-in `white`/`black` utilities.** ILDS exports `--color-white-000` / `--color-black-1000` (Figma keys `white-000` / `black-1000`). **Decision (Jun 2026, 3b scaffold):** Style Dictionary also emits `--color-white` / `--color-black` aliases (same values) so `bg-white` / `text-black` work in React. Canonical Figma keys remain `white-000` / `black-1000`.
 2. **`--spacing: initial` removes all numeric spacing utilities** (`p-2`, `gap-4`, and numeric `w-*` / `h-*` / `size-*` derived from the default scale). Only ILDS names (`p-sp-2`, `gap-sp-4`, etc.) and arbitrary values (`p-[12px]`) work. First scaffolded component will "lose" widths if it uses `w-4` — enforce ILDS spacing names in code review.
 
-**Pre-3b gate (manual — plugin runs in Figma):** Revert test drift (`primary-orange-500` `#E35310` → `#E3530F` from Figma) via one plugin **Sync**. Commit diff must show **only** the color revert in Figma-managed groups; **`typography` block untouched**. Any other change = preserve-merge bug. Do not scaffold 3b until this passes.
+**Pre-3b gate (manual — plugin runs in Figma):** ~~Revert test drift via plugin sync~~ **Passed Jun 2026** — preserve-merge proven on no-op sync `585ee66` (typography intact). **Note:** `#E3530F` was restored by manual commit `30439b3` (typography fix after stale `code.js` wipe), not by plugin sync; merge-with-actual-value-change proven on `a8477df` (`white-000` `#FFFFFE` → `#FFFFFF`, typography intact). **`white-000`:** reverted to `#FFFFFF` via plugin sync `a8477df` (Jun 2026) — first real value change through preserve-merge (typography intact).
 
 **3b delivery sequence (do not sprint five components):**
 1. Scaffold: Vite + React + TS + **Tailwind 4.3** + **Storybook 10.4** (`npm view tailwindcss storybook` before install).
 2. **Milestone 1 — Button only:** full state parity with `lib/ilds_button.dart`; one Storybook story per state; tokens via `@import` of `dist/tokens.theme.css` only.
 3. Side-by-side check vs Flutter playground **before** Chip, TextField, Dropdown, Toast.
 4. Gate remaining four Phase-1 components on Button sign-off.
+
+**Status:** `- [~]` In progress — `web/` scaffold (Vite + React + TS + Tailwind 4.3 + Storybook 10.4); Milestone 1 Button stories landed; side-by-side playground gate pending.
 
 **Scope:**
 - React + TypeScript component library (same 18 components, same 18 × states)
@@ -341,8 +343,6 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 - Style Dictionary for token export from `tokens.json` → CSS custom properties (Phase 3a)
 - Vercel for DS website hosting (connects to GitHub, auto-deploys)
 - Storybook 10 with Chromatic for visual regression
-
-**Status:** `- [ ]` Not started
 
 ---
 

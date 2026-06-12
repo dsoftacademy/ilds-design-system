@@ -131,4 +131,7 @@
   --text-16: 16px;
   --text-20--line-height: 1.2;
   --text-20: 20px;
+  /* Phase 3b: short names (reset removes Tailwind defaults) */
+  --color-white: #ffffff;
+  --color-black: #020202;
 }
