@@ -164,11 +164,11 @@ class _IldsButtonState extends State<IldsButton> {
             borderWidth: ILDSTokens.borderWidth1,
           );
         }
-        // PRESUMED-from-React-parity — no Figma node pulled for secondary destructive pressed
+        // Figma 16186:2051 — bg red-100, label red-700, border stays red-600
         return _ButtonColors(
           background: ILDSTokens.red100,
           foreground: ILDSTokens.red700,
-          borderColor: ILDSTokens.red700,
+          borderColor: ILDSTokens.red600,
           borderWidth: ILDSTokens.borderWidth1,
         );
       case IldsButtonType.tertiary:
@@ -181,10 +181,10 @@ class _IldsButtonState extends State<IldsButton> {
             borderWidth: 0,
           );
         }
-        // PRESUMED-from-React-parity — no Figma node pulled for tertiary destructive pressed
+        // Figma 16186:2581 — label stays red-600 (no visual change vs default; flagged as possible design gap)
         return _ButtonColors(
           background: Colors.transparent,
-          foreground: ILDSTokens.red700,
+          foreground: ILDSTokens.red600,
           borderColor: null,
           borderWidth: 0,
         );

@@ -116,6 +116,31 @@
       }
     },
     {
+      "name": "destructive-secondary-large-pressed",
+      "storyId": "components-button--playground",
+      "storyArgs": { "type": "secondary", "appearance": "destructive", "size": "large" },
+      "figmaNodeId": "16186:2051",
+      "interaction": "active",
+      "verified": true,
+      "expect": {
+        "background-color": "#ffd5cd",
+        "color": "#a30100",
+        "border-color": "#e00903"
+      }
+    },
+    {
+      "name": "destructive-tertiary-large-pressed",
+      "storyId": "components-button--playground",
+      "storyArgs": { "type": "tertiary", "appearance": "destructive", "size": "large" },
+      "figmaNodeId": "16186:2581",
+      "interaction": "active",
+      "verified": true,
+      "expect": {
+        "background-color": "transparent",
+        "color": "#e00903"
+      }
+    },
+    {
       "name": "tertiary-large-default",
       "storyId": "components-button--playground",
       "storyArgs": { "type": "tertiary", "size": "large" },

@@ -131,7 +131,8 @@ function interactiveClasses(
     return [
       'bg-white-000 text-error-red-600 border-error-red-600',
       'hover:bg-error-red-50 hover:text-error-red-600 hover:border-error-red-600',
-      'active:bg-error-red-100 active:text-error-red-700 active:border-error-red-700',
+      // Pressed: Figma 16186:2051 — bg red-100, label red-700, border stays red-600
+      'active:bg-error-red-100 active:text-error-red-700 active:border-error-red-600',
     ].join(' ');
   }
 
@@ -146,7 +147,8 @@ function interactiveClasses(
   return [
     'bg-transparent text-error-red-600 border-transparent',
     'hover:text-error-red-500',
-    'active:text-error-red-700',
+    // Pressed: Figma 16186:2581 — label stays red-600 (no visual change vs default; flagged as possible design gap)
+    'active:text-error-red-600',
   ].join(' ');
 }
 
