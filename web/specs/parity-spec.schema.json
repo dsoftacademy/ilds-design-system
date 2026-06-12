@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ilds.dsoft.academy/parity-spec.schema.json",
+  "title": "ILDS Figma parity spec",
+  "type": "object",
+  "required": ["component", "selector", "variants"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "component": { "type": "string" },
+    "figmaFileKey": { "type": "string" },
+    "figmaComponentSetId": { "type": "string" },
+    "extractedBy": { "type": "string" },
+    "extractedOn": { "type": "string" },
+    "selector": { "type": "string" },
+    "shared": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "variants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "storyId", "figmaNodeId", "interaction", "verified", "expect"],
+        "properties": {
+          "name": { "type": "string" },
+          "storyId": { "type": "string" },
+          "storyArgs": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          },
+          "figmaNodeId": { "type": "string" },
+          "interaction": {
+            "type": ["string", "null"],
+            "enum": [null, "hover", "active", "focus"]
+          },
+          "verified": { "type": "boolean" },
+          "todo": { "type": "string" },
+          "expect": {
+            "type": "object",
+            "additionalProperties": {
+              "type": ["string", "number"]
+            }
+          }
+        }
+      }
+    }
+  }
+}

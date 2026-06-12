@@ -1,0 +1,184 @@
+{
+  "$schema": "./parity-spec.schema.json",
+  "component": "Button",
+  "figmaFileKey": "PCUj412f0Z1zZLLxQUX22e",
+  "figmaComponentSetId": "13472:2804",
+  "extractedBy": "Claude via Figma MCP get_design_context",
+  "extractedOn": "2026-06-12",
+  "selector": "#storybook-root button",
+  "shared": {
+    "border-radius": "8px",
+    "font-family": "Mulish",
+    "font-weight": "700"
+  },
+  "variants": [
+    {
+      "name": "primary-large-default",
+      "storyId": "components-button--primary-large",
+      "figmaNodeId": "13472:2816",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#e3530f",
+        "color": "#ffffff",
+        "padding": "12px 16px",
+        "gap": "8px",
+        "font-size": "16px",
+        "line-height": "20px",
+        "offsetHeight": 48
+      }
+    },
+    {
+      "name": "primary-large-hover",
+      "storyId": "components-button--primary-large",
+      "figmaNodeId": "13472:3060",
+      "interaction": "hover",
+      "verified": true,
+      "expect": {
+        "background-color": "#ff7c43",
+        "color": "#ffffff"
+      }
+    },
+    {
+      "name": "primary-large-pressed",
+      "storyId": "components-button--primary-large",
+      "figmaNodeId": "13472:2988",
+      "interaction": "active",
+      "verified": true,
+      "expect": {
+        "background-color": "#c74c01",
+        "color": "#ffffff"
+      }
+    },
+    {
+      "name": "primary-large-focused",
+      "storyId": "components-button--focus-check-primary",
+      "figmaNodeId": "13472:3135",
+      "interaction": "focus",
+      "verified": true,
+      "expect": {
+        "outline-width": "2px",
+        "outline-color": "#c74c01",
+        "outline-offset": "1px",
+        "background-color": "#e3530f"
+      }
+    },
+    {
+      "name": "primary-large-disabled",
+      "storyId": "components-button--disabled-primary",
+      "figmaNodeId": "13472:2916",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#bdbdbd",
+        "color": "#ffffff",
+        "offsetHeight": 48
+      }
+    },
+    {
+      "name": "secondary-large-default",
+      "storyId": "components-button--playground",
+      "storyArgs": { "type": "secondary", "size": "large" },
+      "figmaNodeId": "13472:2852",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#ffffff",
+        "color": "#e3530f",
+        "border-width": "1px",
+        "border-color": "#e3530f",
+        "offsetHeight": 48
+      }
+    },
+    {
+      "name": "secondary-large-disabled",
+      "storyId": "components-button--disabled-secondary",
+      "figmaNodeId": "13472:2952",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#fafafa",
+        "color": "#bdbdbd",
+        "border-color": "#bdbdbd"
+      }
+    },
+    {
+      "name": "tertiary-large-default",
+      "storyId": "components-button--playground",
+      "storyArgs": { "type": "tertiary", "size": "large" },
+      "figmaNodeId": "13472:2870",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "transparent",
+        "color": "#e3530f",
+        "padding-left": "0px",
+        "padding-right": "0px"
+      }
+    },
+    {
+      "name": "tertiary-large-disabled",
+      "storyId": "components-button--disabled-tertiary",
+      "figmaNodeId": "13472:2970",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "transparent",
+        "color": "#bdbdbd"
+      }
+    },
+    {
+      "name": "destructive-primary-large-default",
+      "storyId": "components-button--destructive-primary",
+      "figmaNodeId": "13472:2834",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#e00903",
+        "color": "#ffffff"
+      }
+    },
+    {
+      "name": "destructive-primary-large-pressed",
+      "storyId": "components-button--destructive-primary",
+      "figmaNodeId": "13472:3006",
+      "interaction": "active",
+      "verified": true,
+      "expect": {
+        "background-color": "#a30100"
+      }
+    },
+    {
+      "name": "primary-medium-default",
+      "storyId": "components-button--playground",
+      "storyArgs": { "type": "primary", "size": "medium" },
+      "figmaNodeId": "13472:3408",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#e3530f",
+        "font-size": "14px",
+        "line-height": "16px",
+        "padding": "8px 12px",
+        "gap": "8px",
+        "offsetHeight": 36
+      }
+    },
+    {
+      "name": "primary-small-default",
+      "storyId": "components-button--playground",
+      "storyArgs": { "type": "primary", "size": "small" },
+      "figmaNodeId": "13472:3724",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#e3530f",
+        "font-size": "12px",
+        "line-height": "16px",
+        "padding": "6px 12px",
+        "gap": "6px",
+        "offsetHeight": 28
+      }
+    }
+  ]
+}
