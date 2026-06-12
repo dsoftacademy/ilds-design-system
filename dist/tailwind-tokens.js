@@ -10,7 +10,7 @@ module.exports = {
       "200": "#ffbca1",
       "300": "#ff9d76",
       "400": "#ff7c43",
-      "500": "#e35310",
+      "500": "#e3530f",
       "600": "#c74c01",
       "700": "#903501",
       "800": "#5a1e00",
@@ -140,25 +140,9 @@ module.exports = {
     "massive": "1000px"
   },
   "typography": {
-    "fontFamily": {
-      "primary": "'Mulish', sans-serif"
-    },
-    "fontSize": {
-      "12": "12px",
-      "14": "14px",
-      "16": "16px",
-      "20": "20px"
-    },
-    "fontWeight": {
-      "regular": "400",
-      "medium": "500",
-      "bold": "700"
-    },
-    "lineHeight": {
-      "12": "1.333",
-      "14": "1.143",
-      "16": "1.25",
-      "20": "1.2"
-    }
+    "fontFamily": {},
+    "fontSize": {},
+    "fontWeight": {},
+    "lineHeight": {}
   }
 };

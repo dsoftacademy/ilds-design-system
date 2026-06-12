@@ -52,7 +52,7 @@
   --color-primary-orange-200: #ffbca1;
   --color-primary-orange-300: #ff9d76;
   --color-primary-orange-400: #ff7c43;
-  --color-primary-orange-500: #e35310;
+  --color-primary-orange-500: #e3530f;
   --color-primary-orange-50: #fff2ed;
   --color-primary-orange-600: #c74c01;
   --color-primary-orange-700: #903501;
@@ -99,10 +99,6 @@
   --color-warning-amber-800: #4e3300;
   --color-warning-amber-900: #231500;
   --color-white-000: #fffffe;
-  --font-primary: 'Mulish', sans-serif;
-  --font-weight-bold: 700;
-  --font-weight-medium: 500;
-  --font-weight-regular: 400;
   --radius-2xlarge: 16px;
   --radius-large: 8px;
   --radius-massive: 1000px;
@@ -123,12 +119,4 @@
   --spacing-sp-56: 56px;
   --spacing-sp-6: 6px;
   --spacing-sp-8: 8px;
-  --text-12--line-height: 1.333;
-  --text-12: 12px;
-  --text-14--line-height: 1.143;
-  --text-14: 14px;
-  --text-16--line-height: 1.25;
-  --text-16: 16px;
-  --text-20--line-height: 1.2;
-  --text-20: 20px;
 }
