@@ -1045,5 +1045,11 @@ These apply to every agent, every session, every PR.
 
 ---
 
+## Resolved design decisions
+
+- **Toast surface (resolved Jun 2026):** White surface (`color.neutral.0`) + per-variant colored accent (left 4px bar + icon + action): `info`→orange500, `success`→green600, `warning`→amber500, `error`→red600. Ratified to match shipped `lib/ilds_toast.dart` and the Phase 3 Gemini brief; the Phase 5 Supernova brief's "tinted surface per variant" spec was **corrected** to white+accent (tinted surfaces belong to the **Tag** component, not Toast).
+
+---
+
 *End of ILDS_PROJECT_MASTER.md*
 *To update this file: edit directly and commit to `main`. This is a living document.*

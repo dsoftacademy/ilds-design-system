@@ -539,12 +539,16 @@ Ephemeral notifications that appear at the bottom (default) or top of the screen
 | `position` | `IldsToastPosition` | `.bottom` | Screen position |
 
 ### Variant tokens
-| Variant | Accent bar | Icon | Background |
+> **Surface decision (ratified Jun 2026):** Toasts use a **white surface** (`color.neutral.0`) with a **per-variant colored accent** (left 4px bar + icon + action text). This matches the shipped `ilds_toast.dart`. The earlier "tinted surface per variant" (green50/red50/amber50/blue50) proposal is **not** used — that tinted treatment lives on the **Tag** component, not Toast. Note `info` uses brand **orange**, not blue.
+
+| Variant | Accent (bar + icon + action) | Icon | Surface |
 |---|---|---|---|
-| `success` | `green500` | check_circle | `green50` |
-| `error` | `errorRed500` | error | `errorRed50` |
-| `warning` | `amber500` | warning | `amber50` |
-| `info` | `blue500` | info | `blue50` |
+| `info` | `orange500` | info_outline | `neutral.0` (white) |
+| `success` | `green600` | check_circle_outline | `neutral.0` (white) |
+| `warning` | `amber500` | warning_amber | `neutral.0` (white) |
+| `error` | `red600` | error_outline | `neutral.0` (white) |
+
+Title text = `neutral900`; message text = `neutral500`; elevation 4 (shadow), `borderRadius.md`.
 
 ### Do/Don't
 | ✅ Do | ❌ Don't |
