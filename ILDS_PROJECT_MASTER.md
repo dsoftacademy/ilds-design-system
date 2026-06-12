@@ -95,7 +95,9 @@ The library contains 18 production-ready Flutter components, 112 design tokens, 
 
 - The Figma plugin extracts 112 tokens from Figma Variables, converts to W3C DTCG JSON, and pushes to `tokens/tokens.json` on GitHub with SHA-retry conflict handling
 - The GitHub Action (`sync-supernova.yml`) detects changes to `tokens/tokens.json`, syncs to Supernova **token pages**, and fails loudly on any CLI error
-- Slack receives a notification every time a sync completes
+- Slack receives a notification every time a sync completes — posted by the **plugin** (`postToSlack` in `ilds-plugin/code.ts`), gated on the plugin having a Slack webhook saved in `clientStorage`.
+
+> **Slack source clarification (Jun 2026):** A *separate* legacy n8n workflow, "GitHub Push Notifier to Slack" (`P82tigHMhMfUl25s`), also posted to `#design-system-updates` on **every** push (docs commits included), causing duplicate and out-of-order messages. Decision: **disable it** — the plugin already notifies on real token syncs, so the n8n notifier is pure noise. After disabling, verify a token sync still posts to Slack; if it goes silent, the plugin's Slack webhook isn't configured — add it in the plugin Settings. This removes n8n from the stack entirely (the Figma→GitHub n8n leg was already disabled in Task 5).
 - 18 Flutter components are in `lib/` — all passing `flutter analyze` with zero issues
 - 18 Code Connect files are published — Dev Mode shows real Flutter code for all components
 
