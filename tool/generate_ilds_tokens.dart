@@ -17,7 +17,8 @@
 //   - Border radius and spacing keep their current px values (legacy scale),
 //     flagged as a separate design decision. Figma's radius/spacing are also
 //     emitted under faithful names (radius*, sp*) for new work.
-//   - Font weights and border widths are not in tokens.json; kept hand-authored.
+//   - Typography (family, sizes, weights, line-heights) emitted from tokens.json.
+//   - Border widths are not in tokens.json; kept hand-authored.
 
 import 'dart:convert';
 import 'dart:io';
@@ -35,6 +36,7 @@ void main() {
   final colors = global['color'] as Map<String, dynamic>;
   final spacing = global['spacing'] as Map<String, dynamic>;
   final radius = global['borderRadius'] as Map<String, dynamic>;
+  final typography = global['typography'] as Map<String, dynamic>?;
 
   final buf = StringBuffer();
   buf.writeln('// GENERATED FILE — DO NOT EDIT BY HAND.');
@@ -130,10 +132,42 @@ void main() {
   buf.writeln('  static const double borderWidth2 = 2.0;');
   buf.writeln('  static const double borderWidth4 = 4.0;');
   buf.writeln();
-  buf.writeln('  // ===== Font weights (not in tokens.json) =====');
-  buf.writeln('  static const FontWeight fontWeightRegular = FontWeight.w400;');
-  buf.writeln('  static const FontWeight fontWeightMedium  = FontWeight.w500;');
-  buf.writeln('  static const FontWeight fontWeightBold    = FontWeight.w700;');
+
+  // ── Typography (flat DTCG tokens) ─────────────────────────────────────────
+  if (typography != null) {
+    buf.writeln('  // ===== Typography (source of truth) =====');
+    final families = typography['font-family'] as Map<String, dynamic>?;
+    if (families != null) {
+      families.forEach((key, token) {
+        final v = (token as Map<String, dynamic>)[r'$value'] as String;
+        buf.writeln("  static const String fontFamily${_cap(key)} = '$v';");
+      });
+    }
+    final sizes = typography['font-size'] as Map<String, dynamic>?;
+    if (sizes != null) {
+      sizes.forEach((key, token) {
+        final v = _num(token);
+        buf.writeln('  static const double fontSize${_cap(key)} = $v;');
+      });
+    }
+    final weights = typography['font-weight'] as Map<String, dynamic>?;
+    if (weights != null) {
+      weights.forEach((key, token) {
+        final v = int.parse((token as Map<String, dynamic>)[r'$value'].toString());
+        final dartName = _cap(key);
+        buf.writeln('  static const FontWeight fontWeight$dartName = FontWeight.w$v;');
+      });
+    }
+    final leading = typography['line-height'] as Map<String, dynamic>?;
+    if (leading != null) {
+      leading.forEach((key, token) {
+        final v = _num(token);
+        buf.writeln('  static const double lineHeight$key = $v;');
+      });
+    }
+    buf.writeln();
+  }
+
   buf.writeln('}');
   buf.writeln();
 
@@ -142,15 +176,15 @@ void main() {
   buf.writeln('  static ThemeData data() {');
   buf.writeln('    return ThemeData(');
   buf.writeln('      useMaterial3: true,');
-  buf.writeln("      fontFamily: 'Mulish',");
+  buf.writeln('      fontFamily: ILDSTokens.fontFamilyPrimary,');
   buf.writeln('      colorScheme: ColorScheme.fromSeed(');
   buf.writeln('        seedColor: ILDSTokens.orange500,');
   buf.writeln('        primary: ILDSTokens.orange500,');
   buf.writeln('        surface: ILDSTokens.white,');
   buf.writeln('      ),');
   buf.writeln('      textTheme: const TextTheme(');
-  buf.writeln("        bodyLarge: TextStyle(fontFamily: 'Mulish', fontWeight: ILDSTokens.fontWeightRegular),");
-  buf.writeln("        titleLarge: TextStyle(fontFamily: 'Mulish', fontWeight: ILDSTokens.fontWeightBold),");
+  buf.writeln('        bodyLarge: TextStyle(fontFamily: ILDSTokens.fontFamilyPrimary, fontWeight: ILDSTokens.fontWeightRegular),');
+  buf.writeln('        titleLarge: TextStyle(fontFamily: ILDSTokens.fontFamilyPrimary, fontWeight: ILDSTokens.fontWeightBold),');
   buf.writeln('      ),');
   buf.writeln('    );');
   buf.writeln('  }');
@@ -199,3 +233,10 @@ num _num(dynamic token) {
 }
 
 String _int(num v) => v == v.toInt() ? v.toInt().toString() : v.toString();
+
+String _cap(String key) {
+  final k = key.trim();
+  if (k.isEmpty) return k;
+  if (RegExp(r'^\d+$').hasMatch(k)) return k;
+  return k[0].toUpperCase() + k.substring(1);
+}

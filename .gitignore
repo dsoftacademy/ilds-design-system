@@ -92,6 +92,7 @@ out
 # allow-list below can take effect.
 dist/*
 !dist/tokens.css
+!dist/tokens.theme.css
 !dist/tailwind-tokens.js
 
 # Gatsby files

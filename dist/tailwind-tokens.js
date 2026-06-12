@@ -1,6 +1,7 @@
 // GENERATED FILE — DO NOT EDIT BY HAND.
 // Source: tokens/tokens.json  Generator: style-dictionary.config.mjs
 // Regenerate: npm run build:tokens
+// DEPRECATED: Tailwind v3 CommonJS shim. Phase 3b uses dist/tokens.theme.css (@theme).
 module.exports = {
   "colors": {
     "primary-orange": {
@@ -137,5 +138,27 @@ module.exports = {
     "xlarge": "12px",
     "2xlarge": "16px",
     "massive": "1000px"
+  },
+  "typography": {
+    "fontFamily": {
+      "primary": "'Mulish', sans-serif"
+    },
+    "fontSize": {
+      "12": "12px",
+      "14": "14px",
+      "16": "16px",
+      "20": "20px"
+    },
+    "fontWeight": {
+      "regular": "400",
+      "medium": "500",
+      "bold": "700"
+    },
+    "lineHeight": {
+      "12": "1.333",
+      "14": "1.143",
+      "16": "1.25",
+      "20": "1.2"
+    }
   }
 };

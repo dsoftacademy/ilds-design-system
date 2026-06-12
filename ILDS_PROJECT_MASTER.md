@@ -290,24 +290,33 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 **Goal:** Configure Style Dictionary to transform `tokens/tokens.json` → CSS custom properties + Tailwind config. Run this export in CI on every `tokens/tokens.json` push.
 
 **What shipped:**
-- `style-dictionary.config.mjs` — Style Dictionary **v4.4.0** programmatic build (DTCG `usesDtcg: true`). Custom hooks: `ilds/name/kebab` (drops the `global` set, kebab-cases segments → `--color-primary-orange-500`), `ilds/size/px` (appends `px` to the unitless `spacing`/`borderRadius` values), and the `ilds/tailwind` format (raw values nested by family).
-- `dist/tokens.css` — CSS custom properties under `:root` (11 color families + 12 spacing + 8 borderRadius).
-- `dist/tailwind-tokens.js` — CommonJS `module.exports` Tailwind theme extension (`colors`/`spacing`/`borderRadius`, raw values) for Phase 3b consumption.
+- `style-dictionary.config.mjs` — Style Dictionary **v4.4.0** programmatic build (DTCG `usesDtcg: true`). Custom hooks: `ilds/name/kebab`, `ilds/size/px`, `ilds/font/family`, `ilds/tailwind-theme` (`@theme` block for **Tailwind CSS v4**), and `ilds/tailwind` (deprecated v3 CommonJS shim).
+- `dist/tokens.css` — generic `:root` CSS custom properties (colors + spacing + borderRadius + **typography**).
+- `dist/tokens.theme.css` — **Tailwind v4 `@theme` block** with namespace prefixes (`--color-*`, `--spacing-*`, `--radius-*`, `--font-*`, `--text-*`, `--text-*--line-height`, `--font-weight-*`). Primary web consumption target for Phase 3b.
+- `dist/tailwind-tokens.js` — deprecated v3 CommonJS shim (kept temporarily; delete once 3b scaffold lands on `@theme`).
+- **Typography tokenized** in `tokens.json` (flat DTCG: `font-family`, `font-size`, `font-weight`, `line-height`) + wired into all exports + `tool/generate_ilds_tokens.dart` (`fontFamilyPrimary`, `fontSize12–20`, `fontWeightRegular/Medium/Bold`, `lineHeight12–20`). Source is repo-authored (not yet in Figma Variables); colors/spacing/radius remain Figma-driven.
 - `npm run build:tokens` script; `style-dictionary` added as devDependency.
 - CI: `.github/workflows/build-tokens.yml` — on push to `main` touching `tokens/tokens.json` (or the generator), runs `npm ci && npm run build:tokens` and **auto-commits** refreshed `dist/` back (`[skip ci]`, `contents: write`). `dist/*` is gitignored except the two committed exports.
 
-**Scope notes:** Token source currently covers **color + spacing + borderRadius only**; typography/font-weight is not yet tokenized in `tokens.json` (hardcoded in Dart) — tokenize later before native/typography export. Phase 4a extends this same config to Swift + Kotlin.
+**Scope notes:** Typography is now tokenized (repo-authored, Jun 2026). Display-scale sizes from the Supernova brief (48–72px) are **not** in the token set yet — only the sizes actually used by shipped Flutter components (12/14/16/20). Phase 4a extends this same config to Swift + Kotlin.
+
+> **Tailwind v4 decision (Jun 2026):** Phase 3b targets **Tailwind CSS v4** (`npm view tailwindcss` → 4.3.0 as of Jun 2026). v4 uses CSS `@theme`, not `tailwind.config.js`. The initial `tailwind-tokens.js` export was a v3-shaped mistake; `dist/tokens.theme.css` is the canonical web target. **Storybook 10** (`npm view storybook` → 10.4.4) — not Storybook 8.
 
 **Status:** `- [x]` Complete — validated locally (`npm run build:tokens` regenerates both files); CI auto-commit path wired for the Figma → plugin → push → rebuild loop.
 
-#### Phase 3b — React Component Parity (depends on Phase 3a)
+#### Phase 3b — React Component Parity (depends on Phase 3a) — NOT STARTED
 
 **Goal:** Build 18 React components matching Flutter component states, styled via the Phase 3a token output.
 
+**Locked stack (verify against npm before scaffold — Jun 2026):**
+- **Tailwind CSS v4** — import `dist/tokens.theme.css` (`@theme`); no `tailwind.config.js`
+- **Storybook 10** (10.4.x) — not Storybook 8
+- React + TypeScript, Vite scaffold
+
 **Scope:**
 - React + TypeScript component library (same 18 components, same 18 × states)
-- Tailwind CSS as styling utility layer, consuming Phase 3a token output
-- Storybook 8 — all components, all states documented
+- Tailwind CSS v4 consuming `dist/tokens.theme.css` + typography tokens
+- Storybook 10 — all components, all states documented
 - Public design system website — Vercel, auto-deploys on every merge to `main`
 - This is significant engineering effort: 18 components × full state coverage = 18× the effort of Phase 3a
 
@@ -834,8 +843,9 @@ See Section 5, Phase 3 for full scope.
 
 **Phase 3a (token export) — ✅ COMPLETE (Jun 2026):**
 - [x] Style Dictionary config (`style-dictionary.config.mjs`, v4.4.0) authored and committed
-- [x] Output: `dist/tokens.css` + `dist/tailwind-tokens.js`
-- [x] GitHub Action (`build-tokens.yml`): token export runs + auto-commits `dist/` on `tokens/tokens.json` push
+- [x] Output: `dist/tokens.css` + `dist/tokens.theme.css` (Tailwind v4 `@theme`) + `dist/tailwind-tokens.js` (deprecated v3 shim)
+- [x] Typography tokenized in `tokens.json` + all exports + Dart codegen
+- [x] GitHub Action (`build-tokens.yml`): token export runs + auto-commits `dist/` on `tokens/tokens.json` push — run #1 green (Jun 12, no-op commit; `dist/` already current)
 - [x] Validated locally; CI auto-commit path wired for Figma → plugin → GitHub → CSS rebuild
 
 **Phase 3b (React components — depends on 3a):**
@@ -1028,8 +1038,8 @@ These apply to every agent, every session, every PR.
 | Notifications | Slack | `#design-system-updates` webhook |
 | Code Connect | Figma Code Connect | 18 `.figma.ts` files at repo root |
 | Phase 3 target | React + TypeScript | Not started |
-| Phase 3 styling | Tailwind CSS | Not started |
-| Phase 3 docs | Storybook 8 | Not started |
+| Phase 3 styling | Tailwind CSS v4 (`@theme` via `dist/tokens.theme.css`) | Not started |
+| Phase 3 docs | Storybook 10 (verify npm) | Not started |
 | Phase 3 hosting | Vercel | Not started |
 | Phase 3a token export | Style Dictionary v4 (CSS + Tailwind) | ✅ Done (Jun 2026) — `style-dictionary.config.mjs`, CI `build-tokens.yml` |
 | Phase 4 export | Style Dictionary (Swift + Kotlin) | Not started — extends the Phase 3a config |
@@ -1049,6 +1059,7 @@ These apply to every agent, every session, every PR.
 ## Resolved design decisions
 
 - **Toast surface (resolved Jun 2026):** White surface (`color.neutral.0`) + per-variant colored accent (left 4px bar + icon + action): `info`→orange500, `success`→green600, `warning`→amber500, `error`→red600. Ratified to match shipped `lib/ilds_toast.dart` and the Phase 3 Gemini brief; the Phase 5 Supernova brief's "tinted surface per variant" spec was **corrected** to white+accent (tinted surfaces belong to the **Tag** component, not Toast).
+- **Web token target (resolved Jun 2026):** Phase 3b uses **Tailwind CSS v4** + `dist/tokens.theme.css` (`@theme`), not v3 `tailwind.config.js` / `tailwind-tokens.js`. Storybook **10**, not 8. Verify versions against `npm view` before scaffold.
 
 ---
 

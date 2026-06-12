@@ -83,7 +83,7 @@ class ILDSTokens {
   static const Color secondaryBlue800 = Color(0xFF002142);
   static const Color secondaryBlue900 = Color(0xFF011933);
   // global
-  static const Color globalWhite000 = Color(0xFFFFFFFF);
+  static const Color globalWhite000 = Color(0xFFFFFFFE);
   static const Color globalBlack1000 = Color(0xFF020202);
   // neutral-coolgray
   static const Color neutralCoolgray50 = Color(0xFFFAFAFA);
@@ -97,16 +97,16 @@ class ILDSTokens {
   static const Color neutralCoolgray800 = Color(0xFF424242);
   static const Color neutralCoolgray900 = Color(0xFF212121);
   // informative-blue
+  static const Color informativeBlue50 = Color(0xFFEDF3FF);
+  static const Color informativeBlue100 = Color(0xFFC7DBFF);
+  static const Color informativeBlue200 = Color(0xFF9EC1FF);
+  static const Color informativeBlue300 = Color(0xFF75A5FF);
   static const Color informativeBlue400 = Color(0xFF4A87FF);
   static const Color informativeBlue500 = Color(0xFF2168F6);
   static const Color informativeBlue600 = Color(0xFF004FE1);
   static const Color informativeBlue700 = Color(0xFF0039A9);
   static const Color informativeBlue800 = Color(0xFF002372);
   static const Color informativeBlue900 = Color(0xFF001244);
-  static const Color informativeBlue50 = Color(0xFFEDF3FF);
-  static const Color informativeBlue100 = Color(0xFFC7DBFF);
-  static const Color informativeBlue200 = Color(0xFF9EC1FF);
-  static const Color informativeBlue300 = Color(0xFF75A5FF);
 
   // ===== Figma-faithful spacing (px) =====
   static const double sp2 = 2;
@@ -209,25 +209,35 @@ class ILDSTokens {
   static const double borderWidth2 = 2.0;
   static const double borderWidth4 = 4.0;
 
-  // ===== Font weights (not in tokens.json) =====
+  // ===== Typography (source of truth) =====
+  static const String fontFamilyPrimary = 'Mulish';
+  static const double fontSize12 = 12;
+  static const double fontSize14 = 14;
+  static const double fontSize16 = 16;
+  static const double fontSize20 = 20;
   static const FontWeight fontWeightRegular = FontWeight.w400;
-  static const FontWeight fontWeightMedium  = FontWeight.w500;
-  static const FontWeight fontWeightBold    = FontWeight.w700;
+  static const FontWeight fontWeightMedium = FontWeight.w500;
+  static const FontWeight fontWeightBold = FontWeight.w700;
+  static const double lineHeight12 = 1.333;
+  static const double lineHeight14 = 1.143;
+  static const double lineHeight16 = 1.25;
+  static const double lineHeight20 = 1.2;
+
 }
 
 class ILDSTheme {
   static ThemeData data() {
     return ThemeData(
       useMaterial3: true,
-      fontFamily: 'Mulish',
+      fontFamily: ILDSTokens.fontFamilyPrimary,
       colorScheme: ColorScheme.fromSeed(
         seedColor: ILDSTokens.orange500,
         primary: ILDSTokens.orange500,
         surface: ILDSTokens.white,
       ),
       textTheme: const TextTheme(
-        bodyLarge: TextStyle(fontFamily: 'Mulish', fontWeight: ILDSTokens.fontWeightRegular),
-        titleLarge: TextStyle(fontFamily: 'Mulish', fontWeight: ILDSTokens.fontWeightBold),
+        bodyLarge: TextStyle(fontFamily: ILDSTokens.fontFamilyPrimary, fontWeight: ILDSTokens.fontWeightRegular),
+        titleLarge: TextStyle(fontFamily: ILDSTokens.fontFamilyPrimary, fontWeight: ILDSTokens.fontWeightBold),
       ),
     );
   }

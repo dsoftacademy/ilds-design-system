@@ -163,6 +163,31 @@ function normaliseGroup(raw: string): string {
   return raw.toLowerCase().trim().replace(/\s*-\s*/g, '-').replace(/\s+/g, '-');
 }
 
+// Repo-authored typography (not in Figma Variables yet). Preserved on every plugin sync
+// so Style Dictionary / Dart codegen exports stay stable. See tokens/tokens.json.
+const TYPOGRAPHY_TOKENS = {
+  'font-family': {
+    primary: { '$type': 'fontFamily', '$value': 'Mulish' },
+  },
+  'font-size': {
+    '12': { '$type': 'dimension', '$value': '12' },
+    '14': { '$type': 'dimension', '$value': '14' },
+    '16': { '$type': 'dimension', '$value': '16' },
+    '20': { '$type': 'dimension', '$value': '20' },
+  },
+  'font-weight': {
+    regular: { '$type': 'fontWeight', '$value': '400' },
+    medium: { '$type': 'fontWeight', '$value': '500' },
+    bold: { '$type': 'fontWeight', '$value': '700' },
+  },
+  'line-height': {
+    '12': { '$type': 'number', '$value': '1.333' },
+    '14': { '$type': 'number', '$value': '1.143' },
+    '16': { '$type': 'number', '$value': '1.25' },
+    '20': { '$type': 'number', '$value': '1.2' },
+  },
+};
+
 function buildDTCG(variables: Variable[], collections: VariableCollection[]): object {
   const colMap: Record<string, VariableCollection> = {};
   collections.forEach(c => { colMap[c.id] = c; });
@@ -200,7 +225,12 @@ function buildDTCG(variables: Variable[], collections: VariableCollection[]): ob
   }
 
   return {
-    global: { color: colorTokens, spacing: spacingTokens, borderRadius: radiusTokens },
+    global: {
+      color: colorTokens,
+      spacing: spacingTokens,
+      borderRadius: radiusTokens,
+      typography: TYPOGRAPHY_TOKENS,
+    },
     $metadata: { tokenSetOrder: ['global'] },
   };
 }
