@@ -88,7 +88,7 @@ module.exports = {
       "800": "#002142",
       "900": "#011933"
     },
-    "white-000": "#fffffe",
+    "white-000": "#ffffff",
     "black-1000": "#020202",
     "neutral-coolgray": {
       "50": "#fafafa",
