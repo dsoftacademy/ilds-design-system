@@ -108,7 +108,7 @@ The library contains 18 production-ready Flutter components, 112 design tokens, 
 - **`ILDSTokens` Dart class drift — resolved (June 2026).** Codegen script (`tool/generate_ilds_tokens.dart`) built, run, Figma-verified, and committed (`17d7120`). All 112 tokens now Figma-canonical. Do not manually edit the class — always regenerate via script after any Figma token sync.
 - **Supernova component documentation is ~20% complete** — token pages sync automatically; component pages (usage, anatomy, states, guidance) are written manually and lag behind implementation. This is a separate workstream from the token pipeline and needs explicit resourcing.
 - ~~Several `*.figma.ts` Code Connect files edited locally but not republished~~ **Resolved (Jun 2026, Task 2):** full republish done — 17 active `.figma.ts` published, no duplicate node mappings. Dev Mode spot-check remains a manual visual step.
-- **Tab scrollable indicator** — TODO at line 191 of `ilds_tab.dart`; current implementation shows a full-width neutral bar placeholder.
+- ~~**Tab scrollable indicator** — TODO at line 191 of `ilds_tab.dart`; full-width neutral bar placeholder.~~ **Resolved (Jun 2026, Task 6):** scroll-linked indicator implemented — `GlobalKey`-measured selected-tab position/width, `AnimatedPositioned` inside the scroll content, auto scroll-into-view on select. `flutter analyze` clean.
 - **Playground app NavigationRail overflow** — `RenderFlex` overflow in `ilds_component_playground_app/lib/main.dart`.
 
 ### What has not been started
@@ -804,29 +804,24 @@ SizedBox(
 
 ### 🟡 SOON — Code Quality
 
-#### Task 6 — Tab Scrollable Indicator (GlobalKey-based)
-**Why:** `ilds_tab.dart` has a TODO comment in the scrollable mode implementation. Current state shows a full-width neutral bar instead of a scroll-linked indicator that tracks the selected tab.
+#### Task 6 — Tab Scrollable Indicator (GlobalKey-based) ✅ COMPLETE (Jun 2026)
+**Why:** `ilds_tab.dart` shipped a full-width neutral placeholder bar in scrollable mode instead of an indicator that tracks the selected tab.
 
-**Location:** `lib/ilds_tab.dart` — search for `TODO: scroll-linked selected-tab indicator`
+**Location:** `lib/ilds_tab.dart`
 
-**What the TODO says:**
-```dart
-// TODO: scroll-linked selected-tab indicator (measure tab positions via GlobalKey /
-// LayoutBuilder). Until then, full-width neutral bar only — selection is text/icon color.
-```
+**What shipped:**
+- A `GlobalKey` (`KeyedSubtree`) on each tab + a container key on the tab `Row`; the selected tab's left offset and width are measured post-layout via `RenderBox.localToGlobal(..., ancestor: containerBox)`.
+- The indicator is an `AnimatedPositioned` placed **inside** the horizontal scroll content (Stack), so it tracks the selected tab while scrolling — no manual scroll-offset math needed.
+- `LayoutBuilder` re-measures on resize; `_scheduleMeasure()` (post-frame, guarded) remeasures on select/`didUpdateWidget`; `setState` only fires when position/width actually change (no rebuild loop).
+- Selecting a tab calls `Scrollable.ensureVisible(alignment: 0.5)` to bring it into view.
+- Fixed-mode indicator unchanged; thickness unified via `_indicatorThickness()`.
 
-**Implementation approach:**
-- Assign a `GlobalKey` to each tab widget
-- After render, use `key.currentContext?.findRenderObject()` to get tab positions
-- Use a `ScrollController` to track scroll offset
-- Compute indicator `left` position from selected tab's `GlobalKey` position minus scroll offset
-- Animate with `AnimatedPositioned`
-
-- [ ] GlobalKey assigned to each tab
-- [ ] Tab positions measured post-render
-- [ ] Indicator left position computed from selected tab key
-- [ ] ScrollController linked to indicator position
-- [ ] Animated transition between selected tabs
+- [x] GlobalKey assigned to each tab
+- [x] Tab positions measured post-render
+- [x] Indicator left position computed from selected tab key
+- [x] Indicator placed in scroll content (tracks tab without offset math)
+- [x] Animated transition between selected tabs (`AnimatedPositioned`)
+- [x] `flutter analyze` clean (main package)
 
 ---
 
@@ -883,7 +878,7 @@ All components live in `lib/`. All pass `flutter analyze` with zero issues as of
 | 7 | Checkbox | `ilds_checkbox.dart` | 2 | Unchecked · Checked · Indeterminate · Disabled · Error | `checkbox.figma.ts` | ✅ Live |
 | 8 | Switch | `ilds_switch.dart` | 2 | Off · On · Focused · Disabled-Off · Disabled-On | `switch.figma.ts` | ✅ Live |
 | 9 | Text Area | `ilds_text_area.dart` | 2 | Default · Focused · Error · Success · ReadOnly · Loading | `text_area.figma.ts` | ✅ Live |
-| 10 | Tab Bar | `ilds_tab.dart` | 2 | Fixed · Scrollable · Active · Hover · Pressed · Disabled | `tab.figma.ts` | ✅ Live* |
+| 10 | Tab Bar | `ilds_tab.dart` | 2 | Fixed · Scrollable · Active · Hover · Pressed · Disabled | `tab.figma.ts` | ✅ Live |
 | 11 | Pagination | `ilds_pagination.dart` | 2 | Default · Current · Disabled · Ellipsis · Compact | `pagination.figma.ts` | ✅ Live |
 | 12 | Selection Button | `ilds_selection_button.dart` | 2 | Unselected · Selected · Hover · Focused · Disabled | `selection_button.figma.ts` | ✅ Live |
 | 13 | Badge | `ilds_badge.dart` | 2 | Subtle · Intense · Success · Error · Warning · Info · Loading | `badge.figma.ts` | ✅ Live |
@@ -893,7 +888,7 @@ All components live in `lib/`. All pass `flutter analyze` with zero issues as of
 | 17 | Scrollbar | `ilds_scrollbar.dart` | 2 | Default(6px) · Hover(12px) · Dragged · V · H | `scrollbar.figma.ts` | ✅ Live (republished Jun 2026) |
 | 18 | Search | `ilds_search.dart` | 2 | Default · Focused · Filled · Suggestions · Disabled | `search.figma.ts` | ✅ Live |
 
-*Tab scrollable indicator is a placeholder — see Known TODOs §10.
+Tab scrollable indicator implemented (Jun 2026, Task 6) — scroll-linked, GlobalKey-measured.
 
 ---
 
@@ -932,7 +927,7 @@ These are tracked issues inside source files that need to be addressed.
 
 | Priority | File | Line | Issue | Fix |
 |---|---|---|---|---|
-| Medium | `lib/ilds_tab.dart` | line 191 | Scrollable mode indicator is a full-width neutral bar placeholder | Implement GlobalKey-based scroll-linked indicator (see Task 6 in §7) |
+| ~~Medium~~ ✅ | `lib/ilds_tab.dart` | — | ~~Scrollable mode indicator is a full-width neutral bar placeholder~~ Fixed Jun 2026 (Task 6) | GlobalKey-measured `AnimatedPositioned` indicator inside scroll content (see Task 6 in §7) |
 | ~~Low~~ ✅ | `ilds_component_playground_app/lib/main.dart` | NavigationRail section | ~~RenderFlex overflow~~ Fixed Jun 2026 | LayoutBuilder + ConstrainedBox(minHeight) + IntrinsicHeight (see Task 3 in §7) |
 | ~~Low~~ ✅ | `scrollbar.figma.ts` | Orientation binding | ~~Updated but not republished~~ Republished Jun 2026 (Task 2) | Done — full Code Connect republish completed |
 
@@ -958,7 +953,7 @@ ilds-design-system/
 │   ├── ilds_checkbox.dart
 │   ├── ilds_switch.dart
 │   ├── ilds_text_area.dart
-│   ├── ilds_tab.dart               ← has TODO for scrollable indicator
+│   ├── ilds_tab.dart               ← scroll-linked indicator (Task 6, Jun 2026)
 │   ├── ilds_pagination.dart
 │   ├── ilds_selection_button.dart
 │   ├── ilds_badge.dart
