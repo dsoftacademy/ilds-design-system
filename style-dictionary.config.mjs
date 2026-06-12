@@ -117,6 +117,10 @@ StyleDictionary.registerFormat({
       '/* Regenerate: npm run build:tokens */\n' +
       '/* Tailwind CSS v4: @import "tailwindcss"; @import "./tokens.theme.css"; */\n' +
       '@theme {\n' +
+      '  /* Phase 3b: reset Tailwind v4 defaults so only ILDS tokens generate utilities */\n' +
+      '  --spacing: initial;\n' +
+      '  --color-*: initial;\n' +
+      '  --radius-*: initial;\n' +
       lines.join('\n') +
       '\n}\n'
     );

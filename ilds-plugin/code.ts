@@ -88,19 +88,28 @@ async function runSync(): Promise<SyncResult> {
 
   figma.ui.postMessage({ type: 'status', step: 'transforming', message: `Transforming ${variables.length} variables...` });
 
-  // Step 2: Transform to DTCG
-  const dtcg = buildDTCG(variables, collections);
-  const tokensJson = JSON.stringify(dtcg, null, 2);
+  // Step 2: Transform Figma Variables → DTCG (color / spacing / borderRadius only)
+  const figmaTokens = buildDTCG(variables, collections);
   const tokenCount = variables.length;
 
-  // Step 3: Push to GitHub (with 409 retry for stale SHA)
+  // Step 3: Push to GitHub — merge with existing tokens.json, preserving groups
+  // the plugin does not manage (e.g. typography until Phase 8 Figma Variables).
   figma.ui.postMessage({ type: 'status', step: 'github', message: 'Pushing to GitHub...' });
+  const contentFactory = async () => {
+    const { sha, parsed } = await getCurrentFileContent(
+      config.githubOwner, config.githubRepo,
+      config.githubFilePath, config.githubBranch,
+      config.githubPAT,
+    );
+    const merged = mergePreservedTokenFile(figmaTokens, parsed);
+    return { content: JSON.stringify(merged, null, 2), sha };
+  };
   await pushWithRetry(
     config.githubOwner, config.githubRepo,
     config.githubFilePath, config.githubBranch,
-    config.githubPAT, tokensJson,
+    config.githubPAT, contentFactory,
     `ci: sync Figma Variables to tokens.json [ILDS Plugin]`,
-    config.commitAuthorName, config.commitAuthorEmail
+    config.commitAuthorName, config.commitAuthorEmail,
   );
 
   const commitUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/commits/${config.githubBranch}`;
@@ -163,30 +172,8 @@ function normaliseGroup(raw: string): string {
   return raw.toLowerCase().trim().replace(/\s*-\s*/g, '-').replace(/\s+/g, '-');
 }
 
-// Repo-authored typography (not in Figma Variables yet). Preserved on every plugin sync
-// so Style Dictionary / Dart codegen exports stay stable. See tokens/tokens.json.
-const TYPOGRAPHY_TOKENS = {
-  'font-family': {
-    primary: { '$type': 'fontFamily', '$value': 'Mulish' },
-  },
-  'font-size': {
-    '12': { '$type': 'dimension', '$value': '12' },
-    '14': { '$type': 'dimension', '$value': '14' },
-    '16': { '$type': 'dimension', '$value': '16' },
-    '20': { '$type': 'dimension', '$value': '20' },
-  },
-  'font-weight': {
-    regular: { '$type': 'fontWeight', '$value': '400' },
-    medium: { '$type': 'fontWeight', '$value': '500' },
-    bold: { '$type': 'fontWeight', '$value': '700' },
-  },
-  'line-height': {
-    '12': { '$type': 'number', '$value': '1.333' },
-    '14': { '$type': 'number', '$value': '1.143' },
-    '16': { '$type': 'number', '$value': '1.25' },
-    '20': { '$type': 'number', '$value': '1.2' },
-  },
-};
+/** Groups written from Figma Variables on each sync. All other `global.*` keys are preserved from GitHub. */
+const FIGMA_MANAGED_GLOBAL_KEYS = new Set(['color', 'spacing', 'borderRadius']);
 
 function buildDTCG(variables: Variable[], collections: VariableCollection[]): object {
   const colMap: Record<string, VariableCollection> = {};
@@ -229,27 +216,71 @@ function buildDTCG(variables: Variable[], collections: VariableCollection[]): ob
       color: colorTokens,
       spacing: spacingTokens,
       borderRadius: radiusTokens,
-      typography: TYPOGRAPHY_TOKENS,
     },
     $metadata: { tokenSetOrder: ['global'] },
   };
 }
 
+/** Keep repo-authored token groups (typography, etc.) when overwriting Figma-managed groups. */
+function mergePreservedTokenFile(
+  figmaBuilt: Record<string, unknown>,
+  existing: unknown,
+): Record<string, unknown> {
+  const figmaGlobal = (figmaBuilt.global ?? {}) as Record<string, unknown>;
+  const mergedGlobal: Record<string, unknown> = { ...figmaGlobal };
+
+  if (existing && typeof existing === 'object') {
+    const root = existing as Record<string, unknown>;
+    const existingGlobal = root.global;
+    if (existingGlobal && typeof existingGlobal === 'object') {
+      for (const [key, value] of Object.entries(existingGlobal as Record<string, unknown>)) {
+        if (!FIGMA_MANAGED_GLOBAL_KEYS.has(key)) {
+          mergedGlobal[key] = value;
+        }
+      }
+    }
+    return {
+      ...root,
+      global: mergedGlobal,
+      $metadata: figmaBuilt.$metadata ?? root.$metadata,
+    };
+  }
+
+  return { ...figmaBuilt, global: mergedGlobal };
+}
+
+function fromBase64(b64: string): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const clean = b64.replace(/\s/g, '');
+  const bytes: number[] = [];
+  for (let i = 0; i < clean.length; i += 4) {
+    const e0 = chars.indexOf(clean[i]);
+    const e1 = chars.indexOf(clean[i + 1]);
+    const e2 = clean[i + 2] === '=' ? -1 : chars.indexOf(clean[i + 2]);
+    const e3 = clean[i + 3] === '=' ? -1 : chars.indexOf(clean[i + 3]);
+    bytes.push((e0 << 2) | (e1 >> 4));
+    if (e2 >= 0) bytes.push(((e1 & 15) << 4) | (e2 >> 2));
+    if (e3 >= 0) bytes.push(((e2 & 3) << 6) | e3);
+  }
+  return String.fromCharCode(...bytes);
+}
+
 // ── GitHub API ────────────────────────────────────────────────────────────────
 
-// Retry once on 409 (stale SHA — happens when GH Action commits between our GET and PUT)
+// Retry once on 409 (stale SHA — re-fetch + re-merge before second PUT)
 async function pushWithRetry(
   owner: string, repo: string, path: string, branch: string,
-  pat: string, content: string, message: string,
-  authorName: string, authorEmail: string
+  pat: string,
+  contentFactory: () => Promise<{ content: string; sha: string | null }>,
+  message: string,
+  authorName: string, authorEmail: string,
 ): Promise<void> {
-  let sha = await getCurrentFileSHA(owner, repo, path, branch, pat);
+  let { content, sha } = await contentFactory();
   try {
     await pushToGitHub(owner, repo, path, branch, pat, content, sha, message, authorName, authorEmail);
   } catch (e) {
     if (e instanceof Error && e.message.includes('409')) {
-      // SHA went stale — fetch fresh and retry once
-      sha = await getCurrentFileSHA(owner, repo, path, branch, pat);
+      ({ content, sha } = await contentFactory());
       await pushToGitHub(owner, repo, path, branch, pat, content, sha, message, authorName, authorEmail);
     } else {
       throw e;
@@ -257,16 +288,22 @@ async function pushWithRetry(
   }
 }
 
-async function getCurrentFileSHA(
-  owner: string, repo: string, path: string, branch: string, pat: string
-): Promise<string | null> {
+async function getCurrentFileContent(
+  owner: string, repo: string, path: string, branch: string, pat: string,
+): Promise<{ sha: string | null; parsed: unknown }> {
   const res = await fetch(
     `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,
-    { headers: { Authorization: `token ${pat}`, Accept: 'application/vnd.github.v3+json' } }
+    { headers: { Authorization: `token ${pat}`, Accept: 'application/vnd.github.v3+json' } },
   );
-  if (res.status === 404) return null;
+  if (res.status === 404) return { sha: null, parsed: null };
   if (!res.ok) throw new Error(`GitHub GET failed: ${res.status}`);
-  return ((await res.json()) as { sha: string }).sha;
+  const data = (await res.json()) as { sha: string; content: string };
+  const decoded = fromBase64(data.content);
+  try {
+    return { sha: data.sha, parsed: JSON.parse(decoded) as unknown };
+  } catch {
+    return { sha: data.sha, parsed: null };
+  }
 }
 
 async function pushToGitHub(

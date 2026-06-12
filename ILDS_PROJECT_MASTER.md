@@ -77,7 +77,7 @@ The library contains 18 production-ready Flutter components, 112 design tokens, 
 
 | Level | Description | Current status |
 |---|---|---|
-| **L1 — Token propagation** | Token changes flow automatically to `tokens.json` + Supernova + Slack + Flutter (`dart run tool/generate_ilds_tokens.dart` regenerates the Dart class from `tokens.json`). Multi-platform (React, iOS, Android) requires Phases 3–4. | ✅ Flutter achieved |
+| **L1 — Token propagation** | Token changes flow automatically to `tokens.json` + Supernova + Slack + Flutter (`dart run tool/generate_ilds_tokens.dart` regenerates the Dart class from `tokens.json`). Multi-platform (React, iOS, Android) requires Phases 3–4. **Typography is interim repo/plugin-authored until Phase 8** (Figma Variables). | ✅ Flutter achieved (colors/spacing/radius); ⚠️ typography → Phase 8 |
 | **L2 — Component consistency** | All components built to a single architectural pattern, zero hardcoded values | ✅ Achieved |
 | **L3 — Handoff automation** | Dev Mode shows real Flutter code for all 18 components. Multi-language handoff (React, SwiftUI, Compose) requires Phases 3–4. | ✅ Flutter only |
 | **L4 — Platform parity** | Same token file drives Flutter, React, iOS, Android simultaneously | ❌ Phase 3–4 |
@@ -115,6 +115,7 @@ The library contains 18 production-ready Flutter components, 112 design tokens, 
 
 - ~~Style Dictionary config (zero% started — prerequisite for all of Phases 3, 4, 6, 7)~~ **Done (Jun 2026, Phase 3a):** `style-dictionary.config.mjs` → `dist/tokens.css` + `dist/tailwind-tokens.js`, auto-built in CI.
 - Multi-platform token export — **web done (Phase 3a)**; iOS/Android (Swift/Kotlin) still pending — Phase 4a
+- **Figma Typography Variables** — typography tokenized in JSON (Phase 3a) but **not** Figma-driven yet; **Phase 8** (after 3b + 4)
 - Component Evolution Engine (visual regression + PR infrastructure) — Phase 5
 - DS Management Agent (intelligent DS ownership alongside human managers) — Phase 6
 - AI Design Assistant Figma plugin (full screen UI generation from PRD) — Phase 7
@@ -294,11 +295,11 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 - `dist/tokens.css` — generic `:root` CSS custom properties (colors + spacing + borderRadius + **typography**).
 - `dist/tokens.theme.css` — **Tailwind v4 `@theme` block** with namespace prefixes (`--color-*`, `--spacing-*`, `--radius-*`, `--font-*`, `--text-*`, `--text-*--line-height`, `--font-weight-*`). Primary web consumption target for Phase 3b.
 - `dist/tailwind-tokens.js` — deprecated v3 CommonJS shim (kept temporarily; delete once 3b scaffold lands on `@theme`).
-- **Typography tokenized** in `tokens.json` (flat DTCG: `font-family`, `font-size`, `font-weight`, `line-height`) + wired into all exports + `tool/generate_ilds_tokens.dart` (`fontFamilyPrimary`, `fontSize12–20`, `fontWeightRegular/Medium/Bold`, `lineHeight12–20`). Source is repo-authored (not yet in Figma Variables); colors/spacing/radius remain Figma-driven.
+- **Typography tokenized** in `tokens.json` (flat DTCG: `font-family`, `font-size`, `font-weight`, `line-height`) + wired into all exports + `tool/generate_ilds_tokens.dart`. **Interim source:** repo-authored in `tokens.json` only — plugin **preserve-merge** keeps non-Figma groups (typography) on sync; does **not** hardcode typography in plugin source. Migrate to Figma-only in **Phase 8** (after 3b + 4).
 - `npm run build:tokens` script; `style-dictionary` added as devDependency.
 - CI: `.github/workflows/build-tokens.yml` — on push to `main` touching `tokens/tokens.json` (or the generator), runs `npm ci && npm run build:tokens` and **auto-commits** refreshed `dist/` back (`[skip ci]`, `contents: write`). `dist/*` is gitignored except the two committed exports.
 
-**Scope notes:** Typography is now tokenized (repo-authored, Jun 2026). Display-scale sizes from the Supernova brief (48–72px) are **not** in the token set yet — only the sizes actually used by shipped Flutter components (12/14/16/20). Phase 4a extends this same config to Swift + Kotlin.
+**Scope notes:** Typography is tokenized for export (Jun 2026) but **Figma-driven typography is Phase 8** — see §5 Phase 8. Display-scale sizes (48–72px) can be added in Phase 8 when the Figma collection is created. Phase 4a extends this same config to Swift + Kotlin.
 
 > **Tailwind v4 decision (Jun 2026):** Phase 3b targets **Tailwind CSS v4** (`npm view tailwindcss` → 4.3.0 as of Jun 2026). v4 uses CSS `@theme`, not `tailwind.config.js`. The initial `tailwind-tokens.js` export was a v3-shaped mistake; `dist/tokens.theme.css` is the canonical web target. **Storybook 10** (`npm view storybook` → 10.4.4) — not Storybook 8.
 
@@ -313,6 +314,8 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 - **Storybook 10** (10.4.x) — not Storybook 8
 - React + TypeScript, Vite scaffold
 
+**Tailwind default reset (mandatory in 3b scaffold):** `dist/tokens.theme.css` resets `--spacing: initial` and `--color-*` / `--radius-*: initial` before ILDS tokens, so utilities like `p-2` / `bg-red-500` do **not** resolve to Tailwind defaults — only ILDS names (`p-sp-2`, `bg-primary-orange-500`, etc.). Verify in Storybook that no component uses default Tailwind scale classes.
+
 **Scope:**
 - React + TypeScript component library (same 18 components, same 18 × states)
 - Tailwind CSS v4 consuming `dist/tokens.theme.css` + typography tokens
@@ -325,7 +328,7 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 **Suggested tech decisions:**
 - Style Dictionary for token export from `tokens.json` → CSS custom properties (Phase 3a)
 - Vercel for DS website hosting (connects to GitHub, auto-deploys)
-- Storybook 8 with Chromatic for visual regression
+- Storybook 10 with Chromatic for visual regression
 
 **Status:** `- [ ]` Not started
 
@@ -600,6 +603,38 @@ Figma frames delivered — designer reviews, iterates, or approves
 
 ---
 
+### Phase 8 — Figma Typography Variables (token source completeness) 🔴 NOT STARTED
+
+**Goal:** Move typography into Figma Variables so **every** token in `tokens/tokens.json` — including font family, sizes, weights, and line-heights — is extracted by the ILDS plugin on sync. Remove the interim repo-authored / plugin-hardcoded typography block. Achieve true single-source-of-truth: **Figma Variables only** for the full token set.
+
+**Why this phase exists (do not skip):** Phase 3a tokenized typography in `tokens.json` so React/native exports would not hardcode Mulish and font sizes on day one. That block is **repo-authored** and re-injected by `TYPOGRAPHY_TOKENS` in `ilds-plugin/code.ts` because Figma has no Typography variable collection yet. Colors, spacing, and border radius are Figma-driven; typography is not. Until Phase 8 ships, L1 “token propagation” is **incomplete** — a designer cannot change typography in Figma and have it flow to Flutter, CSS, Tailwind, or Supernova.
+
+**Requires:** Phases **3b** and **4** complete (Flutter, React, iOS, and Android components all consuming the interim typography tokens). Run **after** platform parity work so typography values are stable across all targets before migrating the source. Does not block Phases 5–7, but **must be scheduled before** claiming “Figma is the only token source” or closing the token-debt backlog.
+
+#### Scope
+
+| Step | Work |
+|---|---|
+| 1. Figma | Create a **Typography** variable collection in the ILDS Figma file: flat tokens aligned with the current set (`Mulish`; sizes 12/14/16/20; weights 400/500/700; line-heights 1.333/1.143/1.25/1.2). Optionally add display-scale sizes (48–72px) from the Supernova brief in the same pass. Naming must match plugin normalisation rules. |
+| 2. Plugin | Extend `buildDTCG()` in `ilds-plugin/code.ts` to extract typography from Figma Variables (same pattern as Spacing / Border radius). Typography moves from preserve-merge into Figma-managed groups. |
+| 3. Pipeline | End-to-end validation: change a typography variable in Figma → Sync → `tokens/tokens.json` → `build-tokens.yml` → `dist/tokens.css` + `dist/tokens.theme.css` → `dart run tool/generate_ilds_tokens.dart` → all platforms reflect the change. |
+| 4. Docs | Supernova typography page auto-syncs from `tokens.json`; remove “repo-authored typography” caveats from Phase 3a notes and this doc. |
+
+**Technical notes:**
+- Prefer **flat DTCG tokens** (`fontFamily`, `fontWeight`, `dimension`, `number`) over composite `$type: typography` objects — same choice as Jun 2026 interim tokenization; Supernova-safer and matches existing Style Dictionary transforms.
+- Style Dictionary config (`style-dictionary.config.mjs`) already emits typography to CSS and `@theme`; expect no format changes unless Figma naming differs from the interim keys.
+- Flutter `tool/generate_ilds_tokens.dart` already reads `global.typography` from JSON; no structural change expected once the plugin exports it.
+
+**Success criteria:**
+- [ ] Zero hand-authored typography in `tokens/tokens.json` (plugin-only on sync)
+- [ ] `TYPOGRAPHY_TOKENS` removed from `ilds-plugin/code.ts`
+- [ ] Designer changes `font-size/14` (or equivalent) in Figma → all four platform token outputs update without a code change
+- [ ] Master doc + Phase 3a caveats updated to “typography Figma-driven”
+
+**Status:** `- [ ]` Not started — **scheduled after Phases 3b + 4; mandatory before token-source closure**
+
+---
+
 ## 6. Completed Work — Full Log
 
 ### Infrastructure
@@ -851,7 +886,7 @@ See Section 5, Phase 3 for full scope.
 **Phase 3b (React components — depends on 3a):**
 - [ ] React + TypeScript component library (18 components, full state parity with Flutter)
 - [ ] Tailwind CSS consuming Phase 3a token output
-- [ ] Storybook 8 — all components, all states
+- [ ] Storybook 10 — all components, all states
 - [ ] Public DS website — Vercel, auto-deploys on merge
 - [ ] Visual regression via Chromatic
 
@@ -866,13 +901,20 @@ See Section 5, Phase 4.
 
 ---
 
-### 🟢 PHASES 5, 6 & 7 — Future
+### 🟢 PHASES 5, 6, 7 & 8 — Future
 
 See Section 5 for full scope of each phase.
 
 - **Phase 5** (Component Evolution Engine) — can begin after Phase 4. Builds the PR + regression + approval infrastructure that Phase 6 depends on.
 - **Phase 6** (DS Management Agent) — requires Phase 5 complete. The agent operates through the Phase 5 pipeline; the pipeline must exist and be validated first.
 - **Phase 7** (AI Design Assistant) — requires Phases 3, 4, and 6 complete. Component index must cover all platforms, and the DS Management Agent must be operational to receive component gap requests.
+- **Phase 8** (Figma Typography Variables) — **after Phases 3b + 4.** Move typography into Figma Variables; remove repo/plugin hardcode; complete L1 single-source-of-truth. **Do not skip** before closing token debt.
+
+**Phase 8 checklist (§5):**
+- [ ] Typography variable collection in Figma (family, sizes, weights, line-heights)
+- [ ] Plugin extracts typography; `TYPOGRAPHY_TOKENS` removed
+- [ ] E2E: Figma typography change → all platform exports update
+- [ ] Docs/Supernova caveats cleared
 
 ---
 
@@ -1052,6 +1094,7 @@ These apply to every agent, every session, every PR.
 | Phase 6 multi-platform deploy | Style Dictionary + existing token pipeline | Not started |
 | Phase 7 AI (screen generation) | Claude API (multimodal) + Figma Plugin API | Not started |
 | Phase 7 references | Claude vision + Figma API for reference link reading | Not started |
+| Phase 8 typography | Figma Variables (replace repo/plugin-authored typography) | Not started — after 3b + 4 |
 | Phase 5–7 future upgrade | Supabase pgvector (component + project indexing) | Post-validation |
 
 ---
@@ -1060,6 +1103,7 @@ These apply to every agent, every session, every PR.
 
 - **Toast surface (resolved Jun 2026):** White surface (`color.neutral.0`) + per-variant colored accent (left 4px bar + icon + action): `info`→orange500, `success`→green600, `warning`→amber500, `error`→red600. Ratified to match shipped `lib/ilds_toast.dart` and the Phase 3 Gemini brief; the Phase 5 Supernova brief's "tinted surface per variant" spec was **corrected** to white+accent (tinted surfaces belong to the **Tag** component, not Toast).
 - **Web token target (resolved Jun 2026):** Phase 3b uses **Tailwind CSS v4** + `dist/tokens.theme.css` (`@theme`), not v3 `tailwind.config.js` / `tailwind-tokens.js`. Storybook **10**, not 8. Verify versions against `npm view` before scaffold.
+- **Typography source (planned — Phase 8):** Interim typography lives in `tokens.json` + plugin `TYPOGRAPHY_TOKENS` until **Phase 8** moves it to Figma Variables only. Scheduled after Phases 3b + 4; mandatory before claiming full Figma single-source-of-truth for tokens.
 
 ---
 

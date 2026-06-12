@@ -3,6 +3,10 @@
 /* Regenerate: npm run build:tokens */
 /* Tailwind CSS v4: @import "tailwindcss"; @import "./tokens.theme.css"; */
 @theme {
+  /* Phase 3b: reset Tailwind v4 defaults so only ILDS tokens generate utilities */
+  --spacing: initial;
+  --color-*: initial;
+  --radius-*: initial;
   --color-black-1000: #020202;
   --color-error-red-100: #ffd5cd;
   --color-error-red-200: #ffb8ac;

@@ -16,6 +16,8 @@ date: 2026-04-11
 
 **What it is:** ICICI Lombard Design System — a Flutter component library with DTCG design tokens, Figma Code Connect mappings, Supernova sync automation, and a Figma plugin for token workflows.
 
+**Roadmap anchor:** Phases 3–4 = web + native platform parity; Phases 5–7 = evolution agent + AI screens. **Phase 8 (planned):** move typography into Figma Variables only — today typography is interim repo/plugin-authored until 3b + 4 are done. See `ILDS_PROJECT_MASTER.md` §5 Phase 8.
+
 **Primary stack:** Dart/Flutter (`lib/`), JSON tokens (`tokens/tokens.json`), TypeScript Code Connect (`*.figma.ts`), GitHub Actions (`.github/workflows/`), Figma plugin (`ilds-plugin/`).
 
 ## Map of the repo
