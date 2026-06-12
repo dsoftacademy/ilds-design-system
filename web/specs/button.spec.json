@@ -192,6 +192,18 @@
         "gap": "6px",
         "offsetHeight": 28
       }
+    },
+    {
+      "name": "icon-only-small",
+      "storyId": "components-button--icon-only-small",
+      "figmaNodeId": "13472:3718",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#e3530f",
+        "padding": "6px 8px",
+        "offsetHeight": 28
+      }
     }
   ]
 }

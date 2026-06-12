@@ -4,9 +4,11 @@ export type IldsButtonType = 'primary' | 'secondary' | 'tertiary';
 export type IldsButtonSize = 'large' | 'medium' | 'small';
 export type IldsButtonAppearance = 'normal' | 'destructive';
 
-export interface IldsButtonProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
-  label: string;
+type IldsButtonSharedProps = Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  'children' | 'type'
+> & {
+  /** Visual variant — primary / secondary / tertiary (not HTML button type). */
   type?: IldsButtonType;
   size?: IldsButtonSize;
   appearance?: IldsButtonAppearance;
@@ -14,9 +16,41 @@ export interface IldsButtonProps
   isLoading?: boolean;
   /** Figma State=Skeleton — visual PRESUMED (no Figma node pulled); basic pulse placeholder. */
   isSkeleton?: boolean;
+};
+
+/** Label + optional leading/trailing icon slots (Figma Variant=Label Only / Prefix / Suffix / Both). */
+type IldsButtonLabeledProps = IldsButtonSharedProps & {
+  label: string;
+  iconOnly?: false;
+  icon?: never;
   leading?: ReactNode;
   trailing?: ReactNode;
-}
+};
+
+/** Icon-only button (Figma 13472:2810 — Large verified: px-16, 24px slot). Requires aria-label. */
+type IldsButtonIconOnlyProps = IldsButtonSharedProps & {
+  iconOnly: true;
+  icon: ReactNode;
+  label?: never;
+  leading?: never;
+  trailing?: never;
+  'aria-label': string;
+};
+
+/** Leading icon without visible label — same layout as icon-only; requires aria-label. */
+type IldsButtonLeadingOnlyProps = IldsButtonSharedProps & {
+  label?: undefined;
+  iconOnly?: false;
+  icon?: never;
+  leading: ReactNode;
+  trailing?: never;
+  'aria-label': string;
+};
+
+export type IldsButtonProps =
+  | IldsButtonLabeledProps
+  | IldsButtonIconOnlyProps
+  | IldsButtonLeadingOnlyProps;
 
 type SizeConfig = {
   padding: string;
@@ -24,7 +58,8 @@ type SizeConfig = {
   text: string;
   minHeight: string;
   gap: string;
-  spinner: string;
+  /** Figma icon slot — 13472:2805 (24px), 13472:3397 (20px), 13472:3713 (12px, designer-updated 2026-06-12) */
+  iconSlot: string;
   labelBox: string;
 };
 
@@ -35,7 +70,7 @@ const sizeConfig: Record<IldsButtonSize, SizeConfig> = {
     text: 'text-16 leading-[20px]',
     minHeight: 'h-sp-48',
     gap: 'gap-sp-8',
-    spinner: 'size-sp-24',
+    iconSlot: 'size-sp-24',
     labelBox: 'h-sp-24',
   },
   medium: {
@@ -44,7 +79,7 @@ const sizeConfig: Record<IldsButtonSize, SizeConfig> = {
     text: 'text-14 leading-[16px]',
     minHeight: 'h-[36px]',
     gap: 'gap-sp-8',
-    spinner: 'size-sp-20',
+    iconSlot: 'size-sp-20',
     labelBox: 'h-sp-20',
   },
   small: {
@@ -53,12 +88,16 @@ const sizeConfig: Record<IldsButtonSize, SizeConfig> = {
     text: 'text-12 leading-[16px]',
     minHeight: 'h-[28px]',
     gap: 'gap-sp-6',
-    spinner: 'size-sp-16',
+    // Figma 13472:3713 — small icon slot normalized to 12px by designer (token-aligned, sp-12)
+    iconSlot: 'size-sp-12',
     labelBox: 'h-sp-16',
   },
 };
 
 const disabledFg = 'text-neutral-coolgray-400';
+
+const iconSlotClasses =
+  'inline-flex shrink-0 items-center justify-center overflow-hidden [&>svg]:size-full [&>img]:size-full';
 
 function interactiveClasses(
   buttonType: IldsButtonType,
@@ -81,7 +120,6 @@ function interactiveClasses(
   }
 
   if (buttonType === 'secondary' && appearance === 'normal') {
-    // Pressed: Figma 13472:3024 (updated 2026-06-12) — bg primary-orange-100, border/text primary-orange-600
     return [
       'bg-white-000 text-primary-orange-500 border-primary-orange-500',
       'hover:bg-primary-orange-50 hover:text-primary-orange-500 hover:border-primary-orange-500',
@@ -98,7 +136,6 @@ function interactiveClasses(
   }
 
   if (buttonType === 'tertiary' && appearance === 'normal') {
-    // Hover 13472:3114 (orange-400), pressed 13472:3042 (orange-600)
     return [
       'bg-transparent text-primary-orange-500 border-transparent',
       'hover:text-primary-orange-400',
@@ -152,25 +189,56 @@ function Spinner({ className }: { className: string }) {
   );
 }
 
-export function IldsButton({
-  label,
-  type: buttonType = 'primary',
-  size = 'large',
-  appearance = 'normal',
-  isDisabled = false,
-  isLoading = false,
-  isSkeleton = false,
-  leading,
-  trailing,
-  className = '',
-  ...rest
-}: IldsButtonProps) {
+function IconSlot({
+  slotClass,
+  children,
+}: {
+  slotClass: string;
+  children: ReactNode;
+}) {
+  return (
+    <span className={`${iconSlotClasses} ${slotClass}`}>{children}</span>
+  );
+}
+
+/**
+ * ILDS Button — Figma set `13472:2804`.
+ *
+ * **Icon contract:** Pass SVGs (or images) with `stroke="currentColor"` / `fill="currentColor"`.
+ * Do not set intrinsic width/height on icons — the leading/trailing slot sizes and clips overflow:
+ * Large 24px (13472:2805), Medium 20px (13472:3397), Small 12px (13472:3713).
+ * Loading (13472:2877): leading icon stays visible; spinner replaces the trailing slot only.
+ */
+export function IldsButton(props: IldsButtonProps) {
+  const {
+    type: buttonType = 'primary',
+    size = 'large',
+    appearance = 'normal',
+    isDisabled = false,
+    isLoading = false,
+    isSkeleton = false,
+    className = '',
+    ...rest
+  } = props;
+
+  const iconOnly = 'iconOnly' in props && props.iconOnly === true;
+  const label = 'label' in props ? props.label : undefined;
+  const icon = iconOnly ? props.icon : undefined;
+  const leading = !iconOnly && 'leading' in props ? props.leading : undefined;
+  const trailing = !iconOnly && 'trailing' in props ? props.trailing : undefined;
+
+  const hasVisibleLabel = Boolean(label) && !iconOnly;
+  const leadingContent = iconOnly ? icon : leading;
+
   const interactive = !isDisabled && !isLoading && !isSkeleton;
-  const showLeading = Boolean(leading) && !isLoading && !isSkeleton;
-  const showTrailing = Boolean(trailing) && !isLoading && !isSkeleton;
   const cfg = sizeConfig[size];
   const padding =
-    buttonType === 'tertiary' ? cfg.tertiaryPadding : cfg.padding;
+    buttonType === 'tertiary' && hasVisibleLabel
+      ? cfg.tertiaryPadding
+      : iconOnly && size === 'small'
+        ? // Figma 13472:3718 — small Icon Only uses px-8 (not the regular px-12); L/M match regular padding
+          'px-sp-8 py-sp-6'
+        : cfg.padding;
   const borderClass = buttonType === 'secondary' ? 'border' : 'border-0';
 
   const stateClasses = isSkeleton
@@ -180,6 +248,11 @@ export function IldsButton({
       : isLoading
         ? loadingClasses(buttonType, appearance)
         : interactiveClasses(buttonType, appearance);
+
+  const showLeading = Boolean(leadingContent) && !isSkeleton;
+  const showLabel = hasVisibleLabel && !isSkeleton;
+  const showTrailingIcon = Boolean(trailing) && !isLoading && !isSkeleton;
+  const showTrailingSpinner = isLoading && !isSkeleton;
 
   return (
     <button
@@ -195,7 +268,7 @@ export function IldsButton({
         'disabled:pointer-events-none',
         cfg.minHeight,
         cfg.gap,
-        cfg.text,
+        hasVisibleLabel ? cfg.text : '',
         padding,
         stateClasses,
         className,
@@ -204,12 +277,27 @@ export function IldsButton({
         .join(' ')}
       {...rest}
     >
-      {showLeading ? <span className="inline-flex shrink-0">{leading}</span> : null}
-      <span className={`truncate ${cfg.labelBox} flex items-center justify-center`}>
-        {isSkeleton ? '\u00A0' : label}
-      </span>
-      {isLoading ? <Spinner className={cfg.spinner} /> : null}
-      {showTrailing ? <span className="inline-flex shrink-0">{trailing}</span> : null}
+      {showLeading ? (
+        <IconSlot slotClass={cfg.iconSlot}>{leadingContent}</IconSlot>
+      ) : null}
+      {showLabel ? (
+        <span className={`truncate ${cfg.labelBox} flex items-center justify-center`}>
+          {label}
+        </span>
+      ) : null}
+      {isSkeleton && !iconOnly ? (
+        <span className={`truncate ${cfg.labelBox} flex items-center justify-center`}>
+          {'\u00A0'}
+        </span>
+      ) : null}
+      {showTrailingSpinner ? (
+        <IconSlot slotClass={cfg.iconSlot}>
+          <Spinner className="size-full" />
+        </IconSlot>
+      ) : null}
+      {showTrailingIcon ? (
+        <IconSlot slotClass={cfg.iconSlot}>{trailing}</IconSlot>
+      ) : null}
     </button>
   );
 }
