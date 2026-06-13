@@ -1,0 +1,74 @@
+{
+  "$schema": "./parity-spec.schema.json",
+  "component": "Dropdown",
+  "figmaFileKey": "PCUj412f0Z1zZLLxQUX22e",
+  "figmaComponentSetId": "13476:22316",
+  "extractedBy": "Claude via Figma MCP get_design_context",
+  "extractedOn": "2026-06-13",
+  "lastVerifiedOn": "2026-06-13",
+  "selector": "#storybook-root [data-testid=\"dropdown-trigger\"]",
+  "shared": {
+    "border-radius": "4px",
+    "font-family": "Mulish"
+  },
+  "variants": [
+    {
+      "name": "empty-default",
+      "storyId": "components-dropdown--empty-default",
+      "figmaNodeId": "13476:22317",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#ffffff",
+        "border-color": "#9e9e9e",
+        "offsetHeight": 44
+      }
+    },
+    {
+      "name": "focused",
+      "storyId": "components-dropdown--empty-default",
+      "figmaNodeId": "13476:22340",
+      "interaction": "focus",
+      "verified": true,
+      "expect": {
+        "background-color": "#fafafa",
+        "border-color": "#424242"
+      }
+    },
+    {
+      "name": "negative",
+      "storyId": "components-dropdown--negative",
+      "figmaNodeId": "13476:22367",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#ffffff",
+        "border-color": "#e00903"
+      }
+    },
+    {
+      "name": "hover",
+      "storyId": "components-dropdown--empty-default",
+      "figmaNodeId": "13476:22377",
+      "interaction": "hover",
+      "verified": false,
+      "expect": {}
+    },
+    {
+      "name": "disabled",
+      "storyId": "components-dropdown--disabled",
+      "figmaNodeId": "13476:22326",
+      "interaction": null,
+      "verified": false,
+      "expect": {}
+    },
+    {
+      "name": "filled",
+      "storyId": "components-dropdown--filled",
+      "figmaNodeId": "13476:22349",
+      "interaction": null,
+      "verified": false,
+      "expect": {}
+    }
+  ]
+}

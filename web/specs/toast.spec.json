@@ -1,0 +1,57 @@
+{
+  "$schema": "./parity-spec.schema.json",
+  "component": "Toast",
+  "figmaFileKey": "PCUj412f0Z1zZLLxQUX22e",
+  "figmaComponentSetId": "17708:3491",
+  "extractedBy": "Claude via Figma MCP get_design_context",
+  "extractedOn": "2026-06-13",
+  "lastVerifiedOn": "2026-06-13",
+  "selector": "#storybook-root [data-testid=\"toast\"]",
+  "shared": {
+    "border-radius": "12px",
+    "background-color": "#ffffff",
+    "font-family": "Mulish"
+  },
+  "variants": [
+    {
+      "name": "success",
+      "storyId": "components-toast--success",
+      "figmaNodeId": "17708:3492",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "border-color": "#dfffe6"
+      }
+    },
+    {
+      "name": "info",
+      "storyId": "components-toast--info",
+      "figmaNodeId": "17708:3510",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "border-color": "#edf6ff"
+      }
+    },
+    {
+      "name": "warning",
+      "storyId": "components-toast--warning",
+      "figmaNodeId": "17708:3501",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "border-color": "#fff3e3"
+      }
+    },
+    {
+      "name": "error",
+      "storyId": "components-toast--error",
+      "figmaNodeId": "17708:3519",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "border-color": "#fff2ee"
+      }
+    }
+  ]
+}

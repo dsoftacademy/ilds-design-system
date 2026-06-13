@@ -1,0 +1,84 @@
+{
+  "$schema": "./parity-spec.schema.json",
+  "component": "TextField",
+  "figmaFileKey": "PCUj412f0Z1zZLLxQUX22e",
+  "figmaComponentSetId": "13478:25332",
+  "extractedBy": "Claude via Figma MCP get_design_context",
+  "extractedOn": "2026-06-13",
+  "lastVerifiedOn": "2026-06-13",
+  "selector": "#storybook-root [data-testid=\"textfield-input\"]",
+  "shared": {
+    "border-radius": "4px",
+    "font-family": "Mulish"
+  },
+  "variants": [
+    {
+      "name": "standard-default",
+      "storyId": "components-text-field--standard-default",
+      "figmaNodeId": "13478:25333",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#ffffff",
+        "border-color": "#9e9e9e",
+        "offsetHeight": 44
+      }
+    },
+    {
+      "name": "standard-focused",
+      "storyId": "components-text-field--standard-default",
+      "figmaNodeId": "13478:25465",
+      "interaction": "focus",
+      "verified": true,
+      "expect": {
+        "background-color": "#fafafa",
+        "border-color": "#424242",
+        "outline-color": "#c74c01",
+        "outline-width": "2px",
+        "outline-offset": "2px"
+      }
+    },
+    {
+      "name": "standard-error",
+      "storyId": "components-text-field--standard-error",
+      "figmaNodeId": "13478:25527",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#ffffff",
+        "border-color": "#e00903"
+      }
+    },
+    {
+      "name": "standard-success",
+      "storyId": "components-text-field--standard-success",
+      "figmaNodeId": "13478:25519",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#ffffff",
+        "border-color": "#01a252"
+      }
+    },
+    {
+      "name": "standard-disabled",
+      "storyId": "components-text-field--standard-disabled",
+      "figmaNodeId": "13478:25729",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#eeeeee",
+        "border-color": "#e0e0e0",
+        "offsetHeight": 44
+      }
+    },
+    {
+      "name": "standard-hover",
+      "storyId": "components-text-field--standard-default",
+      "figmaNodeId": "13478:25379",
+      "interaction": "hover",
+      "verified": false,
+      "expect": {}
+    }
+  ]
+}
