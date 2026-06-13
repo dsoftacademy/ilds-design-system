@@ -99,9 +99,13 @@ dist/*
 
 # Native platform build artifacts (Phase 4b)
 ios/.build/
+ios/Flutter/
+ios/Runner/
 android/.gradle/
 android/**/build/
 android/local.properties
+# Flutter ephemeral output if `flutter` is run from repo root by mistake
+android/app/
 
 # Gatsby files
 .cache/
