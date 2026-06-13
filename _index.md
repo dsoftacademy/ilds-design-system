@@ -18,7 +18,7 @@ date: 2026-04-11
 
 **Roadmap anchor:** Phases 3–4 = web + native platform parity; Phases 5–7 = evolution agent + AI screens. **Phase 8 (planned):** move typography into Figma Variables only — today typography is interim repo/plugin-authored until 3b + 4 are done. See `ILDS_PROJECT_MASTER.md` §5 Phase 8.
 
-**Resume here (Jun 2026):** Phase 4b complete — 18 SwiftUI + 18 Compose components. Run `npm run verify:phase4b`. **Next:** Phase 5 or manual sign-off gates.
+**Resume here (Jun 2026):** Phase 3 ✅ · Phase 4a ✅ · Phase 4b ✅ · cross-platform Figma parity QA ✅. Read **`docs/reports/PHASE3_AND_PHASE4_COMPLETE_REPORT_2026-06-14.md`** for full decisions, file map, and commit history. Run `npm run verify:parity`. **Next:** Phase 5 or manual sign-off gates.
 
 **Primary stack:** Dart/Flutter (`lib/`), JSON tokens (`tokens/tokens.json`), TypeScript Code Connect (`*.figma.ts`), GitHub Actions (`.github/workflows/`), Figma plugin (`ilds-plugin/`).
 
@@ -37,7 +37,7 @@ date: 2026-04-11
 | `ios/` | SwiftUI component library (SPM) — Phase 4b |
 | `android/` | Jetpack Compose component library — Phase 4b |
 | `dist/` | Style Dictionary output — `tokens.theme.css` (Tailwind v4), `ILDSTokens.swift` (iOS), `IldsTokens.kt` (Compose) |
-| `docs/` | Process / handoff notes — **start with** `docs/reports/ILDS_STATUS_AND_RESUME_REPORT_2026-06-12.md` |
+| `docs/` | Process / handoff notes — **start with** `docs/reports/PHASE3_AND_PHASE4_COMPLETE_REPORT_2026-06-14.md` |
 
 ## Typical workflows
 
@@ -50,6 +50,7 @@ date: 2026-04-11
 - Analyze package: `flutter analyze lib/`
 - Build tokens (CSS + Tailwind + Swift + Compose): `npm run build:tokens`
 - Phase 4b QA (Button + tokens): `npm run verify:phase4b`
+- Cross-platform Figma parity: `npm run verify:parity` (38 matrix checks)
 - iOS compile check: `cd ios && swift build`
 - Storybook: `npm run storybook` (port 6006)
 - Parity tests: `cd web && npm run build-storybook && npm run test:parity` (89 variants)

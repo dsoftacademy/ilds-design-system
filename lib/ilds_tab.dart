@@ -117,29 +117,44 @@ class _IldsTabBarState extends State<IldsTabBar> {
   }
 
   double _labelSize() => ILDSTokens.spacing3 + ILDSTokens.borderWidth2;
-  double _tabHeight() => ILDSTokens.spacing12;
+  double _tabHeight() => widget.emphasis == IldsTabEmphasis.high ? 36 : ILDSTokens.spacing12;
+  bool get _isHigh => widget.emphasis == IldsTabEmphasis.high;
 
   Color _textColor(int index) {
     final IldsTabItem tab = widget.tabs[index];
     if (tab.isDisabled) return ILDSTokens.neutral300;
     if (_selectedIndex == index) {
-      return widget.emphasis == IldsTabEmphasis.high ? ILDSTokens.orange500 : ILDSTokens.neutral900;
+      return _isHigh ? ILDSTokens.white : ILDSTokens.orange500;
     }
-    if (_focusedIndex == index) return ILDSTokens.orange500;
-    if (_pressedIndex == index) return ILDSTokens.neutral900;
-    if (_hoveredIndex == index) return ILDSTokens.neutral600;
-    return ILDSTokens.neutral400;
+    if (_focusedIndex == index && !_isHigh) return ILDSTokens.orange500;
+    if (_pressedIndex == index) return ILDSTokens.neutral800;
+    if (_hoveredIndex == index) return ILDSTokens.neutral900;
+    return _isHigh ? ILDSTokens.neutral800 : ILDSTokens.neutral800;
   }
 
   Color _backgroundColor(int index) {
+    if (_isHigh) {
+      if (_selectedIndex == index) return ILDSTokens.orange500;
+      if (_pressedIndex == index) return ILDSTokens.neutral50;
+      if (_hoveredIndex == index) return ILDSTokens.neutral50;
+      return ILDSTokens.white;
+    }
     if (_focusedIndex == index) return ILDSTokens.orange50;
     if (_pressedIndex == index) return ILDSTokens.neutral100;
     if (_hoveredIndex == index) return ILDSTokens.neutral50;
     return Colors.transparent;
   }
 
-  Color _indicatorColor() {
-    return widget.emphasis == IldsTabEmphasis.high ? ILDSTokens.orange500 : ILDSTokens.neutral900;
+  BoxDecoration? _tabDecoration(int index) {
+    if (!_isHigh) return null;
+    return BoxDecoration(
+      color: _backgroundColor(index),
+      borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusLg),
+      border: Border.all(
+        color: _selectedIndex == index ? ILDSTokens.orange500 : ILDSTokens.neutral200,
+        width: ILDSTokens.borderWidth1,
+      ),
+    );
   }
 
   void _select(int index) {
@@ -188,22 +203,22 @@ class _IldsTabBarState extends State<IldsTabBar> {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
               height: _tabHeight(),
-              padding: const EdgeInsets.symmetric(horizontal: ILDSTokens.spacing3),
-              color: _backgroundColor(index),
+              padding: EdgeInsets.symmetric(
+                horizontal: _isHigh ? ILDSTokens.spacing8 : ILDSTokens.spacing3,
+              ),
+              decoration: _tabDecoration(index),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (tab.icon != null) ...[
                     Icon(tab.icon, size: _labelSize(), color: _textColor(index)),
-                    const SizedBox(width: ILDSTokens.spacing1),
+                    SizedBox(width: _isHigh ? ILDSTokens.spacing2 : ILDSTokens.spacing1),
                   ],
                   Text(
                     tab.label,
                     style: TextStyle(
                       fontSize: _labelSize(),
-                      fontWeight: _selectedIndex == index
-                          ? ILDSTokens.fontWeightBold
-                          : ILDSTokens.fontWeightMedium,
+                      fontWeight: ILDSTokens.fontWeightBold,
                       color: _textColor(index),
                     ),
                   ),
@@ -250,7 +265,7 @@ class _IldsTabBarState extends State<IldsTabBar> {
                         ),
                       ),
                     ),
-                    if (_indicatorReady)
+                    if (!_isHigh && _indicatorReady)
                       AnimatedPositioned(
                         duration: const Duration(milliseconds: 150),
                         curve: Curves.easeOut,
@@ -258,7 +273,7 @@ class _IldsTabBarState extends State<IldsTabBar> {
                         left: _indicatorLeft,
                         width: _indicatorWidth,
                         height: _indicatorThickness(),
-                        child: ColoredBox(color: _indicatorColor()),
+                        child: const ColoredBox(color: ILDSTokens.orange500),
                       ),
                   ],
                 ),
@@ -270,7 +285,7 @@ class _IldsTabBarState extends State<IldsTabBar> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (widget.type == IldsTabType.fixed)
+        if (widget.type == IldsTabType.fixed && !_isHigh)
           Stack(
             clipBehavior: Clip.none,
             children: [
@@ -282,18 +297,19 @@ class _IldsTabBarState extends State<IldsTabBar> {
                   duration: const Duration(milliseconds: 150),
                   height: _indicatorThickness(),
                   width: MediaQuery.of(context).size.width / widget.tabs.length,
-                  color: _indicatorColor(),
+                  color: ILDSTokens.orange500,
                 ),
               ),
             ],
           )
         else
           tabsRow,
-        const Divider(
-          height: ILDSTokens.borderWidth1,
-          thickness: ILDSTokens.borderWidth1,
-          color: ILDSTokens.neutral200,
-        ),
+        if (!_isHigh)
+          const Divider(
+            height: ILDSTokens.borderWidth1,
+            thickness: ILDSTokens.borderWidth1,
+            color: ILDSTokens.neutral200,
+          ),
       ],
     );
   }

@@ -115,7 +115,6 @@ public struct IldsDropdown: View {
                     IldsDropdownMenu(
                         options: options,
                         selectedValue: selectedValue,
-                        size: size,
                         onSelect: { value in
                             selectedValue = value
                             isOpen = false

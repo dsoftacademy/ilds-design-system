@@ -2,8 +2,8 @@
 
 > **This is the single source of project truth.**
 > All other briefs, status reports, and handoff docs in this repo are superseded by this file.
-> Last updated: June 12, 2026 · Maintained by: Pratishek (Principal Designer & DS Lead)  
-> **Resume snapshot:** `docs/reports/ILDS_STATUS_AND_RESUME_REPORT_2026-06-12.md` · HEAD `f331aff`
+> Last updated: June 14, 2026 · Maintained by: Pratishek (Principal Designer & DS Lead)  
+> **Resume snapshot:** `docs/reports/PHASE3_AND_PHASE4_COMPLETE_REPORT_2026-06-14.md` · HEAD `acb51fa` + parity QA commit
 
 ---
 
@@ -50,7 +50,7 @@ When the user says "continue", "next step", or "what's left" — consult **Secti
 | **Primary platform** | Flutter (iOS + Android) |
 | **DS Lead** | Pratishek — Principal Designer, 11 years experience |
 | **Started** | March 2026 |
-| **Current phase** | **Phase 4b complete (Jun 2026).** All 18 Flutter components have SwiftUI + Compose counterparts. **Phase 5** (evolution engine) or sign-off gates next. |
+| **Current phase** | **Phase 4 complete (Jun 2026).** Phases 3a–3c (React), 4a (native tokens), 4b (native components), and cross-platform Figma parity QA all shipped. **Phase 5** (evolution engine) or sign-off gates next. |
 | **Automation stack** | Figma · Custom Figma Plugin · GitHub · GitHub Actions · Supernova · Slack |
 
 ### What ILDS Is
@@ -330,7 +330,7 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 
 ---
 
-### Phase 4 — Native Platform Parity (iOS + Android) 🟡 IN PROGRESS (4a ✅ · 4b pending)
+### Phase 4 — Native Platform Parity (iOS + Android) ✅ COMPLETE (4a + 4b + parity QA, Jun 2026)
 
 **Goal:** Same `tokens.json` drives SwiftUI (iOS) and Compose (Android) — one token change reaches all 4 platforms.
 
@@ -362,7 +362,7 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 - `.github/workflows/native-tests.yml` — `verify:phase4b` + `swift build` + `compileDebugKotlin`
 - `npm run verify:phase4b` — token sync + compile + full component registry (19×2)
 
-**Status:** `- [x]` Complete — all 18 Flutter components have native SwiftUI + Compose counterparts.
+**Status:** `- [x]` Complete — all 18 Flutter components have native SwiftUI + Compose counterparts. Cross-platform Figma parity QA (`npm run verify:parity`, 38/38 matrix) passed Jun 2026. See `docs/reports/PHASE3_AND_PHASE4_COMPLETE_REPORT_2026-06-14.md`.
 
 ---
 
@@ -907,7 +907,7 @@ See Section 5, Phase 3 for full scope.
 See Section 5, Phase 4.
 
 **Phase 4a:** ✅ Style Dictionary extended to Swift + Kotlin (`dist/ILDSTokens.swift`, `dist/IldsTokens.kt`); token export + auto-commit runs on CI.
-**Phase 4b:** 18 SwiftUI (iOS) + 18 Compose (Android) components consuming Phase 4a output. — Not started.
+**Phase 4b:** ✅ 18 SwiftUI (iOS) + 18 Compose (Android) components. Cross-platform parity QA (`tool/verify_cross_platform_parity.mjs`) — 38/38 matrix green.
 
 ---
 

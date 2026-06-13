@@ -151,7 +151,7 @@ private struct IldsSwitchColors {
         } else if isPressed {
             track = isOn ? ILDSTokens.primaryOrange700 : ILDSTokens.neutralCoolgray400
         } else {
-            track = isOn ? ILDSTokens.primaryOrange500 : ILDSTokens.neutralCoolgray200
+            track = isOn ? ILDSTokens.primaryOrange500 : ILDSTokens.neutralCoolgray100
         }
         let thumb: Color = isDisabled && !isOn ? ILDSTokens.neutralCoolgray200 : ILDSTokens.globalWhite000
         let label = isDisabled ? ILDSTokens.neutralCoolgray300 : ILDSTokens.neutralCoolgray900

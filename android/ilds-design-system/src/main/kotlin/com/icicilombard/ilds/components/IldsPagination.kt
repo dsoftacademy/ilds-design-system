@@ -64,13 +64,13 @@ fun IldsPagination(
         ) {
             NavArrow(previous = true, enabled = page > 1) { go(page - 1) }
             Text(
-                text = "Page $page of $totalPages",
+                text = "$page of $totalPages pages",
                 style = TextStyle(
                     fontSize = IldsTokens.fontSize14,
                     lineHeight = 18.sp,
                     fontWeight = IldsTokens.fontWeightMedium,
                 ),
-                color = IldsTokens.neutralCoolgray600,
+                color = IldsTokens.neutralCoolgray900,
             )
             NavArrow(previous = false, enabled = page < totalPages) { go(page + 1) }
         }
@@ -88,13 +88,15 @@ fun IldsPagination(
         pages.forEachIndexed { index, pageNum ->
             if (index > 0 && pageNum - pages[index - 1] > 1) {
                 Text(
-                    text = "...",
+                    text = "…",
                     style = TextStyle(
-                        fontSize = IldsTokens.fontSize14,
-                        fontWeight = IldsTokens.fontWeightMedium,
+                        fontSize = IldsTokens.fontSize16,
+                        fontWeight = IldsTokens.fontWeightBold,
                     ),
-                    color = IldsTokens.neutralCoolgray500,
-                    modifier = Modifier.semantics { contentDescription = "More pages" },
+                    color = IldsTokens.neutralCoolgray900,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .semantics { contentDescription = "More pages" },
                 )
             }
             PageCell(
@@ -173,8 +175,7 @@ private fun PageCell(
         PageCellColors.resolve(selected, isPressed)
     }
 
-    Surface(
-        onClick = onClick,
+    Box(
         modifier = Modifier
             .size(32.dp)
             .semantics {
@@ -182,21 +183,27 @@ private fun PageCell(
                 this.selected = selected
                 contentDescription = "Page $page"
             },
-        interactionSource = interactionSource,
-        shape = RoundedCornerShape(IldsTokens.radiusLarge),
-        color = colors.background,
-        border = BorderStroke(1.dp, colors.border),
+        contentAlignment = Alignment.Center,
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(
-                text = page.toString(),
-                style = TextStyle(
-                    fontSize = IldsTokens.fontSize16,
-                    lineHeight = 20.sp,
-                    fontWeight = if (selected) IldsTokens.fontWeightBold else IldsTokens.fontWeightMedium,
-                ),
-                color = colors.text,
-            )
+        Surface(
+            onClick = onClick,
+            modifier = Modifier.size(32.dp),
+            interactionSource = interactionSource,
+            shape = RoundedCornerShape(IldsTokens.radiusLarge),
+            color = colors.background,
+            border = if (colors.border != Color.Transparent) BorderStroke(1.dp, colors.border) else null,
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    text = page.toString(),
+                    style = TextStyle(
+                        fontSize = IldsTokens.fontSize16,
+                        lineHeight = 20.sp,
+                        fontWeight = IldsTokens.fontWeightBold,
+                    ),
+                    color = colors.text,
+                )
+            }
         }
     }
 }
@@ -211,15 +218,15 @@ private data class PageCellColors(
         fun resolve(selected: Boolean, isPressed: Boolean): PageCellColors {
             if (selected) {
                 return PageCellColors(
-                    IldsTokens.primaryOrange500,
-                    IldsTokens.primaryOrange500,
-                    IldsTokens.globalWhite000,
+                    IldsTokens.primaryOrange50,
+                    Color.Transparent,
+                    IldsTokens.primaryOrange600,
                 )
             }
             return PageCellColors(
                 Color.Transparent,
-                if (isPressed) IldsTokens.neutralCoolgray300 else IldsTokens.neutralCoolgray200,
-                IldsTokens.neutralCoolgray600,
+                Color.Transparent,
+                IldsTokens.neutralCoolgray900,
             )
         }
     }

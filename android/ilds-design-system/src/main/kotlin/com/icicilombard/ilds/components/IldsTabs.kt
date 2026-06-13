@@ -116,7 +116,7 @@ private fun IldsTabCell(
             color = colors.background,
             border = BorderStroke(1.dp, colors.border),
         ) {
-            TabContent(tab, selected, colors.text)
+            TabContent(tab, selected, colors.text, emphasis)
         }
     } else {
         Surface(
@@ -135,7 +135,7 @@ private fun IldsTabCell(
             },
             shape = RoundedCornerShape(0.dp),
         ) {
-            TabContent(tab, selected, colors.text)
+            TabContent(tab, selected, colors.text, emphasis)
         }
     }
 }
@@ -145,11 +145,12 @@ private fun TabContent(
     tab: IldsTabItem,
     selected: Boolean,
     textColor: Color,
+    emphasis: IldsTabEmphasis,
 ) {
     Row(
         modifier = Modifier
             .defaultMinSize(minHeight = 36.dp)
-            .padding(horizontal = if (selected) IldsTokens.sp32 else IldsTokens.sp12),
+            .padding(horizontal = if (emphasis == IldsTabEmphasis.High) IldsTokens.sp32 else IldsTokens.sp12),
         horizontalArrangement = Arrangement.spacedBy(IldsTokens.sp8),
         verticalAlignment = Alignment.CenterVertically,
     ) {

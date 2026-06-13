@@ -195,7 +195,7 @@ private struct IldsCheckboxColors {
         } else if active || isFocused {
             border = ILDSTokens.primaryOrange500
         } else {
-            border = ILDSTokens.neutralCoolgray300
+            border = ILDSTokens.neutralCoolgray600
         }
 
         let fill: Color

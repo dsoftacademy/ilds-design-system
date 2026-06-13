@@ -77,9 +77,9 @@ public struct IldsTextArea: View {
                     .font(.system(size: ILDSTokens.fontSize14, weight: ILDSTokens.fontWeightRegular))
                     .foregroundStyle(colors.text)
                     .scrollContentBackground(.hidden)
-                    .padding(.horizontal, ILDSTokens.sp16)
+                    .padding(.horizontal, ILDSTokens.sp12)
                     .padding(.vertical, ILDSTokens.sp12)
-                    .frame(minHeight: CGFloat(minRows) * 24)
+                    .frame(minHeight: max(CGFloat(minRows) * 24, 88))
                     .focused($isFocused)
                     .disabled(!isInteractive || isReadOnly)
                     .onChange(of: text) { newValue in
@@ -155,16 +155,21 @@ private struct IldsTextAreaColors {
         } else if hasError {
             border = ILDSTokens.errorRed600
         } else if isFocused {
-            border = ILDSTokens.primaryOrange500
+            border = ILDSTokens.primaryOrange600
         } else if hasSuccess {
-            border = ILDSTokens.successGreen600
+            border = ILDSTokens.successGreen500
         } else {
-            border = ILDSTokens.neutralCoolgray300
+            border = ILDSTokens.neutralCoolgray500
         }
 
-        let background: Color = isDisabled || isReadOnly
-            ? ILDSTokens.neutralCoolgray50
-            : ILDSTokens.globalWhite000
+        let background: Color
+        if isDisabled {
+            background = ILDSTokens.neutralCoolgray200
+        } else if isReadOnly {
+            background = ILDSTokens.neutralCoolgray50
+        } else {
+            background = ILDSTokens.globalWhite000
+        }
 
         let text: Color
         if isDisabled {

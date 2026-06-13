@@ -82,13 +82,14 @@ public struct IldsTextField: View {
             hasSuccess: hasSuccess,
             isFocused: isFocused,
             isEnabled: isEnabled,
-            isReadOnly: isReadOnly
+            isReadOnly: isReadOnly,
+            hasText: !text.isEmpty
         )
         let bottomText = errorText ?? successText ?? helperText
 
         return VStack(alignment: .leading, spacing: ILDSTokens.sp4) {
             Text(label)
-                .font(.system(size: ILDSTokens.fontSize12, weight: ILDSTokens.fontWeightMedium))
+                .font(.system(size: ILDSTokens.fontSize12, weight: ILDSTokens.fontWeightBold))
                 .foregroundStyle(ILDSTokens.neutralCoolgray500)
 
             HStack(spacing: ILDSTokens.sp8) {
@@ -131,8 +132,9 @@ public struct IldsTextField: View {
                         .foregroundStyle(ILDSTokens.neutralCoolgray400)
                 }
             }
-            .padding(.horizontal, ILDSTokens.sp16)
+            .padding(.horizontal, ILDSTokens.sp12)
             .padding(.vertical, ILDSTokens.sp12)
+            .frame(minHeight: 44)
             .background(colors.background)
             .overlay {
                 RoundedRectangle(cornerRadius: ILDSTokens.radiusMedium)
@@ -191,18 +193,18 @@ private struct IldsOTPCell: View {
 
     var body: some View {
         TextField("", text: $text)
-            .font(.system(size: ILDSTokens.fontSize20, weight: ILDSTokens.fontWeightBold))
+            .font(.system(size: ILDSTokens.fontSize14, weight: ILDSTokens.fontWeightBold))
             .foregroundStyle(ILDSTokens.neutralCoolgray900)
             .multilineTextAlignment(.center)
             #if os(iOS)
             .keyboardType(.numberPad)
             #endif
-            .frame(width: 48, height: 56)
+            .frame(minWidth: 44, minHeight: 44)
             .focused($cellFocused)
             .overlay {
                 RoundedRectangle(cornerRadius: ILDSTokens.radiusMedium)
                     .strokeBorder(
-                        cellFocused ? ILDSTokens.primaryOrange500 : ILDSTokens.neutralCoolgray200,
+                        cellFocused ? ILDSTokens.primaryOrange600 : ILDSTokens.neutralCoolgray500,
                         lineWidth: cellFocused ? 2 : 1
                     )
             }
@@ -223,24 +225,36 @@ private struct IldsTextFieldColors {
         hasSuccess: Bool,
         isFocused: Bool,
         isEnabled: Bool,
-        isReadOnly: Bool
+        isReadOnly: Bool,
+        hasText: Bool
     ) -> IldsTextFieldColors {
         let border: Color
+        let borderWidth: CGFloat
         if !isEnabled {
             border = ILDSTokens.neutralCoolgray300
+            borderWidth = 1
         } else if hasError {
             border = ILDSTokens.errorRed600
+            borderWidth = 2
+        } else if isFocused && !hasText {
+            border = ILDSTokens.primaryOrange600
+            borderWidth = 2
         } else if isFocused {
             border = ILDSTokens.primaryOrange500
+            borderWidth = 1
         } else if hasSuccess {
-            border = ILDSTokens.successGreen600
+            border = ILDSTokens.successGreen500
+            borderWidth = 1
         } else {
-            border = ILDSTokens.neutralCoolgray200
+            border = ILDSTokens.neutralCoolgray500
+            borderWidth = 1
         }
 
         let background: Color
         if !isEnabled {
-            background = ILDSTokens.neutralCoolgray100
+            background = ILDSTokens.neutralCoolgray200
+        } else if isFocused && !hasText {
+            background = ILDSTokens.neutralCoolgray50
         } else if isReadOnly {
             background = ILDSTokens.neutralCoolgray50
         } else {
@@ -271,7 +285,6 @@ private struct IldsTextFieldColors {
             leadingIcon = ILDSTokens.neutralCoolgray400
         }
 
-        let borderWidth: CGFloat = (hasError || isFocused) ? 2 : 1
         return IldsTextFieldColors(
             border: border,
             background: background,

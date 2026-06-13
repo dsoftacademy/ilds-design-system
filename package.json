@@ -8,6 +8,7 @@
     "build:tokens": "node style-dictionary.config.mjs",
     "verify:tokens": "node tool/verify_token_exports.mjs",
     "verify:phase4b": "node tool/verify_phase4b.mjs",
+    "verify:parity": "node tool/verify_cross_platform_parity.mjs",
     "storybook": "npm run storybook --prefix web",
     "build:storybook": "npm run build-storybook --prefix web"
   },

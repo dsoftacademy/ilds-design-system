@@ -60,11 +60,11 @@ fun IldsTextArea(
         hasError -> IldsTokens.errorRed600
         isFocused -> IldsTokens.primaryOrange500
         hasSuccess -> IldsTokens.successGreen500
-        else -> IldsTokens.neutralCoolgray300
+        else -> IldsTokens.neutralCoolgray500
     }
     val borderWidth = if (hasError || isFocused) 2.dp else 1.dp
     val fillColor = when {
-        isDisabled || isReadOnly -> IldsTokens.neutralCoolgray50
+        isDisabled || isReadOnly -> IldsTokens.neutralCoolgray200
         else -> IldsTokens.globalWhite000
     }
     val textColor = when {

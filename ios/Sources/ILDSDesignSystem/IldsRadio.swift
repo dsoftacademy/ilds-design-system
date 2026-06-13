@@ -262,7 +262,7 @@ private struct IldsRadioColors {
         } else if isPressed {
             background = ILDSTokens.primaryOrange100
         } else if isSelected {
-            background = ILDSTokens.primaryOrange50
+            background = ILDSTokens.globalWhite000
         } else {
             background = ILDSTokens.globalWhite000
         }

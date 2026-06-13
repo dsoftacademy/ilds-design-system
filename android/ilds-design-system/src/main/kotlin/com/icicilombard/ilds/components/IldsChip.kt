@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -79,13 +80,17 @@ fun IldsChip(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (hasPrefixIcon && prefixIcon != null) {
-                androidx.compose.foundation.layout.Box(
-                    modifier = Modifier
-                        .size(metrics.iconSlot)
-                        .padding(top = 2.dp),
-                    contentAlignment = Alignment.Center,
+                androidx.compose.runtime.CompositionLocalProvider(
+                    LocalContentColor provides IldsTokens.primaryOrange500,
                 ) {
-                    prefixIcon()
+                    androidx.compose.foundation.layout.Box(
+                        modifier = Modifier
+                            .size(metrics.iconSlot)
+                            .padding(top = 2.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        prefixIcon()
+                    }
                 }
             }
             Text(

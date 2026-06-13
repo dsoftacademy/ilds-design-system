@@ -1,123 +1,157 @@
 import ILDSTokens
 import SwiftUI
 
-// Mirrors lib/ilds_toast.dart + web Toast.tsx.
+// Figma set 17708:3491 — mirrors web/Toast.tsx + android/IldsToast.kt.
 
 public enum IldsToastVariant: Sendable {
     case info, success, warning, error
 }
 
+public struct IldsToastAction {
+    public let label: String
+    public let action: () -> Void
+
+    public init(label: String, action: @escaping () -> Void) {
+        self.label = label
+        self.action = action
+    }
+}
+
+public struct IldsToastActions {
+    public let primary: IldsToastAction?
+    public let secondary: IldsToastAction?
+
+    public init(primary: IldsToastAction? = nil, secondary: IldsToastAction? = nil) {
+        self.primary = primary
+        self.secondary = secondary
+    }
+}
+
 public struct IldsToast: View {
     private let message: String
-    private let title: String?
+    private let heading: String?
     private let variant: IldsToastVariant
-    private let showIcon: Bool
-    private let actionLabel: String?
-    private let onAction: (() -> Void)?
     private let showClose: Bool
+    private let actions: IldsToastActions?
     private let onClose: (() -> Void)?
-    private let showAccentBar: Bool
 
     public init(
+        variant: IldsToastVariant,
         message: String,
-        title: String? = nil,
-        variant: IldsToastVariant = .info,
-        showIcon: Bool = true,
-        actionLabel: String? = nil,
-        onAction: (() -> Void)? = nil,
+        heading: String? = nil,
         showClose: Bool = false,
-        onClose: (() -> Void)? = nil,
-        showAccentBar: Bool = true
+        actions: IldsToastActions? = nil,
+        onClose: (() -> Void)? = nil
     ) {
-        self.message = message
-        self.title = title
         self.variant = variant
-        self.showIcon = showIcon
-        self.actionLabel = actionLabel
-        self.onAction = onAction
+        self.message = message
+        self.heading = heading
         self.showClose = showClose
+        self.actions = actions
         self.onClose = onClose
-        self.showAccentBar = showAccentBar
     }
 
     public var body: some View {
-        let colors = IldsToastColors.resolve(variant)
-        let hasTitle = title.map { !$0.isEmpty } ?? false
+        let style = IldsToastStyle.resolve(variant)
+        let hasHeading = heading.map { !$0.isEmpty } ?? false
 
-        HStack(spacing: 0) {
-            if showAccentBar {
-                RoundedRectangle(cornerRadius: ILDSTokens.radiusLarge)
-                    .fill(colors.accent)
-                    .frame(width: 4)
-                    .clipShape(
-                        UnevenRoundedRectangle(
-                            topLeadingRadius: ILDSTokens.radiusLarge,
-                            bottomLeadingRadius: ILDSTokens.radiusLarge
-                        )
-                    )
-            }
-            HStack(alignment: .top, spacing: ILDSTokens.sp12) {
-                if showIcon {
-                    Image(systemName: colors.iconName)
-                        .font(.system(size: 22))
-                        .foregroundStyle(colors.accent)
-                }
+        VStack(alignment: .leading, spacing: ILDSTokens.sp12) {
+            HStack(alignment: .top, spacing: ILDSTokens.sp8) {
+                Image(systemName: style.iconName)
+                    .font(.system(size: 24))
+                    .foregroundStyle(style.iconColor)
+                    .frame(width: 24, height: 24)
+
                 VStack(alignment: .leading, spacing: ILDSTokens.sp4) {
-                    if hasTitle, let title {
-                        Text(title)
+                    if hasHeading, let heading {
+                        Text(heading)
                             .font(.system(size: ILDSTokens.fontSize14, weight: ILDSTokens.fontWeightBold))
                             .foregroundStyle(ILDSTokens.neutralCoolgray900)
                     }
                     Text(message)
-                        .font(.system(
-                            size: ILDSTokens.fontSize14,
-                            weight: hasTitle ? ILDSTokens.fontWeightRegular : ILDSTokens.fontWeightMedium
-                        ))
-                        .foregroundStyle(ILDSTokens.neutralCoolgray500)
+                        .font(.system(size: ILDSTokens.fontSize14, weight: ILDSTokens.fontWeightRegular))
+                        .foregroundStyle(ILDSTokens.neutralCoolgray800)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                if let actionLabel, onAction != nil {
-                    Button(actionLabel, action: { onAction?() })
-                        .font(.system(size: ILDSTokens.fontSize14, weight: ILDSTokens.fontWeightBold))
-                        .foregroundStyle(colors.accent)
-                        .buttonStyle(.plain)
-                }
-                if showClose {
+
+                if showClose, onClose != nil {
                     Button(action: { onClose?() }) {
                         Image(systemName: "xmark")
                             .font(.system(size: ILDSTokens.sp20))
-                            .foregroundStyle(ILDSTokens.neutralCoolgray400)
+                            .foregroundStyle(ILDSTokens.neutralCoolgray500)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Close notification")
                 }
             }
-            .padding(.horizontal, ILDSTokens.sp16)
-            .padding(.vertical, ILDSTokens.sp12)
+
+            if actions?.secondary != nil || actions?.primary != nil {
+                HStack(spacing: ILDSTokens.sp8) {
+                    if let secondary = actions?.secondary {
+                        IldsButton(
+                            secondary.label,
+                            action: secondary.action,
+                            type: .secondary,
+                            size: .medium
+                        )
+                    }
+                    if let primary = actions?.primary {
+                        IldsButton(
+                            primary.label,
+                            action: primary.action,
+                            type: .primary,
+                            size: .medium
+                        )
+                    }
+                }
+            }
         }
+        .padding(ILDSTokens.sp12)
+        .frame(maxWidth: 320)
         .background(ILDSTokens.globalWhite000)
-        .clipShape(RoundedRectangle(cornerRadius: ILDSTokens.radiusLarge))
-        .shadow(color: .black.opacity(0.15), radius: 4, x: 0, y: 2)
+        .overlay {
+            RoundedRectangle(cornerRadius: ILDSTokens.radiusXlarge)
+                .strokeBorder(style.border, lineWidth: 1)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: ILDSTokens.radiusXlarge))
+        .shadow(color: ILDSTokens.neutralCoolgray300.opacity(0.5), radius: 6, x: 0, y: 4)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(hasTitle ? "\(title ?? ""). \(message)" : message)
+        .accessibilityLabel(hasHeading ? "\(heading ?? ""). \(message)" : message)
     }
 }
 
-private struct IldsToastColors {
-    let accent: Color
+private struct IldsToastStyle {
+    let border: Color
+    let iconColor: Color
     let iconName: String
 
-    static func resolve(_ variant: IldsToastVariant) -> IldsToastColors {
+    static func resolve(_ variant: IldsToastVariant) -> IldsToastStyle {
         switch variant {
-        case .info:
-            return IldsToastColors(accent: ILDSTokens.primaryOrange500, iconName: "info.circle")
         case .success:
-            return IldsToastColors(accent: ILDSTokens.successGreen600, iconName: "checkmark.circle")
+            return IldsToastStyle(
+                border: ILDSTokens.successGreen50,
+                iconColor: ILDSTokens.successGreen500,
+                iconName: "checkmark.circle"
+            )
+        case .info:
+            return IldsToastStyle(
+                border: ILDSTokens.secondaryBlue50,
+                iconColor: ILDSTokens.informativeBlue500,
+                iconName: "info.circle"
+            )
         case .warning:
-            return IldsToastColors(accent: ILDSTokens.warningAmber500, iconName: "exclamationmark.triangle")
+            return IldsToastStyle(
+                border: ILDSTokens.warningAmber50,
+                iconColor: ILDSTokens.warningAmber500,
+                iconName: "exclamationmark.triangle"
+            )
         case .error:
-            return IldsToastColors(accent: ILDSTokens.errorRed600, iconName: "exclamationmark.circle")
+            return IldsToastStyle(
+                border: ILDSTokens.errorRed50,
+                iconColor: ILDSTokens.errorRed600,
+                iconName: "exclamationmark.circle"
+            )
         }
     }
 }
