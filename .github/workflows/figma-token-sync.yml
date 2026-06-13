@@ -1,0 +1,94 @@
+name: Sync Figma Tokens
+
+# Fetches Figma Variables for the ILDS file and opens a PR if tokens/tokens.json
+# has changed. The PR triggers build-tokens.yml automatically on merge, which
+# rebuilds all platform dist/* outputs (CSS, Swift, Kotlin, Dart).
+#
+# Secrets required (GitHub → Settings → Secrets → Actions):
+#   FIGMA_ACCESS_TOKEN — Figma Personal Access Token with file_variables:read scope.
+#   GITHUB_TOKEN       — automatically available in all Actions workflows.
+
+on:
+  schedule:
+    - cron: '0 9 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    name: Fetch Figma Variables and open PR if changed
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fetch Figma Variables and update tokens.json
+        env:
+          FIGMA_ACCESS_TOKEN: ${{ secrets.FIGMA_ACCESS_TOKEN }}
+        run: node tool/sync_figma_tokens.mjs
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet tokens/tokens.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create PR branch if tokens changed
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          BRANCH="token-sync/auto-$(date +%Y%m%d-%H%M)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add tokens/tokens.json
+          git commit -m "chore(tokens): sync Figma Variables → tokens.json [$(date +%Y-%m-%d)]
+
+Automated sync from Figma file PCUj412f0Z1zZLLxQUX22e.
+Merging this PR will trigger build-tokens.yml to regenerate
+all platform outputs (CSS, Swift, Kotlin, Dart)."
+          git push origin "$BRANCH"
+          echo "BRANCH=$BRANCH" >> "$GITHUB_ENV"
+
+      - name: Open pull request
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "chore(tokens): sync Figma Variables [$(date +%Y-%m-%d)]" \
+            --body "## Automated token sync
+
+Figma Variables have changed since the last sync.
+
+**Review checklist before merging:**
+- [ ] Diff looks like intentional design token updates (not noise)
+- [ ] No color group has been removed unexpectedly
+- [ ] Spacing or typography values look correct
+
+**After merging:** \`build-tokens.yml\` runs automatically and regenerates all platform outputs (CSS, Swift, Kotlin, Dart).
+
+> This PR was opened automatically by \`figma-token-sync.yml\`."
+
+      - name: No changes
+        if: steps.diff.outputs.changed == 'false'
+        run: echo "tokens/tokens.json is already in sync with Figma. No PR needed."

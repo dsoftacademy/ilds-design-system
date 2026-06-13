@@ -171,3 +171,6 @@ ilds_*.figma.tsx
 
 # Generated Word reports (derived from markdown sources)
 ILDS_*.docx
+
+# Figma API debug output — contains raw design data, not for repo
+tool/figma_api_sample.json
