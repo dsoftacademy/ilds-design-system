@@ -51,23 +51,25 @@ class IldsBadge extends StatelessWidget {
     }
   }
 
+  // Figma 13965:24550 (verified via get_variable_defs): solid fills, white text.
+  // subtle = pale secondary-blue; intense = secondary-blue-500.
   Color _bgColor() {
-    if (isLoading || variant == IldsBadgeVariant.skeleton) return ILDSTokens.neutral100;
+    if (isLoading || variant == IldsBadgeVariant.skeleton) return ILDSTokens.neutralCoolgray100;
     switch (variant) {
       case IldsBadgeVariant.subtle:
-        return ILDSTokens.neutral100;
+        return ILDSTokens.secondaryBlue50;
       case IldsBadgeVariant.intense:
-        return ILDSTokens.neutral900;
+        return ILDSTokens.secondaryBlue500;
       case IldsBadgeVariant.success:
-        return ILDSTokens.green50;
+        return ILDSTokens.successGreen500;
       case IldsBadgeVariant.error:
-        return ILDSTokens.red50;
+        return ILDSTokens.errorRed600;
       case IldsBadgeVariant.warning:
-        return ILDSTokens.amber50;
+        return ILDSTokens.warningAmber500;
       case IldsBadgeVariant.info:
-        return ILDSTokens.blue50;
+        return ILDSTokens.informativeBlue500;
       case IldsBadgeVariant.skeleton:
-        return ILDSTokens.neutral100;
+        return ILDSTokens.neutralCoolgray100;
     }
   }
 
@@ -75,17 +77,14 @@ class IldsBadge extends StatelessWidget {
     if (isLoading || variant == IldsBadgeVariant.skeleton) return Colors.transparent;
     switch (variant) {
       case IldsBadgeVariant.subtle:
-        return ILDSTokens.neutral600;
+        return ILDSTokens.secondaryBlue500;
       case IldsBadgeVariant.intense:
-        return ILDSTokens.white;
+        return ILDSTokens.globalWhite000;
       case IldsBadgeVariant.success:
-        return ILDSTokens.green700;
       case IldsBadgeVariant.error:
-        return ILDSTokens.red700;
       case IldsBadgeVariant.warning:
-        return ILDSTokens.amber700;
       case IldsBadgeVariant.info:
-        return ILDSTokens.blue700;
+        return ILDSTokens.globalWhite000;
       case IldsBadgeVariant.skeleton:
         return Colors.transparent;
     }
