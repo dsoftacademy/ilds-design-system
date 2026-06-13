@@ -468,14 +468,14 @@ tool/verify_cross_platform_parity.mjs        ← Cross-board Figma matrix QA
 
 | Item | Phase | Notes |
 |------|-------|-------|
-| Tag (React) | 3b | No Figma Tag Display node |
-| Chromatic baseline | 5 | Visual regression infrastructure |
-| Flutter golden tests | 5 | Chromatic covers React only |
+| Tag (React) | 3b / 5 | **Deferred** — `docs/deferred/TAG_REACT_DEFERRED.md` (no Figma Tag Display node; `14018:6786` is Chip) |
+| Chromatic baseline | 5 | **Done** — `.github/workflows/chromatic.yml`; requires `CHROMATIC_PROJECT_TOKEN` secret |
+| Flutter golden tests | 5 | **Done** — `test/golden/` + `test/goldens/` (47 snapshots); CI `flutter-golden` job |
 | Typography in Figma Variables | 8 | Repo/plugin-authored until then |
-| Dropdown focus ring WCAG | a11y | `docs/a11y/DROPDOWN_FOCUS_RING_FLAG.md` |
+| Dropdown focus ring WCAG | a11y / 5 | **Resolved** — Option C (`1f36b96`); Figma `13476:22340` update pending designer |
 | Focus rings on native Button/TextLink | 4b minor | Mobile-first defer |
 | iOS Scrollbar scroll sync | 4b minor | Decorative overlay, not functional thumb |
-| iOS Dropdown label typography | 4b minor | 12px vs Figma 16px bold |
+| iOS Dropdown label typography | 4b / 5 | **Fixed** — field label 16px Bold per Figma `13476:22317` |
 | Pratishek manual sign-off | 3c | `PHASE3C_FLUTTER_REACT_SIGNOFF.md` checklist |
 | Supernova component docs ~20% | ongoing | Token pages auto; component guidance manual |
 
@@ -487,9 +487,10 @@ tool/verify_cross_platform_parity.mjs        ← Cross-board Figma matrix QA
 # From repo root
 npm run build:tokens          # Regenerate all platform token files
 npm run verify:tokens         # 124-token parity gate
-npm run verify:parity         # Cross-platform Figma matrix (38 checks)
+npm run verify:parity         # Cross-platform Figma matrix (55 checks)
 npm run verify:phase4b        # Native structural + compile gate
 flutter analyze lib/          # Flutter static analysis
+flutter test test/golden/     # Flutter golden regression (47 snapshots)
 
 cd ios && swift build         # iOS compile
 cd web && npm run build-storybook && npm run test:parity   # React Figma parity (245 tests)
@@ -497,7 +498,22 @@ npm run storybook             # Storybook dev server :6006
 npm run code-connect:publish  # Republish Figma Code Connect
 ```
 
-**Next phase options:** Phase 5 (Chromatic + PR evolution engine) or close remaining minor native gaps / manual sign-off.
+**Next phase options:** Phase 6 (PR evolution engine) or close remaining minor native gaps / manual sign-off.
+
+---
+
+## 15. Phase 5 resolution (2026-06-14)
+
+| Item | Status | Commit / artifact |
+|------|--------|-------------------|
+| 1 — iOS Dropdown label typography | ✅ Closed | Field label 16px Bold (`13476:22317`); parity rules added |
+| 2 — Tag (React) | ⏸ Deferred | `docs/deferred/TAG_REACT_DEFERRED.md` |
+| 3 — Dropdown focus ring WCAG | ✅ Closed | Option C — `1f36b96` |
+| 4 — Chromatic | ✅ Closed | `.github/workflows/chromatic.yml` + `web` chromatic script |
+| 5 — Flutter goldens | ✅ Closed | `test/golden/` suite + `flutter-golden` CI job |
+
+**Manual follow-up:** Add `CHROMATIC_PROJECT_TOKEN` to GitHub repo secrets before first Chromatic run.
+
 
 ---
 
