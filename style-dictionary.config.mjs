@@ -4,6 +4,8 @@
 //   dist/tokens.css          — generic :root CSS custom properties
 //   dist/tokens.theme.css    — Tailwind CSS v4 @theme block (primary web target for 3b)
 //   dist/tailwind-tokens.js  — legacy v3 CommonJS shim (kept until 3b scaffold; delete later)
+//   dist/ILDSTokens.swift    — iOS SwiftUI tokens (also copied to ios/Sources/ILDSTokens/)
+//   dist/IldsTokens.kt       — Android Compose tokens (also copied to android module)
 // Run: npm run build:tokens
 import StyleDictionary from 'style-dictionary';
 
@@ -415,9 +417,19 @@ const sd = new StyleDictionary({
       buildPath: 'dist/',
       files: [{ destination: 'ILDSTokens.swift', format: 'ilds/swift' }],
     },
+    swiftPackage: {
+      transforms: nativeTransforms,
+      buildPath: 'ios/Sources/ILDSTokens/',
+      files: [{ destination: 'ILDSTokens.swift', format: 'ilds/swift' }],
+    },
     compose: {
       transforms: nativeTransforms,
       buildPath: 'dist/',
+      files: [{ destination: 'IldsTokens.kt', format: 'ilds/compose' }],
+    },
+    composeModule: {
+      transforms: nativeTransforms,
+      buildPath: 'android/ilds-design-system/src/main/kotlin/com/icicilombard/ilds/tokens/',
       files: [{ destination: 'IldsTokens.kt', format: 'ilds/compose' }],
     },
   },
@@ -426,5 +438,5 @@ const sd = new StyleDictionary({
 await sd.cleanAllPlatforms();
 await sd.buildAllPlatforms();
 console.log(
-  '✅ ILDS tokens built → dist/tokens.css + dist/tokens.theme.css + dist/tailwind-tokens.js + dist/ILDSTokens.swift + dist/IldsTokens.kt',
+  '✅ ILDS tokens built → dist/ + ios/Sources/ILDSTokens/ + android/ilds-design-system/.../tokens/',
 );

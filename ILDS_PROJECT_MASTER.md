@@ -50,7 +50,7 @@ When the user says "continue", "next step", or "what's left" — consult **Secti
 | **Primary platform** | Flutter (iOS + Android) |
 | **DS Lead** | Pratishek — Principal Designer, 11 years experience |
 | **Started** | March 2026 |
-| **Current phase** | **Phase 3 complete · Phase 4a complete (Jun 2026).** Native token exports (Swift + Compose) ship from `tokens.json`. **Phase 4b** (iOS/Android components) is next. |
+| **Current phase** | **Phase 4b in progress (Jun 2026).** Button Milestone 1 shipped (SwiftUI + Compose). Remaining 17 native components gated on sign-off. |
 | **Automation stack** | Figma · Custom Figma Plugin · GitHub · GitHub Actions · Supernova · Slack |
 
 ### What ILDS Is
@@ -351,13 +351,29 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 
 **Status:** `- [x]` Complete
 
-#### Phase 4b — Native Component Parity (depends on Phase 4a)
+#### Phase 4b — Native Component Parity 🟡 IN PROGRESS (Button Milestone 1)
 
 **Goal:** 18 SwiftUI components (iOS) + 18 Jetpack Compose components (Android), consuming Phase 4a token output. Same states and architecture pattern as Flutter.
 
+**4b delivery sequence (mirrors Phase 3b):**
+1. Scaffold: `ios/` SPM package + `android/` Gradle library module ✅
+2. **Milestone 1 — Button only:** full state parity with `lib/ilds_button.dart` ✅
+3. Side-by-side check vs Flutter playground before remaining 17 components
+4. Gate remaining components on Button sign-off
+
+**Milestone 1 Button — shipped (Jun 2026):**
+- [x] `ios/` Swift Package — `IldsButton` + `IldsIconButton` (SwiftUI)
+- [x] `android/ilds-design-system/` — `IldsButton` + `IldsIconButton` (Compose)
+- [x] Token copies synced to platform paths via `build:tokens` (dist ↔ ios ↔ android)
+- [x] `swift build` compiles clean
+- [x] `npm run verify:phase4b` — cross-platform Button QA harness
+- [ ] Gradle wrapper + `compileDebugKotlin` CI (Android toolchain not in repo yet)
+- [ ] Side-by-side Flutter ↔ native playground gate
+- [ ] Remaining 17 components (React gated pattern)
+
 **Why this phase matters:** ICICI Lombard's product spans iOS and Android natively. Today only Flutter gets token updates. Phase 4 completes the platform story.
 
-**Status:** `- [ ]` Not started
+**Status:** `- [~]` In progress — Button Milestone 1 shipped; do not sprint remaining 17 until gate passes.
 
 ---
 

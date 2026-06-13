@@ -69,7 +69,7 @@ jobs:
       - name: Commit regenerated exports (if changed)
         run: |
           set -euo pipefail
-          CHANGED="$(git status --porcelain dist/ lib/design_system/ilds_tokens.dart)"
+          CHANGED="$(git status --porcelain dist/ ios/Sources/ILDSTokens/ android/ilds-design-system/src/main/kotlin/com/icicilombard/ilds/tokens/ lib/design_system/ilds_tokens.dart)"
           if [ -z "$CHANGED" ]; then
             echo "No token export changes — nothing to commit."
             exit 0
@@ -82,6 +82,8 @@ jobs:
             dist/tailwind-tokens.js \
             dist/ILDSTokens.swift \
             dist/IldsTokens.kt \
+            ios/Sources/ILDSTokens/ILDSTokens.swift \
+            android/ilds-design-system/src/main/kotlin/com/icicilombard/ilds/tokens/IldsTokens.kt \
             lib/design_system/ilds_tokens.dart
           git commit -m "ci: rebuild token exports — web + Swift + Compose + Flutter [skip ci]"
           git push

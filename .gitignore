@@ -97,6 +97,12 @@ dist/*
 !dist/ILDSTokens.swift
 !dist/IldsTokens.kt
 
+# Native platform build artifacts (Phase 4b)
+ios/.build/
+android/.gradle/
+android/**/build/
+android/local.properties
+
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and not Next.js
