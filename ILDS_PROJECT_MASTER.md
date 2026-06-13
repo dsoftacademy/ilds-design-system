@@ -2,7 +2,8 @@
 
 > **This is the single source of project truth.**
 > All other briefs, status reports, and handoff docs in this repo are superseded by this file.
-> Last updated: June 11, 2026 · Maintained by: Pratishek (Principal Designer & DS Lead)
+> Last updated: June 12, 2026 · Maintained by: Pratishek (Principal Designer & DS Lead)  
+> **Resume snapshot:** `docs/reports/ILDS_STATUS_AND_RESUME_REPORT_2026-06-12.md` · HEAD `f331aff`
 
 ---
 
@@ -49,7 +50,7 @@ When the user says "continue", "next step", or "what's left" — consult **Secti
 | **Primary platform** | Flutter (iOS + Android) |
 | **DS Lead** | Pratishek — Principal Designer, 11 years experience |
 | **Started** | March 2026 |
-| **Current phase** | Phase 2 complete. Phase 3 not started. |
+| **Current phase** | Phase 3a complete. **Phase 3b in progress** — Button Milestone 1 (~90%; parity harness 17/17; side-by-side gate pending). |
 | **Automation stack** | Figma · Custom Figma Plugin · GitHub · GitHub Actions · Supernova · Slack |
 
 ### What ILDS Is
@@ -280,7 +281,7 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 
 ---
 
-### Phase 3 — Web Platform (React) 🔴 NOT STARTED
+### Phase 3 — Web Platform (React) 🟡 IN PROGRESS (3a ✅ · 3b Button Milestone 1)
 
 **Goal:** Extend ILDS to React. Deliver a Storybook site and a live public design system website.
 
@@ -305,7 +306,7 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 
 **Status:** `- [x]` Complete — validated locally (`npm run build:tokens` regenerates both files); CI auto-commit path wired for the Figma → plugin → push → rebuild loop.
 
-#### Phase 3b — React Component Parity (depends on Phase 3a) — NOT STARTED
+#### Phase 3b — React Component Parity (depends on Phase 3a) — IN PROGRESS
 
 **Goal:** Build 18 React components matching Flutter component states, styled via the Phase 3a token output.
 
@@ -323,12 +324,26 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 **Pre-3b gate (manual — plugin runs in Figma):** ~~Revert test drift via plugin sync~~ **Passed Jun 2026** — preserve-merge proven on no-op sync `585ee66` (typography intact). **Note:** `#E3530F` was restored by manual commit `30439b3` (typography fix after stale `code.js` wipe), not by plugin sync; merge-with-actual-value-change proven on `a8477df` (`white-000` `#FFFFFE` → `#FFFFFF`, typography intact). **`white-000`:** reverted to `#FFFFFF` via plugin sync `a8477df` (Jun 2026) — first real value change through preserve-merge (typography intact).
 
 **3b delivery sequence (do not sprint five components):**
-1. Scaffold: Vite + React + TS + **Tailwind 4.3** + **Storybook 10.4** (`npm view tailwindcss storybook` before install).
-2. **Milestone 1 — Button only:** full state parity with `lib/ilds_button.dart`; one Storybook story per state; tokens via `@import` of `dist/tokens.theme.css` only.
+1. Scaffold: Vite + React + TS + **Tailwind 4.3** + **Storybook 10.4** (`npm view tailwindcss storybook` before install). ✅ `7f1da52`
+2. **Milestone 1 — Button only:** full state parity with `lib/ilds_button.dart`; one Storybook story per state; tokens via `@import` of `dist/tokens.theme.css` only. **~90%** — see shipped list below.
 3. Side-by-side check vs Flutter playground **before** Chip, TextField, Dropdown, Toast.
 4. Gate remaining four Phase-1 components on Button sign-off.
 
-**Status:** `- [~]` In progress — `web/` scaffold (Vite + React + TS + Tailwind 4.3 + Storybook 10.4); Milestone 1 Button stories landed; side-by-side playground gate pending.
+**Milestone 1 Button — shipped (Jun 2026, `f331aff`):**
+- [x] `web/` scaffold + root Storybook scripts
+- [x] React `IldsButton` — types/sizes/appearance/disabled/loading/destructive
+- [x] Figma state alignment (hover/pressed/focus/disabled/gaps/heights/tertiary px)
+- [x] Icon slots (24/20/12px), iconOnly + `aria-label`, loading (leading + trailing spinner)
+- [x] Playwright parity harness — `web/specs/button.spec.json` — **17 verified variants**
+- [x] CI: `.github/workflows/web-tests.yml`
+- [x] Flutter secondary/tertiary pressed (`bae6756`) — `StatefulWidget` + `onHighlightChanged`
+- [x] Destructive pressed nodes `16186:2051` / `16186:2581` (designer updated tertiary to red-700)
+- [ ] Side-by-side Flutter ↔ React playground gate (Pratishek sign-off)
+- [ ] Flutter icon slots / iconOnly (React ahead)
+- [ ] Skeleton state — PRESUMED visual only; defer or pull Figma node
+- [ ] Hover on Flutter — TODO (mobile-first defer)
+
+**Status:** `- [~]` In progress — Button Milestone 1 near complete; **do not start Chip/TextField/Dropdown/Toast until gate passes.**
 
 **Scope:**
 - React + TypeScript component library (same 18 components, same 18 × states)
@@ -685,6 +700,7 @@ See `*.figma.ts` at repo root. **17 active files published** (Jun 2026, Task 2);
 ### Documentation
 - [x] `docs/reports/CLAUDE_HANDOFF_2026-04-08.md`
 - [x] `docs/reports/ILDS_STATUS_AND_RESUME_REPORT_2026-04-12.md`
+- [x] `docs/reports/ILDS_STATUS_AND_RESUME_REPORT_2026-06-12.md` — **current resume snapshot** (Phase 3b Button, parity 17/17)
 - [x] `ILDS_ADMIN_REPORT.docx` — comprehensive admin report (tracked in git via force-add; `ILDS_*.docx` ignore rule keeps other stray docs out)
 - [x] `ILDS_ADMIN_ACTION_ITEMS.docx` — 12 action cards
 - [x] `ILDS_CASE_STUDY.docx` — portfolio case study (Principal Designer voice)
@@ -896,9 +912,10 @@ See Section 5, Phase 3 for full scope.
 - [x] Validated locally; CI auto-commit path wired for Figma → plugin → GitHub → CSS rebuild
 
 **Phase 3b (React components — depends on 3a):**
-- [ ] React + TypeScript component library (18 components, full state parity with Flutter)
-- [ ] Tailwind CSS consuming Phase 3a token output
-- [ ] Storybook 10 — all components, all states
+- [x] `web/` scaffold — Vite + React + TS + Tailwind 4.3 + Storybook 10.4 (`7f1da52`)
+- [~] **Button Milestone 1** — React + parity harness 17/17 + Flutter pressed states (`f331aff`); side-by-side gate pending
+- [ ] Chip, TextField, Dropdown, Toast (React) — gated on Button sign-off
+- [ ] Remaining 13 Phase-2 components (React)
 - [ ] Public DS website — Vercel, auto-deploys on merge
 - [ ] Visual regression via Chromatic
 
@@ -936,7 +953,7 @@ All components live in `lib/`. All pass `flutter analyze` with zero issues as of
 
 | # | Component | File | Phase | States | Code Connect | Status |
 |---|---|---|---|---|---|---|
-| 1 | Button | `ilds_button.dart` | 1 | Default · Hover · Pressed · Focused · Disabled · Loading · Destructive | `button.figma.ts` | ✅ Live |
+| 1 | Button | `ilds_button.dart` | 1 | Default · Hover · Pressed · Focused · Disabled · Loading · Destructive · Icons (React) | `button.figma.ts` | ✅ Flutter live · 🟡 React parity 17/17 (M1 gate pending) |
 | 2 | TextField | `ilds_text_field.dart` | 1 | Default · Focused · Filled · Error · Success · Disabled | `text_field.figma.ts` | ✅ Live |
 | 3 | Chip | `ilds_chip.dart` | 1 | Unselected · Selected · Disabled · Large · Medium | `chip.figma.ts` | ✅ Live |
 | 4 | Dropdown | `ilds_dropdown.dart` | 1 | Closed · Open · Error · Disabled | `dropdown.figma.ts` | ✅ Live |
@@ -1047,7 +1064,8 @@ ilds-design-system/
 └── docs/
     └── reports/
         ├── CLAUDE_HANDOFF_2026-04-08.md
-        └── ILDS_STATUS_AND_RESUME_REPORT_2026-04-12.md
+        ├── ILDS_STATUS_AND_RESUME_REPORT_2026-04-12.md
+        └── ILDS_STATUS_AND_RESUME_REPORT_2026-06-12.md   ← resume here
 ```
 
 ### Files to NEVER edit manually
