@@ -18,6 +18,8 @@ export type IldsDropdownMenuProps = {
   onSecondary?: () => void;
   onPrimary?: () => void;
   className?: string;
+  /** Override listbox id for aria-controls on the trigger. */
+  menuId?: string;
 };
 
 function RadioCircleIcon() {
@@ -45,9 +47,11 @@ export function IldsDropdownMenu({
   onSecondary,
   onPrimary,
   className = '',
+  menuId,
 }: IldsDropdownMenuProps) {
   return (
     <div
+      id={menuId}
       data-testid="dropdown-menu"
       role="listbox"
       className={[

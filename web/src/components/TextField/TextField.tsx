@@ -200,14 +200,20 @@ function LabelRow({
   requiredIndicator,
   showInfoIcon,
   disabled,
+  asGroupLabel = false,
 }: {
   label: string;
-  inputId: string;
+  inputId?: string;
   required: boolean;
   requiredIndicator: IldsRequiredIndicator;
   showInfoIcon: boolean;
   disabled: boolean;
+  /** OTP — use span + id for aria-labelledby; no htmlFor (multi-cell). */
+  asGroupLabel?: boolean;
 }) {
+  const labelClass =
+    'text-12 font-bold font-primary leading-[16px] text-neutral-coolgray-900 cursor-default';
+
   return (
     <div
       className={[
@@ -217,12 +223,15 @@ function LabelRow({
         .filter(Boolean)
         .join(' ')}
     >
-      <label
-        htmlFor={inputId}
-        className="text-12 font-bold font-primary leading-[16px] text-neutral-coolgray-900 cursor-default"
-      >
-        {label}
-      </label>
+      {asGroupLabel ? (
+        <span id={inputId} className={labelClass}>
+          {label}
+        </span>
+      ) : (
+        <label htmlFor={inputId} className={labelClass}>
+          {label}
+        </label>
+      )}
       {required ? (
         <span
           data-testid="textfield-required-indicator"
@@ -374,6 +383,16 @@ function OtpField({
                   focusCell(index - 1);
                 }
               }}
+              onPaste={(e) => {
+                e.preventDefault();
+                const pasted = e.clipboardData
+                  .getData('text')
+                  .replace(/\D/g, '')
+                  .slice(0, cellCount);
+                if (!pasted) return;
+                updateOtp(pasted);
+                focusCell(Math.min(pasted.length, cellCount) - 1);
+              }}
               className={[
                 'w-full bg-transparent text-center outline-none',
                 'text-14 font-bold font-primary leading-[18px]',
@@ -446,16 +465,15 @@ export function IldsTextField({
 
       {label ? (
         isOtp ? (
-          <div id={labelId}>
-            <LabelRow
-              label={label}
-              inputId={inputId}
-              required={required}
-              requiredIndicator={requiredIndicator}
-              showInfoIcon={showInfoIcon}
-              disabled={disabled}
-            />
-          </div>
+          <LabelRow
+            label={label}
+            inputId={labelId}
+            required={required}
+            requiredIndicator={requiredIndicator}
+            showInfoIcon={showInfoIcon}
+            disabled={disabled}
+            asGroupLabel
+          />
         ) : (
           <LabelRow
             label={label}

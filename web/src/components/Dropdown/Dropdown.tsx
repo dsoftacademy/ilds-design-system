@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { IldsDropdownMenu, type IldsDropdownMenuOption } from './DropdownMenu';
 
 export type IldsDropdownRequiredIndicator = 'text' | 'asterisk';
@@ -160,6 +160,8 @@ export function IldsDropdown({
   onMenuPrimary,
   className = '',
 }: IldsDropdownProps) {
+  const autoMenuId = useId();
+  const listboxId = autoMenuId;
   const hasError = (isNegative || !!errorText) && !isDisabled;
   const helperContent = hasError ? (errorText ?? helperText) : helperText;
 
@@ -204,6 +206,7 @@ export function IldsDropdown({
         role="combobox"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
+        aria-controls={isOpen && options?.length ? listboxId : undefined}
         disabled={isDisabled}
         onClick={onToggle}
         className={triggerClasses(hasError, isDisabled, isOpen)}
@@ -244,6 +247,7 @@ export function IldsDropdown({
 
       {isOpen && options && options.length > 0 ? (
         <IldsDropdownMenu
+          menuId={listboxId}
           sectionLabel={menuSectionLabel}
           options={options}
           selectedValue={selectedValue}
