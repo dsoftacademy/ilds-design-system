@@ -1,9 +1,14 @@
 name: Build Design Tokens
 
-# Regenerates the multi-platform token exports (CSS custom properties + Tailwind
-# theme extension + iOS Swift + Android Compose) whenever the token source or the
-# generator changes, and commits the refreshed dist/ outputs back to main so
-# consumers on every platform always have current values.
+# Regenerates ALL platform token exports from tokens/tokens.json whenever the token
+# source or a generator changes, then commits the refreshed outputs back to main so
+# every platform stays in lockstep:
+#   - dist/tokens.css / tokens.theme.css / tailwind-tokens.js  (web — Style Dictionary)
+#   - dist/ILDSTokens.swift                                     (iOS — Style Dictionary)
+#   - dist/IldsTokens.kt                                        (Android — Style Dictionary)
+#   - lib/design_system/ilds_tokens.dart                       (Flutter — Dart codegen)
+# A cross-platform parity guard (npm run verify:tokens) fails the build if any export
+# drifts from the source of truth.
 
 on:
   workflow_dispatch: {}
@@ -13,6 +18,8 @@ on:
     paths:
       - 'tokens/tokens.json'
       - 'style-dictionary.config.mjs'
+      - 'tool/generate_ilds_tokens.dart'
+      - 'tool/verify_token_exports.mjs'
       - 'package.json'
       - 'package-lock.json'
 
@@ -25,7 +32,7 @@ concurrency:
 
 jobs:
   build:
-    name: Export tokens (CSS + Tailwind + Swift + Compose)
+    name: Export tokens (web + Swift + Compose + Flutter)
     runs-on: ubuntu-latest
 
     steps:
@@ -38,22 +45,44 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Set up Flutter (provides Dart for codegen)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install Node dependencies
         run: npm ci
 
-      - name: Build token exports
+      - name: Resolve Dart/Flutter packages
+        run: flutter pub get
+
+      - name: Build web + native token exports (CSS + Tailwind + Swift + Compose)
         run: npm run build:tokens
 
-      - name: Commit regenerated dist/ (if changed)
+      - name: Generate Flutter token class
+        run: dart run tool/generate_ilds_tokens.dart
+
+      - name: Verify cross-platform parity (source of truth guard)
+        run: npm run verify:tokens
+
+      - name: Commit regenerated exports (if changed)
         run: |
           set -euo pipefail
-          if [ -z "$(git status --porcelain dist/)" ]; then
+          CHANGED="$(git status --porcelain dist/ lib/design_system/ilds_tokens.dart)"
+          if [ -z "$CHANGED" ]; then
             echo "No token export changes — nothing to commit."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dist/tokens.css dist/tokens.theme.css dist/tailwind-tokens.js dist/ILDSTokens.swift dist/IldsTokens.kt
-          git commit -m "ci: rebuild design token exports (CSS + Tailwind + Swift + Compose) [skip ci]"
+          git add \
+            dist/tokens.css \
+            dist/tokens.theme.css \
+            dist/tailwind-tokens.js \
+            dist/ILDSTokens.swift \
+            dist/IldsTokens.kt \
+            lib/design_system/ilds_tokens.dart
+          git commit -m "ci: rebuild token exports — web + Swift + Compose + Flutter [skip ci]"
           git push
-          echo "✅ Committed refreshed token exports."
+          echo "✅ Committed refreshed token exports (all platforms)."
