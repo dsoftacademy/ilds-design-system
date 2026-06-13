@@ -1,0 +1,125 @@
+{
+  "$schema": "./parity-spec.schema.json",
+  "component": "Chip",
+  "figmaFileKey": "PCUj412f0Z1zZLLxQUX22e",
+  "figmaComponentSetId": "14018:6786",
+  "extractedBy": "Claude via Figma MCP get_design_context",
+  "extractedOn": "2026-06-13",
+  "selector": "#storybook-root [data-testid=\"chip\"]",
+  "shared": {
+    "border-radius": "4px",
+    "font-family": "Mulish",
+    "font-weight": "400",
+    "font-size": "12px"
+  },
+  "variants": [
+    {
+      "name": "large-default",
+      "storyId": "components-chip--large-default",
+      "figmaNodeId": "14018:6787",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#ffffff",
+        "color": "#212121",
+        "border-color": "#9e9e9e",
+        "padding": "4px 8px",
+        "gap": "4px",
+        "offsetHeight": 26
+      }
+    },
+    {
+      "name": "large-hover",
+      "storyId": "components-chip--large-default",
+      "figmaNodeId": "14018:6794",
+      "interaction": "hover",
+      "verified": true,
+      "expect": {
+        "background-color": "#e0e0e0",
+        "border-color": "#757575",
+        "color": "#212121"
+      }
+    },
+    {
+      "name": "large-selected",
+      "storyId": "components-chip--large-selected",
+      "figmaNodeId": "14018:6806",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#fff2ed",
+        "border-color": "#e3530f",
+        "color": "#212121"
+      }
+    },
+    {
+      "name": "large-disabled",
+      "storyId": "components-chip--large-disabled",
+      "figmaNodeId": "14018:6812",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#eeeeee",
+        "border-color": "#e0e0e0",
+        "color": "#9e9e9e"
+      }
+    },
+    {
+      "name": "large-focused",
+      "storyId": "components-chip--focus-check-chip",
+      "figmaNodeId": "16279:8890",
+      "interaction": "focus",
+      "verified": true,
+      "expect": {
+        "background-color": "#fafafa",
+        "border-color": "#424242",
+        "outline-color": "#c74c01",
+        "outline-width": "2px",
+        "outline-offset": "2px"
+      }
+    },
+    {
+      "name": "medium-default",
+      "storyId": "components-chip--medium-default",
+      "figmaNodeId": "14018:6843",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#ffffff",
+        "color": "#212121",
+        "border-color": "#9e9e9e",
+        "padding": "2px 4px",
+        "gap": "2px",
+        "offsetHeight": 22
+      }
+    },
+    {
+      "name": "medium-selected",
+      "storyId": "components-chip--playground",
+      "storyArgs": { "size": "medium", "isSelected": "true" },
+      "figmaNodeId": "14018:6830",
+      "interaction": null,
+      "verified": false,
+      "expect": {
+        "background-color": "#fff2ed",
+        "border-color": "#e3530f",
+        "color": "#212121",
+        "offsetHeight": 22
+      }
+    },
+    {
+      "name": "medium-disabled",
+      "storyId": "components-chip--playground",
+      "storyArgs": { "size": "medium", "isDisabled": "true" },
+      "figmaNodeId": "14018:6836",
+      "interaction": null,
+      "verified": false,
+      "expect": {
+        "background-color": "#eeeeee",
+        "border-color": "#e0e0e0",
+        "color": "#9e9e9e",
+        "offsetHeight": 22
+      }
+    }
+  ]
+}
