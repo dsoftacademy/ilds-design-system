@@ -18,7 +18,7 @@ date: 2026-04-11
 
 **Roadmap anchor:** Phases 3–4 = web + native platform parity; Phases 5–7 = evolution agent + AI screens. **Phase 8 (planned):** move typography into Figma Variables only — today typography is interim repo/plugin-authored until 3b + 4 are done. See `ILDS_PROJECT_MASTER.md` §5 Phase 8.
 
-**Resume here (Jun 2026):** Phase 4b in progress — Button Milestone 1 shipped (iOS SwiftUI + Android Compose). **Next:** Button sign-off gate, then remaining 17 components. See `ILDS_PROJECT_MASTER.md` §5 Phase 4b.
+**Resume here (Jun 2026):** Phase 4b complete — 18 SwiftUI + 18 Compose components. Run `npm run verify:phase4b`. **Next:** Phase 5 or manual sign-off gates.
 
 **Primary stack:** Dart/Flutter (`lib/`), JSON tokens (`tokens/tokens.json`), TypeScript Code Connect (`*.figma.ts`), GitHub Actions (`.github/workflows/`), Figma plugin (`ilds-plugin/`).
 

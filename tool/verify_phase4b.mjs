@@ -157,6 +157,40 @@ check(swiftChip.includes('radiusMedium'), 'Swift Chip: radiusMedium (4px)');
 check(ktChip.includes('radiusMedium'), 'Kotlin Chip: radiusMedium');
 check(flutterChip.includes('primaryOrange50') || flutterChip.includes('orange500'), 'Flutter Chip: selected state tokens');
 
+// ── PASS 8: full component registry (18 Flutter + DropdownMenu) ─────────────
+section('PASS 8 — Full native component registry (18 + menu)');
+const COMPONENTS = [
+  'Button', 'Chip', 'Badge', 'Switch', 'Checkbox', 'Radio', 'TextLink', 'Toast',
+  'SelectionButton', 'Accordion', 'Tabs', 'Pagination', 'Search', 'Scrollbar', 'Tag',
+  'TextArea', 'TextField', 'Dropdown', 'DropdownMenu',
+];
+const FLUTTER_MAP = {
+  Button: 'ilds_button.dart', Chip: 'ilds_chip.dart', Badge: 'ilds_badge.dart',
+  Switch: 'ilds_switch.dart', Checkbox: 'ilds_checkbox.dart', Radio: 'ilds_radio.dart',
+  TextLink: 'ilds_text_link.dart', Toast: 'ilds_toast.dart',
+  SelectionButton: 'ilds_selection_button.dart', Accordion: 'ilds_accordion.dart',
+  Tabs: 'ilds_tab.dart', Pagination: 'ilds_pagination.dart', Search: 'ilds_search.dart',
+  Scrollbar: 'ilds_scrollbar.dart', Tag: 'ilds_tag.dart', TextArea: 'ilds_text_area.dart',
+  TextField: 'ilds_text_field.dart', Dropdown: 'ilds_dropdown.dart',
+  DropdownMenu: 'ilds_dropdown.dart',
+};
+let swiftCount = 0;
+let ktCount = 0;
+for (const name of COMPONENTS) {
+  const swiftPath = `ios/Sources/ILDSDesignSystem/Ilds${name}.swift`;
+  const ktPath = `android/ilds-design-system/src/main/kotlin/com/icicilombard/ilds/components/Ilds${name}.kt`;
+  const flutterPath = `lib/${FLUTTER_MAP[name]}`;
+  if (fs.existsSync(swiftPath)) swiftCount++;
+  if (fs.existsSync(ktPath)) ktCount++;
+  check(fs.existsSync(swiftPath), `Swift: Ilds${name}.swift exists`);
+  check(fs.existsSync(ktPath), `Kotlin: Ilds${name}.kt exists`);
+  if (name !== 'DropdownMenu') {
+    check(fs.existsSync(flutterPath), `Flutter: ${FLUTTER_MAP[name]} exists`);
+  }
+}
+check(swiftCount === COMPONENTS.length, `Swift component count = ${COMPONENTS.length}`, `got ${swiftCount}`);
+check(ktCount === COMPONENTS.length, `Kotlin component count = ${COMPONENTS.length}`, `got ${ktCount}`);
+
 console.log(log.join('\n'));
 console.log(`\n${'─'.repeat(60)}`);
 console.log(failures === 0 ? '✅ ALL PHASE 4B CHECKS PASSED' : `❌ ${failures} CHECK(S) FAILED`);
