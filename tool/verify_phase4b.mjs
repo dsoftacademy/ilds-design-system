@@ -140,6 +140,23 @@ for (const tok of stateTokens) {
   );
 }
 
+// ── PASS 7: Chip component (filter chip — Figma 14018:6786) ────────────────
+section('PASS 7 — Chip component (Swift + Kotlin + Flutter)');
+const swiftChip = read('ios/Sources/ILDSDesignSystem/IldsChip.swift');
+const ktChip = read('android/ilds-design-system/src/main/kotlin/com/icicilombard/ilds/components/IldsChip.kt');
+const flutterChip = read('lib/ilds_chip.dart');
+check(/public enum IldsChipSize/.test(swiftChip), 'Swift: IldsChipSize enum');
+check(/public struct IldsChip/.test(swiftChip), 'Swift: IldsChip view');
+check(/enum class IldsChipSize/.test(ktChip), 'Kotlin: IldsChipSize enum');
+check(/fun IldsChip\(/.test(ktChip), 'Kotlin: IldsChip composable');
+check(swiftChip.includes('primaryOrange50') && swiftChip.includes('primaryOrange500'), 'Swift Chip: selected colors');
+check(ktChip.includes('primaryOrange50') && ktChip.includes('primaryOrange500'), 'Kotlin Chip: selected colors');
+check(swiftChip.includes('neutralCoolgray200') && swiftChip.includes('neutralCoolgray300'), 'Swift Chip: disabled colors');
+check(ktChip.includes('neutralCoolgray200') && ktChip.includes('neutralCoolgray300'), 'Kotlin Chip: disabled colors');
+check(swiftChip.includes('radiusMedium'), 'Swift Chip: radiusMedium (4px)');
+check(ktChip.includes('radiusMedium'), 'Kotlin Chip: radiusMedium');
+check(flutterChip.includes('primaryOrange50') || flutterChip.includes('orange500'), 'Flutter Chip: selected state tokens');
+
 console.log(log.join('\n'));
 console.log(`\n${'─'.repeat(60)}`);
 console.log(failures === 0 ? '✅ ALL PHASE 4B CHECKS PASSED' : `❌ ${failures} CHECK(S) FAILED`);

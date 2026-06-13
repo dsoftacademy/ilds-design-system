@@ -1,0 +1,62 @@
+name: Native Component Tests
+
+# Phase 4b — compile + cross-platform QA for iOS (SwiftUI) and Android (Compose).
+
+on:
+  pull_request:
+    paths:
+      - 'ios/**'
+      - 'android/**'
+      - 'dist/ILDSTokens.swift'
+      - 'dist/IldsTokens.kt'
+      - 'tokens/**'
+      - 'style-dictionary.config.mjs'
+      - 'tool/verify_phase4b.mjs'
+      - 'lib/ilds_*.dart'
+  push:
+    branches: [main]
+    paths:
+      - 'ios/**'
+      - 'android/**'
+      - 'dist/ILDSTokens.swift'
+      - 'dist/IldsTokens.kt'
+      - 'tokens/**'
+      - 'style-dictionary.config.mjs'
+      - 'tool/verify_phase4b.mjs'
+      - 'lib/ilds_*.dart'
+
+jobs:
+  verify:
+    name: Cross-platform native QA
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npm run verify:phase4b
+
+  ios:
+    name: iOS compile (Swift Package)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: swift build
+        run: swift build
+        working-directory: ios
+
+  android:
+    name: Android compile (Compose library)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: compileDebugKotlin
+        run: ./gradlew :ilds-design-system:compileDebugKotlin --no-daemon
+        working-directory: android

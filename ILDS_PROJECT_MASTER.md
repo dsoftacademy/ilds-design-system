@@ -364,16 +364,17 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 **Milestone 1 Button — shipped (Jun 2026):**
 - [x] `ios/` Swift Package — `IldsButton` + `IldsIconButton` (SwiftUI)
 - [x] `android/ilds-design-system/` — `IldsButton` + `IldsIconButton` (Compose)
+- [x] `.github/workflows/native-tests.yml` — `swift build` + `compileDebugKotlin` + `verify:phase4b`
 - [x] Token copies synced to platform paths via `build:tokens` (dist ↔ ios ↔ android)
 - [x] `swift build` compiles clean
-- [x] `npm run verify:phase4b` — cross-platform Button QA harness
-- [ ] Gradle wrapper + `compileDebugKotlin` CI (Android toolchain not in repo yet)
+- [x] `npm run verify:phase4b` — cross-platform native QA harness
 - [ ] Side-by-side Flutter ↔ native playground gate
-- [ ] Remaining 17 components (React gated pattern)
 
-**Why this phase matters:** ICICI Lombard's product spans iOS and Android natively. Today only Flutter gets token updates. Phase 4 completes the platform story.
+**Phase 1 batch (in progress):**
+- [x] Chip — `IldsChip` SwiftUI + Compose (Figma 14018:6786)
+- [ ] TextField, Dropdown, Toast
 
-**Status:** `- [~]` In progress — Button Milestone 1 shipped; do not sprint remaining 17 until gate passes.
+**Status:** `- [~]` In progress — Button M1 + Chip shipped; TextField next.
 
 ---
 
