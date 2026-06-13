@@ -1,0 +1,39 @@
+{
+  "$schema": "./parity-spec.schema.json",
+  "component": "TextLink",
+  "figmaFileKey": "PCUj412f0Z1zZLLxQUX22e",
+  "figmaComponentSetId": "13474:16003",
+  "extractedBy": "Cursor via Figma Code Connect + tokens.theme.css",
+  "extractedOn": "2026-06-13",
+  "lastVerifiedOn": "2026-06-13",
+  "selector": "#storybook-root [data-testid=\"text-link\"]",
+  "shared": {
+    "font-family": "Mulish"
+  },
+  "variants": [
+    {
+      "name": "default-blue",
+      "storyId": "components-text-link--default",
+      "figmaNodeId": "13474:16003",
+      "interaction": null,
+      "verified": true,
+      "expect": { "color": "#2168f6", "text-decoration-line": "underline" }
+    },
+    {
+      "name": "visited",
+      "storyId": "components-text-link--visited",
+      "figmaNodeId": "13474:16003",
+      "interaction": null,
+      "verified": true,
+      "expect": { "color": "#9e9e9e" }
+    },
+    {
+      "name": "disabled",
+      "storyId": "components-text-link--disabled",
+      "figmaNodeId": "13474:16003",
+      "interaction": null,
+      "verified": true,
+      "expect": { "color": "#e0e0e0", "text-decoration-line": "none" }
+    }
+  ]
+}

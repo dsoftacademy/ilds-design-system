@@ -1,0 +1,20 @@
+{
+  "$schema": "./parity-spec.schema.json",
+  "component": "Scrollbar",
+  "figmaFileKey": "PCUj412f0Z1zZLLxQUX22e",
+  "figmaComponentSetId": "17730:521",
+  "extractedBy": "Cursor via Flutter reference + tokens.theme.css",
+  "extractedOn": "2026-06-13",
+  "lastVerifiedOn": "2026-06-13",
+  "selector": "#storybook-root [data-testid=\"scrollbar\"]",
+  "variants": [
+    {
+      "name": "vertical-overflow",
+      "storyId": "components-scrollbar--vertical",
+      "figmaNodeId": "17730:521",
+      "interaction": null,
+      "verified": true,
+      "expect": { "overflow-y": "auto" }
+    }
+  ]
+}

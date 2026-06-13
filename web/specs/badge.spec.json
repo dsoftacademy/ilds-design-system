@@ -1,0 +1,63 @@
+{
+  "$schema": "./parity-spec.schema.json",
+  "component": "Badge",
+  "figmaFileKey": "PCUj412f0Z1zZLLxQUX22e",
+  "figmaComponentSetId": "13965:24550",
+  "extractedBy": "Cursor via Figma Code Connect + tokens.theme.css",
+  "extractedOn": "2026-06-13",
+  "lastVerifiedOn": "2026-06-13",
+  "selector": "#storybook-root [data-testid=\"badge\"]",
+  "shared": {
+    "font-family": "Mulish"
+  },
+  "variants": [
+    {
+      "name": "subtle",
+      "storyId": "components-badge--subtle",
+      "figmaNodeId": "13965:24550",
+      "interaction": null,
+      "verified": true,
+      "expect": { "background-color": "#f5f5f5", "color": "#757575" }
+    },
+    {
+      "name": "intense",
+      "storyId": "components-badge--intense",
+      "figmaNodeId": "13965:24550",
+      "interaction": null,
+      "verified": true,
+      "expect": { "background-color": "#212121", "color": "#ffffff" }
+    },
+    {
+      "name": "success",
+      "storyId": "components-badge--success",
+      "figmaNodeId": "13965:24550",
+      "interaction": null,
+      "verified": true,
+      "expect": { "background-color": "#dfffe6", "color": "#03602e" }
+    },
+    {
+      "name": "error",
+      "storyId": "components-badge--error-badge",
+      "figmaNodeId": "13965:24550",
+      "interaction": null,
+      "verified": true,
+      "expect": { "background-color": "#fff2ee", "color": "#a30100" }
+    },
+    {
+      "name": "warning",
+      "storyId": "components-badge--warning",
+      "figmaNodeId": "13965:24550",
+      "interaction": null,
+      "verified": true,
+      "expect": { "background-color": "#fff3e3", "color": "#835900" }
+    },
+    {
+      "name": "info",
+      "storyId": "components-badge--info",
+      "figmaNodeId": "13965:24550",
+      "interaction": null,
+      "verified": true,
+      "expect": { "background-color": "#edf3ff", "color": "#0039a9" }
+    }
+  ]
+}

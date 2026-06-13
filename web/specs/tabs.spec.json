@@ -1,0 +1,29 @@
+{
+  "$schema": "./parity-spec.schema.json",
+  "component": "Tabs",
+  "figmaFileKey": "PCUj412f0Z1zZLLxQUX22e",
+  "figmaComponentSetId": "17667:2334",
+  "extractedBy": "Cursor via Figma Code Connect + tokens.theme.css",
+  "extractedOn": "2026-06-13",
+  "lastVerifiedOn": "2026-06-13",
+  "selector": "#storybook-root [data-testid=\"tab-selected\"]",
+  "shared": { "font-family": "Mulish" },
+  "variants": [
+    {
+      "name": "high-selected",
+      "storyId": "components-tabs--high-emphasis",
+      "figmaNodeId": "17667:2334",
+      "interaction": null,
+      "verified": true,
+      "expect": { "color": "#e3530f", "border-bottom-color": "#e3530f", "offsetHeight": 48 }
+    },
+    {
+      "name": "medium-selected",
+      "storyId": "components-tabs--medium-emphasis",
+      "figmaNodeId": "17667:2334",
+      "interaction": null,
+      "verified": true,
+      "expect": { "color": "#212121", "border-bottom-color": "#212121" }
+    }
+  ]
+}

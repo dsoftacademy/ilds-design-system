@@ -1,0 +1,27 @@
+{
+  "$schema": "./parity-spec.schema.json",
+  "component": "Pagination",
+  "figmaFileKey": "PCUj412f0Z1zZLLxQUX22e",
+  "figmaComponentSetId": "17724:3361",
+  "extractedBy": "Cursor via Figma Code Connect + tokens.theme.css",
+  "extractedOn": "2026-06-13",
+  "lastVerifiedOn": "2026-06-13",
+  "selector": "#storybook-root [data-testid=\"pagination-selected\"]",
+  "shared": { "font-family": "Mulish", "border-radius": "4px" },
+  "variants": [
+    {
+      "name": "selected-page",
+      "storyId": "components-pagination--extended",
+      "figmaNodeId": "17724:3361",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#e3530f",
+        "border-color": "#e3530f",
+        "color": "#ffffff",
+        "offsetHeight": 36,
+        "offsetWidth": 36
+      }
+    }
+  ]
+}

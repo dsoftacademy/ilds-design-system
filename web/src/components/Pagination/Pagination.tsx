@@ -1,0 +1,135 @@
+import { useState } from 'react';
+
+export type IldsPaginationVariant = 'extended' | 'compact';
+
+export type IldsPaginationProps = {
+  /** Figma set 17724:3361. Extended (numbered) or Compact ("Page X of Y"). */
+  currentPage?: number;
+  defaultPage?: number;
+  totalPages: number;
+  variant?: IldsPaginationVariant;
+  onPageChange?: (page: number) => void;
+  className?: string;
+};
+
+function ChevronLeft() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden className="size-full">
+      <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function ChevronRight() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden className="size-full">
+      <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+const cellBase =
+  'inline-flex size-[36px] items-center justify-center rounded-medium border box-border text-14 leading-[18px] font-primary font-medium transition-colors';
+
+function visiblePages(current: number, total: number): number[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const set = new Set<number>([1, total, current]);
+  if (current > 1) set.add(current - 1);
+  if (current < total) set.add(current + 1);
+  return [...set].sort((a, b) => a - b);
+}
+
+export function IldsPagination({
+  currentPage,
+  defaultPage = 1,
+  totalPages,
+  variant = 'extended',
+  onPageChange,
+  className = '',
+}: IldsPaginationProps) {
+  const [internal, setInternal] = useState(defaultPage);
+  const isControlled = currentPage !== undefined;
+  const page = isControlled ? currentPage : internal;
+
+  const go = (next: number) => {
+    if (next < 1 || next > totalPages || next === page) return;
+    if (!isControlled) setInternal(next);
+    onPageChange?.(next);
+  };
+
+  const Arrow = ({ dir }: { dir: 'prev' | 'next' }) => {
+    const disabled = dir === 'prev' ? page <= 1 : page >= totalPages;
+    return (
+      <button
+        type="button"
+        aria-label={dir === 'prev' ? 'Previous page' : 'Next page'}
+        disabled={disabled}
+        onClick={() => go(dir === 'prev' ? page - 1 : page + 1)}
+        className={[
+          cellBase,
+          disabled
+            ? 'border-neutral-coolgray-100 text-neutral-coolgray-200 cursor-not-allowed'
+            : 'border-neutral-coolgray-200 text-neutral-coolgray-600 hover:bg-neutral-coolgray-50',
+        ].join(' ')}
+      >
+        <span className="inline-flex size-sp-20 [&>svg]:size-full">
+          {dir === 'prev' ? <ChevronLeft /> : <ChevronRight />}
+        </span>
+      </button>
+    );
+  };
+
+  if (variant === 'compact') {
+    return (
+      <nav
+        data-testid="pagination"
+        aria-label="Pagination"
+        className={['inline-flex items-center gap-sp-4 font-primary', className].filter(Boolean).join(' ')}
+      >
+        <Arrow dir="prev" />
+        <span className="px-sp-4 text-14 font-medium leading-[18px] text-neutral-coolgray-600">
+          Page {page} of {totalPages}
+        </span>
+        <Arrow dir="next" />
+      </nav>
+    );
+  }
+
+  const pages = visiblePages(page, totalPages);
+
+  return (
+    <nav
+      data-testid="pagination"
+      aria-label="Pagination"
+      className={['inline-flex flex-wrap items-center gap-sp-4 font-primary', className].filter(Boolean).join(' ')}
+    >
+      <Arrow dir="prev" />
+      {pages.map((p, i) => {
+        const gap = i > 0 && p - pages[i - 1] > 1;
+        const selected = p === page;
+        return (
+          <span key={p} className="inline-flex items-center gap-sp-4">
+            {gap ? (
+              <span className="px-sp-4 text-14 text-neutral-coolgray-500">…</span>
+            ) : null}
+            <button
+              type="button"
+              aria-label={`Page ${p}`}
+              aria-current={selected ? 'page' : undefined}
+              data-testid={selected ? 'pagination-selected' : 'pagination-page'}
+              onClick={() => go(p)}
+              className={[
+                cellBase,
+                selected
+                  ? 'bg-primary-orange-500 border-primary-orange-500 text-white-000 font-bold'
+                  : 'border-neutral-coolgray-200 text-neutral-coolgray-600 hover:bg-neutral-coolgray-50',
+              ].join(' ')}
+            >
+              {p}
+            </button>
+          </span>
+        );
+      })}
+      <Arrow dir="next" />
+    </nav>
+  );
+}

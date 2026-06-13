@@ -1,0 +1,53 @@
+{
+  "$schema": "./parity-spec.schema.json",
+  "component": "SelectionButton",
+  "figmaFileKey": "PCUj412f0Z1zZLLxQUX22e",
+  "figmaComponentSetId": "14776:1685",
+  "extractedBy": "Cursor via Figma MCP screenshot + tokens.theme.css",
+  "extractedOn": "2026-06-13",
+  "lastVerifiedOn": "2026-06-13",
+  "selector": "#storybook-root [data-testid=\"selection-button\"]",
+  "shared": { "font-family": "Mulish", "border-radius": "4px" },
+  "variants": [
+    {
+      "name": "default",
+      "storyId": "components-selection-button--default",
+      "figmaNodeId": "14776:1685",
+      "interaction": null,
+      "verified": true,
+      "expect": { "background-color": "#ffffff", "border-color": "#eeeeee", "offsetHeight": 40 }
+    },
+    {
+      "name": "selected",
+      "storyId": "components-selection-button--selected",
+      "figmaNodeId": "14776:1685",
+      "interaction": null,
+      "verified": true,
+      "expect": { "background-color": "#fff2ed", "border-color": "#e3530f" }
+    },
+    {
+      "name": "disabled",
+      "storyId": "components-selection-button--disabled",
+      "figmaNodeId": "14776:1685",
+      "interaction": null,
+      "verified": true,
+      "expect": { "background-color": "#fafafa", "border-color": "#f5f5f5" }
+    },
+    {
+      "name": "small",
+      "storyId": "components-selection-button--small",
+      "figmaNodeId": "14776:1685",
+      "interaction": null,
+      "verified": true,
+      "expect": { "offsetHeight": 32 }
+    },
+    {
+      "name": "large",
+      "storyId": "components-selection-button--large",
+      "figmaNodeId": "14776:1685",
+      "interaction": null,
+      "verified": true,
+      "expect": { "offsetHeight": 48 }
+    }
+  ]
+}

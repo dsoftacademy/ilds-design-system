@@ -1,0 +1,48 @@
+{
+  "$schema": "./parity-spec.schema.json",
+  "component": "Switch",
+  "figmaFileKey": "PCUj412f0Z1zZLLxQUX22e",
+  "figmaComponentSetId": "14371:6309",
+  "extractedBy": "Cursor via Figma MCP get_variable_defs + screenshot",
+  "extractedOn": "2026-06-13",
+  "lastVerifiedOn": "2026-06-13",
+  "selector": "#storybook-root [data-testid=\"switch-track\"]",
+  "variants": [
+    {
+      "name": "on-large",
+      "storyId": "components-switch--on",
+      "figmaNodeId": "14371:6416",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#e3530f",
+        "offsetWidth": 52,
+        "offsetHeight": 28
+      }
+    },
+    {
+      "name": "off-large",
+      "storyId": "components-switch--off",
+      "figmaNodeId": "14371:6410",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#f5f5f5",
+        "offsetWidth": 52,
+        "offsetHeight": 28
+      }
+    },
+    {
+      "name": "on-medium",
+      "storyId": "components-switch--medium",
+      "figmaNodeId": "14371:6366",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#e3530f",
+        "offsetWidth": 44,
+        "offsetHeight": 24
+      }
+    }
+  ]
+}
