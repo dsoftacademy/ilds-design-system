@@ -17,6 +17,8 @@ on:
       - 'tool/verify_phase4b.mjs'
       - 'tool/verify_cross_platform_parity.mjs'
       - 'pubspec.yaml'
+      - 'test/golden/**'
+      - 'test/goldens/**'
   push:
     branches: [main]
     paths:
@@ -30,6 +32,8 @@ on:
       - 'tool/verify_phase4b.mjs'
       - 'tool/verify_cross_platform_parity.mjs'
       - 'pubspec.yaml'
+      - 'test/golden/**'
+      - 'test/goldens/**'
 
 jobs:
   verify:
@@ -44,8 +48,28 @@ jobs:
       - run: npm ci
       - name: File-existence guard (Phase 4b)
         run: npm run verify:phase4b
-      - name: Cross-platform parity matrix (47 checks)
+      - name: Cross-platform parity matrix (55 checks)
         run: npm run verify:parity
+
+  flutter-golden:
+    name: Flutter golden tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Get packages
+        run: flutter pub get
+      - name: Run golden tests
+        run: flutter test test/golden/
+      - name: Upload golden diffs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-golden-failures
+          path: test/goldens/failures/
 
   flutter:
     name: Flutter analyze
