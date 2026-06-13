@@ -5,6 +5,7 @@
   "figmaComponentSetId": "14018:6786",
   "extractedBy": "Claude via Figma MCP get_design_context",
   "extractedOn": "2026-06-13",
+  "lastVerifiedOn": "2026-06-13",
   "selector": "#storybook-root [data-testid=\"chip\"]",
   "shared": {
     "border-radius": "4px",
@@ -99,7 +100,7 @@
       "storyArgs": { "size": "medium", "isSelected": "true" },
       "figmaNodeId": "14018:6830",
       "interaction": null,
-      "verified": false,
+      "verified": true,
       "expect": {
         "background-color": "#fff2ed",
         "border-color": "#e3530f",
@@ -113,7 +114,7 @@
       "storyArgs": { "size": "medium", "isDisabled": "true" },
       "figmaNodeId": "14018:6836",
       "interaction": null,
-      "verified": false,
+      "verified": true,
       "expect": {
         "background-color": "#eeeeee",
         "border-color": "#e0e0e0",
