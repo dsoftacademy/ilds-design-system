@@ -26,7 +26,7 @@
         "border-color": "#9e9e9e",
         "padding": "4px 8px",
         "gap": "4px",
-        "offsetHeight": 26
+        "offsetHeight": 24
       }
     },
     {
@@ -91,7 +91,7 @@
         "border-color": "#9e9e9e",
         "padding": "2px 4px",
         "gap": "2px",
-        "offsetHeight": 22
+        "offsetHeight": 20
       }
     },
     {
@@ -105,7 +105,7 @@
         "background-color": "#fff2ed",
         "border-color": "#e3530f",
         "color": "#212121",
-        "offsetHeight": 22
+        "offsetHeight": 20
       }
     },
     {
@@ -119,7 +119,7 @@
         "background-color": "#eeeeee",
         "border-color": "#e0e0e0",
         "color": "#9e9e9e",
-        "offsetHeight": 22
+        "offsetHeight": 20
       }
     }
   ]

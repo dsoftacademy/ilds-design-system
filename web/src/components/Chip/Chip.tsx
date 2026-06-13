@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { KeyboardEvent, ReactNode } from 'react';
 
 export type IldsChipSize = 'large' | 'medium';
 
@@ -15,20 +15,25 @@ export type IldsChipProps = {
   className?: string;
 };
 
-const iconSlotClasses =
-  'inline-flex shrink-0 items-center justify-center overflow-hidden size-sp-12 [&>svg]:size-full [&>img]:size-full';
+const prefixIconSlotClasses =
+  'inline-flex shrink-0 items-center justify-center overflow-hidden size-sp-12 pt-[2px] text-primary-orange-500 [&>svg]:size-full [&>img]:size-full';
 
-function IconSlot({ children }: { children: ReactNode }) {
-  return <span className={iconSlotClasses}>{children}</span>;
+const suffixButtonClasses =
+  'inline-flex shrink-0 items-center justify-center size-sp-12 pt-[2px] border-0 bg-transparent p-0 text-neutral-coolgray-500 cursor-pointer disabled:cursor-default disabled:pointer-events-none disabled:text-neutral-coolgray-500 [&>svg]:size-full';
+
+function PrefixIconSlot({ children }: { children: ReactNode }) {
+  return <span className={prefixIconSlotClasses}>{children}</span>;
 }
 
-function CloseIcon() {
+/** Figma Interface / Edit / Close_Circle — 12px slot, currentColor */
+function CloseCircleIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
       <path
-        d="M6 6l12 12M18 6L6 18"
+        d="M9 9l6 6M15 9l-6 6"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.5"
         strokeLinecap="round"
       />
     </svg>
@@ -36,10 +41,10 @@ function CloseIcon() {
 }
 
 /**
- * ILDS Chip — Figma component set `14018:6786`.
+ * ILDS Chip (Figma "Tag") — component set `14018:6786`.
  *
- * **Icon contract:** Pass SVGs with `stroke="currentColor"` / `fill="currentColor"`.
- * Do not set intrinsic size — the 12px slot sizes and clips overflow.
+ * **Layout:** Prefix, label, and suffix close live inside one bordered container (Figma).
+ * **Icon contract:** Pass SVGs with `currentColor`; slot is 12px with 2px top offset.
  */
 function chipClasses(
   isSelected: boolean,
@@ -47,22 +52,20 @@ function chipClasses(
   size: IldsChipSize,
 ): string {
   const base = [
-    'inline-flex items-center font-primary font-normal rounded-medium border-[0.5px]',
+    'inline-flex items-center font-primary font-normal rounded-medium border-[0.5px] box-border',
     'transition-colors',
     'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-orange-600',
     'focus-visible:bg-neutral-coolgray-50 focus-visible:border-neutral-coolgray-800',
-    'disabled:pointer-events-none',
     size === 'large'
-      ? 'px-sp-8 py-sp-4 gap-sp-4 text-12 leading-[16px]'
-      : 'px-sp-4 py-sp-2 gap-sp-2 text-12 leading-[16px]',
+      ? 'h-sp-24 px-sp-8 py-sp-4 gap-sp-4 text-12 leading-[16px]'
+      : 'h-[20px] px-sp-4 py-sp-2 gap-sp-2 text-12 leading-[16px]',
   ];
 
   if (isDisabled) {
     base.push(
-      'bg-neutral-coolgray-200 border-neutral-coolgray-300 text-neutral-coolgray-500',
+      'bg-neutral-coolgray-200 border-neutral-coolgray-300 text-neutral-coolgray-500 cursor-default',
     );
   } else if (isSelected) {
-    // Selected hover: Figma has no hover-of-selected node — keep selected state. PRESUMED.
     base.push(
       'bg-primary-orange-50 border-primary-orange-500 text-neutral-coolgray-900 hover:bg-primary-orange-50 hover:border-primary-orange-500',
     );
@@ -89,32 +92,53 @@ export function IldsChip({
 }: IldsChipProps) {
   const showPrefix = hasPrefixIcon && prefixIcon != null;
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (isDisabled || !onPress || hasSuffixButton) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onPress();
+    }
+  };
+
   return (
-    <div className="inline-flex items-center">
-      <button
-        type="button"
-        data-testid="chip"
-        disabled={isDisabled}
-        aria-pressed={isSelected}
-        onClick={onPress}
-        className={[chipClasses(isSelected, isDisabled, size), className]
-          .filter(Boolean)
-          .join(' ')}
-      >
-        {showPrefix ? <IconSlot>{prefixIcon}</IconSlot> : null}
-        <span className="truncate">{label}</span>
-      </button>
-      {hasSuffixButton && !isDisabled ? (
+    <div
+      data-testid="chip"
+      role={hasSuffixButton ? 'group' : 'button'}
+      tabIndex={isDisabled ? -1 : 0}
+      aria-pressed={hasSuffixButton ? undefined : isSelected}
+      aria-disabled={isDisabled || undefined}
+      onClick={!hasSuffixButton && !isDisabled ? onPress : undefined}
+      onKeyDown={handleKeyDown}
+      className={[chipClasses(isSelected, isDisabled, size), className]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      {showPrefix ? <PrefixIconSlot>{prefixIcon}</PrefixIconSlot> : null}
+      {hasSuffixButton ? (
         <button
           type="button"
+          disabled={isDisabled}
+          aria-pressed={isSelected}
+          onClick={onPress}
+          className="min-w-0 truncate bg-transparent p-0 font-inherit text-inherit border-0 cursor-pointer disabled:cursor-default disabled:pointer-events-none"
+        >
+          {label}
+        </button>
+      ) : (
+        <span className="truncate">{label}</span>
+      )}
+      {hasSuffixButton ? (
+        <button
+          type="button"
+          disabled={isDisabled}
           aria-label={`Remove ${label}`}
-          onClick={(e) => {
-            e.stopPropagation();
+          onClick={(event) => {
+            event.stopPropagation();
             onRemove?.();
           }}
-          className="inline-flex shrink-0 items-center justify-center size-sp-12 text-neutral-coolgray-900"
+          className={suffixButtonClasses}
         >
-          <CloseIcon />
+          <CloseCircleIcon />
         </button>
       ) : null}
     </div>
