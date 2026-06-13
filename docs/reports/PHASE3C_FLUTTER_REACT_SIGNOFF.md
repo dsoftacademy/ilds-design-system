@@ -57,7 +57,7 @@ Open both side-by-side. Walk each row below and confirm visual parity before sig
 | Check | Flutter playground | Storybook | Notes |
 |-------|-------------------|-----------|-------|
 | Filter default/selected/disabled | — | Chip stories | 15 defects fixed Phase 3b |
-| Tag variants | — | — | Flutter scaffold |
+| Tag variants | — | — | **Deferred** — see `docs/deferred/TAG_REACT_DEFERRED.md` (no Figma Tag Display node) |
 
 ---
 
