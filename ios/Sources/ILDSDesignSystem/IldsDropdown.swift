@@ -74,8 +74,8 @@ public struct IldsDropdown: View {
 
         VStack(alignment: .leading, spacing: ILDSTokens.sp4) {
             Text(label)
-                .font(.system(size: ILDSTokens.fontSize12, weight: ILDSTokens.fontWeightMedium))
-                .foregroundStyle(ILDSTokens.neutralCoolgray500)
+                .font(.system(size: ILDSTokens.fontSize16, weight: ILDSTokens.fontWeightBold))
+                .foregroundStyle(ILDSTokens.neutralCoolgray900)
 
             VStack(spacing: 0) {
                 Button {

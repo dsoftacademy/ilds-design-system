@@ -172,6 +172,28 @@ const RULES = [
     },
   },
   {
+    component: 'Dropdown',
+    state: 'label-typography',
+    figma: '13476:22317',
+    platforms: {
+      react: { must: ['text-16', 'font-bold', 'neutral-coolgray-900'] },
+      flutter: { must: ['fontSize: 16', 'fontWeightBold', 'neutral600'] },
+      swift: { must: ['fontSize16', 'fontWeightBold', 'neutralCoolgray900'] },
+      kotlin: { must: ['fontSize16', 'fontWeightBold'] },
+    },
+  },
+  {
+    component: 'Dropdown',
+    state: 'trigger-typography',
+    figma: '13476:22317',
+    platforms: {
+      react: { must: ['text-14', 'font-normal'] },
+      flutter: { must: ['fontWeightRegular'] },
+      swift: { must: ['fontSize14', 'fontWeightRegular'] },
+      kotlin: { must: ['fontSize14', 'fontWeightRegular'] },
+    },
+  },
+  {
     component: 'Search',
     state: 'default-shape',
     figma: '13965:16190',
@@ -250,6 +272,7 @@ function checkRule(rule) {
         Pagination: 'web/src/components/Pagination/Pagination.tsx',
         Tabs: 'web/src/components/Tabs/Tabs.tsx',
         Toast: 'web/src/components/Toast/Toast.tsx',
+        Dropdown: 'web/src/components/Dropdown/Dropdown.tsx',
         DropdownMenu: 'web/src/components/Dropdown/DropdownMenu.tsx',
         TextField: 'web/src/components/TextField/TextField.tsx',
         Search: 'web/src/components/Search/Search.tsx',
@@ -263,6 +286,7 @@ function checkRule(rule) {
       const flutterPaths = {
         Pagination: 'lib/ilds_pagination.dart',
         Tabs: 'lib/ilds_tab.dart',
+        Dropdown: 'lib/ilds_dropdown.dart',
         Chip: 'lib/ilds_chip.dart',
         Checkbox: 'lib/ilds_checkbox.dart',
       };

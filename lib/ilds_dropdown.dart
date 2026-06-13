@@ -264,9 +264,9 @@ class _IldsDropdownState extends State<IldsDropdown> {
           widget.label,
           style: const TextStyle(
             fontFamily: 'Mulish',
-            fontSize: 12,
-            fontWeight: ILDSTokens.fontWeightMedium,
-            color: ILDSTokens.neutral500,
+            fontSize: 16,
+            fontWeight: ILDSTokens.fontWeightBold,
+            color: ILDSTokens.neutral600,
           ),
         ),
         SizedBox(height: ILDSTokens.spacing1),
