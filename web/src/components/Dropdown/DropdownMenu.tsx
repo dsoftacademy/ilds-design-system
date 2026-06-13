@@ -53,7 +53,6 @@ export function IldsDropdownMenu({
     <div
       id={menuId}
       data-testid="dropdown-menu"
-      role="listbox"
       className={[
         'w-[320px] flex flex-col gap-[2px]',
         'bg-white-000 rounded-medium p-sp-8 font-primary',
@@ -63,17 +62,21 @@ export function IldsDropdownMenu({
         .filter(Boolean)
         .join(' ')}
     >
-      <div className="flex w-full flex-col">
-        {sectionLabel ? (
-          <div className="flex w-full">
-            <div className="flex w-full items-start justify-center bg-neutral-coolgray-100 px-sp-8 py-sp-12">
-              <span className="flex-1 truncate text-14 font-bold font-primary leading-[18px] text-neutral-coolgray-800">
-                {sectionLabel}
-              </span>
-            </div>
+      {sectionLabel ? (
+        <div className="flex w-full">
+          <div className="flex w-full items-start justify-center bg-neutral-coolgray-100 px-sp-8 py-sp-12">
+            <span className="flex-1 truncate text-14 font-bold font-primary leading-[18px] text-neutral-coolgray-800">
+              {sectionLabel}
+            </span>
           </div>
-        ) : null}
+        </div>
+      ) : null}
 
+      <div
+        role="listbox"
+        aria-label={sectionLabel || 'Options'}
+        className="flex w-full flex-col"
+      >
         {options.map((option, index) => {
           const isSelected = option.value === selectedValue;
           const isLast = index === options.length - 1;

@@ -9,6 +9,8 @@ export type IldsScrollbarProps = {
   /** Max height of the scroll viewport (default 240px). */
   maxHeight?: number | string;
   horizontal?: boolean;
+  /** Accessible name for the scrollable region (keyboard-focusable per WCAG 2.1.1). */
+  ariaLabel?: string;
   className?: string;
   style?: CSSProperties;
 };
@@ -31,14 +33,20 @@ export function IldsScrollbar({
   children,
   maxHeight = 240,
   horizontal = false,
+  ariaLabel = 'Scrollable content',
   className = '',
   style,
 }: IldsScrollbarProps) {
   return (
     <div
       data-testid="scrollbar"
+      // WCAG 2.1.1: scrollable regions must be keyboard-operable, so they need a tab stop.
+      role="region"
+      aria-label={ariaLabel}
+      tabIndex={0}
       className={[
         horizontal ? 'overflow-x-auto overflow-y-hidden' : 'overflow-y-auto overflow-x-hidden',
+        'outline-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-orange-500',
         scrollbarUtilities,
         className,
       ]

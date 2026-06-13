@@ -266,12 +266,13 @@ test.describe('Pass 3 — Accessibility', () => {
     await expect(page.locator(`[id="${labelledBy}"]`)).toContainText('Label');
   });
 
-  test('Dropdown trigger combobox attributes', async ({ page }) => {
+  test('Dropdown trigger menu-button attributes + accessible name', async ({ page }) => {
     await gotoStory(page, 'components-dropdown--empty-default');
     const trigger = page.locator('[data-testid="dropdown-trigger"]');
-    await expect(trigger).toHaveAttribute('role', 'combobox');
     await expect(trigger).toHaveAttribute('aria-haspopup', 'listbox');
     await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    // Accessible name comes from the associated label (aria-labelledby), not the value text.
+    await expect(trigger).toHaveAttribute('aria-labelledby', /.+/);
   });
 
   test('Dropdown menu listbox + options', async ({ page }) => {

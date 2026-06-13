@@ -262,6 +262,7 @@ export function IldsButton(props: IldsButtonProps) {
       disabled={!interactive}
       aria-busy={isLoading}
       aria-disabled={isDisabled || isSkeleton}
+      aria-hidden={isSkeleton || undefined}
       className={[
         'inline-flex items-center justify-center font-primary font-bold rounded-large',
         borderClass,

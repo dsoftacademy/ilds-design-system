@@ -6,6 +6,8 @@ export type IldsSearchProps = {
   value?: string;
   loading?: boolean;
   disabled?: boolean;
+  /** Accessible name for the search input (default "Search"). */
+  ariaLabel?: string;
   onChange?: (value: string) => void;
   onSubmit?: (value: string) => void;
   onClear?: () => void;
@@ -60,6 +62,7 @@ export function IldsSearch({
   value,
   loading = false,
   disabled = false,
+  ariaLabel = 'Search',
   onChange,
   onSubmit,
   onClear,
@@ -89,6 +92,7 @@ export function IldsSearch({
         id={inputId}
         type="search"
         role="searchbox"
+        aria-label={ariaLabel}
         placeholder={placeholder}
         disabled={disabled}
         value={displayValue}

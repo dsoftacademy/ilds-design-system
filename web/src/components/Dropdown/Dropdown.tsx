@@ -46,6 +46,8 @@ export type IldsDropdownProps = {
   onMenuSecondary?: () => void;
   onMenuPrimary?: () => void;
   className?: string;
+  /** Accessible name when no visible `label` is provided. */
+  ariaLabel?: string;
 };
 
 function ChevronDownIcon() {
@@ -180,8 +182,10 @@ export function IldsDropdown({
   onMenuSecondary,
   onMenuPrimary,
   className = '',
+  ariaLabel,
 }: IldsDropdownProps) {
   const listboxId = useId();
+  const labelId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const [internalOpen, setInternalOpen] = useState(false);
   const [internalSelected, setInternalSelected] = useState<string | undefined>(
@@ -240,7 +244,10 @@ export function IldsDropdown({
             .filter(Boolean)
             .join(' ')}
         >
-          <span className="text-16 font-bold font-primary leading-[20px] text-neutral-coolgray-900">
+          <span
+            id={labelId}
+            className="text-16 font-bold font-primary leading-[20px] text-neutral-coolgray-900"
+          >
             {label}
           </span>
           {required ? (
@@ -266,10 +273,11 @@ export function IldsDropdown({
       <button
         type="button"
         data-testid="dropdown-trigger"
-        role="combobox"
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={open && hasMenu ? listboxId : undefined}
+        aria-labelledby={label ? labelId : undefined}
+        aria-label={!label ? ariaLabel ?? placeholder : undefined}
         aria-busy={isLoading || undefined}
         disabled={isDisabled || isLoading}
         onClick={handleToggle}
