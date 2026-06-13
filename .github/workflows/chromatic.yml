@@ -1,0 +1,39 @@
+name: Chromatic Visual Regression
+
+on:
+  pull_request:
+    paths:
+      - 'web/src/**'
+      - 'web/specs/**'
+      - 'dist/tokens.theme.css'
+      - 'tokens/**'
+  push:
+    branches: [main]
+    paths:
+      - 'web/src/**'
+      - 'dist/tokens.theme.css'
+
+jobs:
+  chromatic:
+    name: Chromatic snapshot test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+        working-directory: web
+      - name: Run Chromatic
+        uses: chromaui/action@latest
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          workingDir: web
+          buildScriptName: build-storybook
+          exitZeroOnChanges: true
+          autoAcceptChanges: main
