@@ -343,7 +343,7 @@ test.describe('Pass 4 — Phase 3b regression', () => {
     expect(chevronColor).toBe(hexToRgb('#e3530f'));
   });
 
-  test('Dropdown focused uses bg/border not orange ring', async ({ page }) => {
+  test('Dropdown focused: keyboard ring is orange-600 (WCAG 2.4.7 Option C)', async ({ page }) => {
     await gotoStory(page, 'components-dropdown--empty-default');
     const trigger = page.locator('[data-testid="dropdown-trigger"]');
     await trigger.focus();
@@ -351,11 +351,17 @@ test.describe('Pass 4 — Phase 3b regression', () => {
       'background-color',
       'border-color',
       'outline-color',
+      'outline-width',
+      'outline-offset',
     ]);
     expect(s['background-color']).toBe(hexToRgb('#fafafa'));
     expect(s['border-color']).toBe(hexToRgb('#424242'));
-    // Figma-verified: no orange focus ring on dropdown trigger (see a11y flag doc)
-    expect(s['outline-color']).not.toBe(hexToRgb('#c74c01'));
+    // WCAG 2.4.7 Option C approved 2026-06-14 by Pratishek.
+    // focus-visible: adds 2px orange-600 outline on keyboard focus only.
+    // See docs/a11y/DROPDOWN_FOCUS_RING_FLAG.md for decision record.
+    expect(s['outline-color']).toBe(hexToRgb('#c74c01'));
+    expect(s['outline-width']).toBe('2px');
+    expect(s['outline-offset']).toBe('2px');
   });
 
   test('Toast info border uses secondary-blue-50', async ({ page }) => {
