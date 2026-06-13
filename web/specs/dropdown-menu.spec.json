@@ -1,0 +1,29 @@
+{
+  "$schema": "./parity-spec.schema.json",
+  "component": "DropdownMenu",
+  "figmaFileKey": "PCUj412f0Z1zZLLxQUX22e",
+  "figmaComponentSetId": "16055:6151",
+  "extractedBy": "Cursor via Figma MCP get_design_context",
+  "extractedOn": "2026-06-13",
+  "lastVerifiedOn": "2026-06-13",
+  "selector": "#storybook-root [data-testid=\"dropdown-menu\"]",
+  "shared": {
+    "border-radius": "4px",
+    "font-family": "Mulish",
+    "background-color": "#ffffff"
+  },
+  "variants": [
+    {
+      "name": "menu-panel-5-items",
+      "storyId": "components-dropdown--menu-panel",
+      "figmaNodeId": "16055:6152",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#ffffff",
+        "border-radius": "4px",
+        "offsetWidth": 320
+      }
+    }
+  ]
+}

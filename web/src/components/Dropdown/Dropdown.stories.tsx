@@ -1,5 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { IldsDropdown } from './Dropdown';
+import { IldsDropdownMenu } from './DropdownMenu';
+
+const sampleOptions = [
+  { label: 'Placeholder text', value: 'opt_1' },
+  { label: 'Placeholder text', value: 'opt_2' },
+  { label: 'Placeholder text', value: 'opt_3' },
+  { label: 'Placeholder text', value: 'opt_4' },
+  { label: 'Placeholder text', value: 'opt_5' },
+];
 
 function SearchIcon() {
   return (
@@ -60,6 +69,30 @@ export const OpenState: Story = {
     isOpen: true,
     value: 'Option A',
   },
+};
+
+/** Figma 16055:6152 — Trigger + menu panel (5 items + footer) */
+export const WithMenu: Story = {
+  args: {
+    isOpen: true,
+    value: 'Placeholder text',
+    options: sampleOptions,
+    selectedValue: 'opt_1',
+    menuSectionLabel: 'Section Label',
+    showMenuFooter: true,
+  },
+};
+
+/** Figma 16055:6152 — Menu panel only (parity target) */
+export const MenuPanel: Story = {
+  render: () => (
+    <IldsDropdownMenu
+      sectionLabel="Section Label"
+      options={sampleOptions}
+      selectedValue="opt_1"
+      showFooter
+    />
+  ),
 };
 
 export const RequiredAsterisk: Story = {

@@ -4,6 +4,9 @@ import 'design_system/ilds_tokens.dart';
 /// ILDS button — component set `13472:2804`; loading variants (e.g. `13472:2884`)
 /// use a trailing progress indicator while blocking taps.
 ///
+/// Icon-only: Figma 13472:2810 (L), 13472:3718 (S). Requires [semanticLabel].
+/// Icon slots: L 24px (2805), M 20px (3397), S 12px (3713).
+///
 /// TODO(web/desktop): hover states (orange-400 / red-500) — out of scope for mobile-first.
 enum IldsButtonType { primary, secondary, tertiary }
 
@@ -14,7 +17,7 @@ enum IldsButtonAppearance { normal, destructive }
 class IldsButton extends StatefulWidget {
   const IldsButton({
     super.key,
-    required this.label,
+    this.label,
     required this.onPressed,
     this.type = IldsButtonType.primary,
     this.size = IldsButtonSize.large,
@@ -23,9 +26,15 @@ class IldsButton extends StatefulWidget {
     this.isLoading = false,
     this.leading,
     this.trailing,
-  });
+    this.iconOnly = false,
+    this.icon,
+    this.semanticLabel,
+  }) : assert(
+          iconOnly ? icon != null && label == null && semanticLabel != null : label != null,
+          'iconOnly requires icon + semanticLabel and no label; labeled buttons require label',
+        );
 
-  final String label;
+  final String? label;
   final VoidCallback? onPressed;
   final IldsButtonType type;
   final IldsButtonSize size;
@@ -34,6 +43,10 @@ class IldsButton extends StatefulWidget {
   final bool isLoading;
   final Widget? leading;
   final Widget? trailing;
+  /// Figma Variant=Icon Only — 13472:2810 (L), 13472:3718 (S).
+  final bool iconOnly;
+  final Widget? icon;
+  final String? semanticLabel;
 
   @override
   State<IldsButton> createState() => _IldsButtonState();
@@ -45,12 +58,16 @@ class _IldsButtonState extends State<IldsButton> {
   bool get _interactive =>
       !widget.isDisabled && !widget.isLoading && widget.onPressed != null;
 
-  /// Token: `color.orange.500` (normal) or `color.red.600` (destructive)
   Color get _accent => widget.appearance == IldsButtonAppearance.normal
       ? ILDSTokens.orange500
       : ILDSTokens.red600;
 
   EdgeInsets _padding() {
+    if (widget.iconOnly && widget.size == IldsButtonSize.small) {
+      // Figma 13472:3718 — small icon-only px-8 py-6
+      return const EdgeInsets.symmetric(horizontal: 8, vertical: 6);
+    }
+
     if (widget.type == IldsButtonType.tertiary) {
       switch (widget.size) {
         case IldsButtonSize.large:
@@ -81,7 +98,17 @@ class _IldsButtonState extends State<IldsButton> {
     }
   }
 
-  /// Token: `typography.fontWeight.bold` + size-specific fontSize
+  double _iconSlotSize() {
+    switch (widget.size) {
+      case IldsButtonSize.large:
+        return 24;
+      case IldsButtonSize.medium:
+        return 20;
+      case IldsButtonSize.small:
+        return 12;
+    }
+  }
+
   TextStyle _labelStyle() {
     switch (widget.size) {
       case IldsButtonSize.large:
@@ -102,17 +129,6 @@ class _IldsButtonState extends State<IldsButton> {
           height: 1.3333333333333333,
           fontWeight: ILDSTokens.fontWeightBold,
         );
-    }
-  }
-
-  double _progressSize() {
-    switch (widget.size) {
-      case IldsButtonSize.large:
-        return 24;
-      case IldsButtonSize.medium:
-        return 20;
-      case IldsButtonSize.small:
-        return 16;
     }
   }
 
@@ -138,7 +154,6 @@ class _IldsButtonState extends State<IldsButton> {
     }
   }
 
-  /// Primary only — Figma pressed primary normal `13472:2988` (orange-600 overlay).
   Color? _primaryPressedOverlayColor() {
     if (widget.type != IldsButtonType.primary) return null;
     if (widget.appearance == IldsButtonAppearance.normal) {
@@ -147,7 +162,6 @@ class _IldsButtonState extends State<IldsButton> {
     return ILDSTokens.red700;
   }
 
-  /// Secondary/tertiary pressed — bg/border/label change; overlay cannot express this.
   _ButtonColors? _pressedColors() {
     if (!_pressed || !_interactive) return null;
 
@@ -156,7 +170,6 @@ class _IldsButtonState extends State<IldsButton> {
         return null;
       case IldsButtonType.secondary:
         if (widget.appearance == IldsButtonAppearance.normal) {
-          // Figma 13472:3024 — bg primary-orange-100, border + label primary-orange-600
           return _ButtonColors(
             background: ILDSTokens.orange100,
             foreground: ILDSTokens.orange600,
@@ -164,7 +177,6 @@ class _IldsButtonState extends State<IldsButton> {
             borderWidth: ILDSTokens.borderWidth1,
           );
         }
-        // Figma 16186:2051 — bg red-100, label red-700, border stays red-600
         return _ButtonColors(
           background: ILDSTokens.red100,
           foreground: ILDSTokens.red700,
@@ -173,7 +185,6 @@ class _IldsButtonState extends State<IldsButton> {
         );
       case IldsButtonType.tertiary:
         if (widget.appearance == IldsButtonAppearance.normal) {
-          // Figma 13472:3042 — label primary-orange-600, bg transparent
           return _ButtonColors(
             background: Colors.transparent,
             foreground: ILDSTokens.orange600,
@@ -181,7 +192,6 @@ class _IldsButtonState extends State<IldsButton> {
             borderWidth: 0,
           );
         }
-        // Figma 16186:2581 — label error-red-700 (designer updated 2026-06-12)
         return _ButtonColors(
           background: Colors.transparent,
           foreground: ILDSTokens.red700,
@@ -200,7 +210,6 @@ class _IldsButtonState extends State<IldsButton> {
     if (widget.isDisabled) {
       switch (widget.type) {
         case IldsButtonType.primary:
-          // Figma disabled primary — neutral-coolgray-400 surface, white label
           return _ButtonColors(
             background: ILDSTokens.neutralCoolgray400,
             foreground: ILDSTokens.white,
@@ -208,7 +217,6 @@ class _IldsButtonState extends State<IldsButton> {
             borderWidth: 0,
           );
         case IldsButtonType.secondary:
-          // Figma disabled secondary — coolgray-50 / coolgray-400 border + label
           return _ButtonColors(
             background: ILDSTokens.neutralCoolgray50,
             foreground: ILDSTokens.neutralCoolgray400,
@@ -282,53 +290,66 @@ class _IldsButtonState extends State<IldsButton> {
     setState(() => _pressed = highlighted);
   }
 
+  Widget _iconSlot(Widget child, Color color) {
+    final dim = _iconSlotSize();
+    return SizedBox(
+      width: dim,
+      height: dim,
+      child: IconTheme.merge(
+        data: IconThemeData(size: dim, color: color),
+        child: Center(child: child),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = _resolveColors();
     final gap = _gap();
     final padding = _padding();
     final style = _labelStyle().copyWith(color: colors.foreground);
-    final dim = _progressSize();
+    final slotDim = _iconSlotSize();
+
     final progress = SizedBox(
-      width: dim,
-      height: dim,
+      width: slotDim,
+      height: slotDim,
       child: CircularProgressIndicator(
         strokeWidth: _progressStrokeWidth(),
         valueColor: AlwaysStoppedAnimation<Color>(colors.foreground),
       ),
     );
 
-    final showLeading = widget.leading != null && !widget.isLoading;
-    final showTrailing = widget.trailing != null && !widget.isLoading;
+    final Widget? leadingContent =
+        widget.iconOnly ? widget.icon : widget.leading;
+
+    // Figma 13472:2877 — leading stays visible; spinner replaces trailing slot only.
+    final showLeading = leadingContent != null;
+    final showTrailingIcon = !widget.iconOnly && widget.trailing != null && !widget.isLoading;
+    final showTrailingSpinner = widget.isLoading;
 
     final row = Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (showLeading) ...[
-          IconTheme.merge(
-            data: IconThemeData(size: dim, color: colors.foreground),
-            child: widget.leading!,
-          ),
-          SizedBox(width: gap),
+          _iconSlot(leadingContent, colors.foreground),
+          if (!widget.iconOnly) SizedBox(width: gap),
         ],
-        Text(
-          widget.label,
-          style: style,
-          textAlign: TextAlign.center,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        ),
-        if (widget.isLoading) ...[
-          SizedBox(width: gap),
-          progress,
-        ],
-        if (showTrailing) ...[
-          SizedBox(width: gap),
-          IconTheme.merge(
-            data: IconThemeData(size: dim, color: colors.foreground),
-            child: widget.trailing!,
+        if (!widget.iconOnly && widget.label != null)
+          Text(
+            widget.label!,
+            style: style,
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
+        if (showTrailingSpinner) ...[
+          SizedBox(width: gap),
+          _iconSlot(progress, colors.foreground),
+        ],
+        if (showTrailingIcon) ...[
+          SizedBox(width: gap),
+          _iconSlot(widget.trailing!, colors.foreground),
         ],
       ],
     );
@@ -338,7 +359,6 @@ class _IldsButtonState extends State<IldsButton> {
       child: Padding(padding: padding, child: row),
     );
 
-    // Token: borderRadius.md
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
       side: colors.borderColor != null
@@ -347,11 +367,12 @@ class _IldsButtonState extends State<IldsButton> {
     );
 
     final primaryOverlay = _primaryPressedOverlayColor();
+    final semanticsLabel = widget.iconOnly ? widget.semanticLabel! : widget.label!;
 
     return Semantics(
       button: true,
       enabled: _interactive,
-      label: widget.label,
+      label: semanticsLabel,
       child: Material(
         color: colors.background,
         shape: shape,

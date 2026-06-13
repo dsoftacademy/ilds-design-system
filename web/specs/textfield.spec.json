@@ -94,6 +94,69 @@
         "border-color": "#e0e0e0",
         "offsetHeight": 44
       }
+    },
+    {
+      "name": "password-default",
+      "storyId": "components-text-field--password-default",
+      "figmaNodeId": "13478:25341",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#ffffff",
+        "border-color": "#9e9e9e",
+        "offsetHeight": 44
+      }
+    },
+    {
+      "name": "password-typing",
+      "storyId": "components-text-field--password-typing",
+      "figmaNodeId": "13478:25691",
+      "interaction": "focus",
+      "verified": true,
+      "expect": {
+        "background-color": "#ffffff",
+        "border-color": "#e3530f",
+        "outline-width": "0px"
+      }
+    },
+    {
+      "name": "otp6-default",
+      "storyId": "components-text-field--otp-6-default",
+      "figmaNodeId": "13478:25349",
+      "selector": "#storybook-root [data-testid=\"otp-cell-0\"]",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#ffffff",
+        "border-color": "#9e9e9e",
+        "offsetHeight": 44
+      }
+    },
+    {
+      "name": "otp6-typing",
+      "storyId": "components-text-field--otp-6-typing",
+      "figmaNodeId": "13478:25701",
+      "selector": "#storybook-root [data-testid=\"otp-cell-3\"]",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#ffffff",
+        "border-color": "#e3530f",
+        "offsetHeight": 44
+      }
+    },
+    {
+      "name": "otp4-default",
+      "storyId": "components-text-field--otp-4-default",
+      "figmaNodeId": "13478:25366",
+      "selector": "#storybook-root [data-testid=\"otp-cell-0\"]",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#ffffff",
+        "border-color": "#9e9e9e",
+        "offsetHeight": 44
+      }
     }
   ]
 }

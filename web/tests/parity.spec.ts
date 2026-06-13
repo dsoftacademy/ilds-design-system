@@ -14,6 +14,7 @@ type Variant = {
   figmaNodeId: string;
   interaction: null | 'hover' | 'active' | 'focus';
   verified: boolean;
+  selector?: string;
   expect: Record<string, string | number>;
 };
 type Spec = {
@@ -56,11 +57,32 @@ for (const file of fs.readdirSync(SPECS_DIR).filter((f) => f.endsWith('.spec.jso
         content:
           '*, *::before, *::after { transition: none !important; animation: none !important; }',
       });
-      const el = page.locator(spec.selector).first();
+      const selector = variant.selector ?? spec.selector;
+      const el = page.locator(selector).first();
       await el.waitFor({ state: 'visible' });
 
       if (variant.interaction === 'hover') await el.hover();
-      if (variant.interaction === 'focus') await page.keyboard.press('Tab');
+      if (variant.interaction === 'focus') {
+        const canFocusSelf = await el.evaluate((node) => {
+          const target = node as HTMLElement;
+          if (target.tabIndex >= 0) return true;
+          const tag = target.tagName;
+          return (
+            tag === 'BUTTON' ||
+            tag === 'INPUT' ||
+            tag === 'SELECT' ||
+            tag === 'TEXTAREA' ||
+            tag === 'A'
+          );
+        });
+        if (canFocusSelf) {
+          await el.focus();
+        } else {
+          const innerInput = el.locator('input, textarea').first();
+          if (await innerInput.count()) await innerInput.focus();
+          else await page.keyboard.press('Tab');
+        }
+      }
       if (variant.interaction === 'active') {
         const box = (await el.boundingBox())!;
         await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
@@ -68,19 +90,22 @@ for (const file of fs.readdirSync(SPECS_DIR).filter((f) => f.endsWith('.spec.jso
       }
 
       const expectations = { ...(spec.shared ?? {}), ...variant.expect };
-      const props = Object.keys(expectations).filter((p) => p !== 'offsetHeight');
+      const props = Object.keys(expectations).filter(
+        (p) => p !== 'offsetHeight' && p !== 'offsetWidth',
+      );
 
       const actual = await el.evaluate((node, props) => {
         const s = getComputedStyle(node as Element);
         const out: Record<string, string | number> = {};
         for (const p of props) out[p] = s.getPropertyValue(p);
         out.offsetHeight = (node as HTMLElement).offsetHeight;
+        out.offsetWidth = (node as HTMLElement).offsetWidth;
         return out;
       }, props);
 
       for (const [prop, want] of Object.entries(expectations)) {
-        if (prop === 'offsetHeight') {
-          expect(actual.offsetHeight, prop).toBe(want);
+        if (prop === 'offsetHeight' || prop === 'offsetWidth') {
+          expect(actual[prop], prop).toBe(want);
           continue;
         }
         const wantStr = String(want);

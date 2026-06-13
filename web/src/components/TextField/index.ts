@@ -1,2 +1,6 @@
 export { IldsTextField } from './TextField';
-export type { IldsTextFieldProps } from './TextField';
+export type {
+  IldsRequiredIndicator,
+  IldsTextFieldKind,
+  IldsTextFieldProps,
+} from './TextField';

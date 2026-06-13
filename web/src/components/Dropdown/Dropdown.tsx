@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
+import { IldsDropdownMenu, type IldsDropdownMenuOption } from './DropdownMenu';
 
 export type IldsDropdownRequiredIndicator = 'text' | 'asterisk';
+export type { IldsDropdownMenuOption };
 
 export type IldsDropdownProps = {
   /**
@@ -27,10 +29,19 @@ export type IldsDropdownProps = {
   isDisabled?: boolean;
   /**
    * Controls chevron rotation (180° when open) and aria-expanded.
-   * Dropdown menu panel is out of scope for Phase 3b.
+   * When `options` is provided, the menu panel (Figma 16055:6152) renders below the trigger.
    */
   isOpen?: boolean;
   onToggle?: () => void;
+  options?: IldsDropdownMenuOption[];
+  selectedValue?: string;
+  onSelect?: (value: string) => void;
+  menuSectionLabel?: string;
+  showMenuFooter?: boolean;
+  menuSecondaryLabel?: string;
+  menuPrimaryLabel?: string;
+  onMenuSecondary?: () => void;
+  onMenuPrimary?: () => void;
   className?: string;
 };
 
@@ -122,7 +133,7 @@ function triggerClasses(
  *
  * Verified: Empty/Default (22317), Hover (22377), Focused (22340), Active/Open (22390),
  *           Negative (22367), Disabled (22326), Filled (22349).
- * Deferred: Dropdown menu panel / open state with list (Phase 3c).
+ * Phase 3c: Dropdown menu panel (16055:6152) via `options` + `isOpen`.
  */
 export function IldsDropdown({
   label,
@@ -138,6 +149,15 @@ export function IldsDropdown({
   isDisabled = false,
   isOpen = false,
   onToggle,
+  options,
+  selectedValue,
+  onSelect,
+  menuSectionLabel,
+  showMenuFooter = true,
+  menuSecondaryLabel,
+  menuPrimaryLabel,
+  onMenuSecondary,
+  onMenuPrimary,
   className = '',
 }: IldsDropdownProps) {
   const hasError = (isNegative || !!errorText) && !isDisabled;
@@ -221,6 +241,20 @@ export function IldsDropdown({
           </span>
         </span>
       </button>
+
+      {isOpen && options && options.length > 0 ? (
+        <IldsDropdownMenu
+          sectionLabel={menuSectionLabel}
+          options={options}
+          selectedValue={selectedValue}
+          showFooter={showMenuFooter}
+          secondaryLabel={menuSecondaryLabel}
+          primaryLabel={menuPrimaryLabel}
+          onSelect={onSelect}
+          onSecondary={onMenuSecondary}
+          onPrimary={onMenuPrimary}
+        />
+      ) : null}
 
       {!isDisabled && helperContent ? (
         <p

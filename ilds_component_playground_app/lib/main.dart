@@ -140,10 +140,11 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
   Widget _buildSelectedPanel(int index) {
     switch (index) {
       case 0:
-        return _panel('Button — press & hold secondary/tertiary', [
+        return _panel('Button — press & hold secondary/tertiary + icon-only', [
           Wrap(
             spacing: 12,
             runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               IldsButton(
                 label: 'Secondary',
@@ -165,6 +166,19 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
                 label: 'Tertiary destructive',
                 type: IldsButtonType.tertiary,
                 appearance: IldsButtonAppearance.destructive,
+                onPressed: () {},
+              ),
+              IldsButton(
+                iconOnly: true,
+                icon: const Icon(Icons.favorite_border),
+                semanticLabel: 'Favorite',
+                onPressed: () {},
+              ),
+              IldsButton(
+                iconOnly: true,
+                size: IldsButtonSize.small,
+                icon: const Icon(Icons.favorite_border),
+                semanticLabel: 'Favorite',
                 onPressed: () {},
               ),
             ],
