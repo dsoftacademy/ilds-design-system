@@ -3,7 +3,7 @@
 **Date:** 13 June 2026  
 **Component:** React `IldsDropdown` trigger (`web/src/components/Dropdown/Dropdown.tsx`)  
 **Figma reference:** Focused state `13476:22340`  
-**Status:** Open — requires designer decision
+**Status:** ✅ Resolved — Option C implemented 2026-06-14 (approved by Pratishek)
 
 ---
 
@@ -50,10 +50,13 @@ TextField uses an orange 2px outline ring on focus (empty state). Dropdown delib
 
 ---
 
-## Action required
+## Resolution
 
-- [ ] Pratishek / design: pick Option A–D  
-- [ ] If B or C: update Figma node `13476:22340` and `dropdown.spec.json`  
-- [ ] If A: document accepted WCAG exception in component guidelines (Supernova / Storybook docs)
+**Option C implemented 2026-06-14** — approved by Pratishek.
 
-**Blocked on:** Designer sign-off — do not change React implementation until decision is recorded.
+- [x] Pratishek approved Option C  
+- [x] `focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-orange-600` added to `Dropdown.tsx` closed-trigger classes  
+- [x] `dropdown.spec.json` focused variant updated with `outline-color: #c74c01`, `outline-width: 2px`, `outline-offset: 2px`  
+- [ ] Update Figma node `13476:22340` (Focused state) to show 2px orange ring — **Pratishek action**
+
+**Behaviour:** Orange ring fires on keyboard navigation (`Tab`) only — not on mouse click. When dropdown is open (Active state), `focus-visible:` is suppressed and the orange border conveys state instead. This is consistent with TextField focused-empty behaviour.

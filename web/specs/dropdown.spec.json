@@ -43,7 +43,10 @@
       "verified": true,
       "expect": {
         "background-color": "#fafafa",
-        "border-color": "#424242"
+        "border-color": "#424242",
+        "outline-color": "#c74c01",
+        "outline-width": "2px",
+        "outline-offset": "2px"
       }
     },
     {

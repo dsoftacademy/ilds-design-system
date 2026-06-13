@@ -99,6 +99,10 @@ function InfoIcon() {
  * Active/Open (13476:22390): orange-500 border + orange chevron — NOT the same as Focused.
  * Hover (13476:22377): coolgray-100 bg + coolgray-800 border. VERIFIED 2026-06-13.
  * Hover only on default (not-open, not-error, not-disabled).
+ *
+ * WCAG 2.4.7 Option C (approved 2026-06-14): keyboard focus adds a 2px orange-600 outline ring
+ * via focus-visible: — fires on keyboard navigation only, not mouse clicks. Aligns Dropdown
+ * focus behaviour with TextField. When open (Active), orange border already signals state.
  */
 function triggerClasses(
   hasError: boolean,
@@ -114,7 +118,10 @@ function triggerClasses(
 
   const focusVisible = isOpen
     ? ''
-    : 'focus-visible:bg-neutral-coolgray-50 focus-visible:border-neutral-coolgray-800';
+    : [
+        'focus-visible:bg-neutral-coolgray-50 focus-visible:border-neutral-coolgray-800',
+        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-orange-600',
+      ].join(' ');
 
   if (isDisabled) {
     // Figma 13476:22326 VERIFIED — coolgray-200 bg, coolgray-300 border. No hover.
