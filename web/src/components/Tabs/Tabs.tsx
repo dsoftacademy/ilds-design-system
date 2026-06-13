@@ -20,10 +20,27 @@ export type IldsTabsProps = {
   className?: string;
 };
 
-function tabTextColor(selected: boolean, disabled: boolean, emphasis: IldsTabEmphasis): string {
-  if (disabled) return 'text-neutral-coolgray-300';
-  if (selected) return emphasis === 'high' ? 'text-primary-orange-500' : 'text-neutral-coolgray-900';
-  return 'text-neutral-coolgray-400 hover:text-neutral-coolgray-600';
+/**
+ * Figma 17667:2334. Two emphasis styles (verified via get_design_context 17667:2363):
+ * - **High** = filled segmented pills: active = orange-500 bg + white text; inactive =
+ *   white bg + coolgray-200 border + coolgray-800 text. Cell h-36, px-32, rounded-8.
+ * - **Medium** = underline: active = orange-500 text + 3px orange-500 underline;
+ *   inactive = coolgray-800 text; shared coolgray-200 bottom divider.
+ */
+function highTabClasses(selected: boolean, disabled: boolean): string {
+  const base =
+    'inline-flex h-[36px] items-center justify-center gap-sp-8 px-sp-32 rounded-[8px] border box-border text-14 font-bold leading-[16px] transition-colors outline-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-orange-500';
+  if (disabled) return `${base} bg-white-000 border-neutral-coolgray-200 text-neutral-coolgray-300 cursor-not-allowed`;
+  if (selected) return `${base} bg-primary-orange-500 border-primary-orange-500 text-white-000`;
+  return `${base} bg-white-000 border-neutral-coolgray-200 text-neutral-coolgray-800 hover:bg-neutral-coolgray-50 cursor-pointer`;
+}
+
+function mediumTabClasses(selected: boolean, disabled: boolean): string {
+  const base =
+    'inline-flex h-[36px] items-center justify-center gap-sp-8 px-sp-12 -mb-px border-b-[3px] text-14 font-bold leading-[16px] transition-colors outline-0 focus-visible:text-primary-orange-500';
+  if (disabled) return `${base} border-transparent text-neutral-coolgray-300 cursor-not-allowed`;
+  if (selected) return `${base} border-primary-orange-500 text-primary-orange-500 cursor-pointer`;
+  return `${base} border-transparent text-neutral-coolgray-800 hover:text-neutral-coolgray-900 cursor-pointer`;
 }
 
 export function IldsTabs({
@@ -39,8 +56,7 @@ export function IldsTabs({
   const [internal, setInternal] = useState(defaultSelectedIndex);
   const isControlled = selectedIndex !== undefined;
   const active = isControlled ? selectedIndex : internal;
-
-  const indicatorColor = emphasis === 'high' ? 'border-primary-orange-500' : 'border-neutral-coolgray-900';
+  const isHigh = emphasis === 'high';
 
   const select = (index: number) => {
     if (tabs[index].disabled) return;
@@ -53,7 +69,8 @@ export function IldsTabs({
       data-testid="tab-bar"
       role="tablist"
       className={[
-        'flex w-full border-b border-neutral-coolgray-200 font-primary',
+        'flex font-primary',
+        isHigh ? 'gap-sp-8' : 'w-full border-b border-neutral-coolgray-200',
         alignment === 'center' ? 'justify-center' : 'justify-start',
         className,
       ]
@@ -71,14 +88,7 @@ export function IldsTabs({
             disabled={tab.disabled}
             data-testid={selected ? 'tab-selected' : 'tab-item'}
             onClick={() => select(index)}
-            className={[
-              'inline-flex h-sp-48 items-center justify-center gap-sp-4 px-sp-12',
-              '-mb-px border-b-[3px] transition-colors text-14 leading-[18px]',
-              'outline-0 focus-visible:bg-primary-orange-50 focus-visible:text-primary-orange-500',
-              selected ? `${indicatorColor} font-bold` : 'border-transparent font-medium',
-              tabTextColor(selected, !!tab.disabled, emphasis),
-              tab.disabled ? 'cursor-not-allowed' : 'cursor-pointer',
-            ].join(' ')}
+            className={isHigh ? highTabClasses(selected, !!tab.disabled) : mediumTabClasses(selected, !!tab.disabled)}
           >
             {tab.icon != null ? (
               <span className="inline-flex size-[1.15em] items-center justify-center [&>svg]:size-full">

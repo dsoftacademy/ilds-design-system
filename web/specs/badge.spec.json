@@ -14,50 +14,50 @@
     {
       "name": "subtle",
       "storyId": "components-badge--subtle",
-      "figmaNodeId": "13965:24550",
+      "figmaNodeId": "13965:24551",
       "interaction": null,
       "verified": true,
-      "expect": { "background-color": "#f5f5f5", "color": "#757575" }
+      "expect": { "background-color": "#edf6ff", "color": "#053c6d" }
     },
     {
       "name": "intense",
       "storyId": "components-badge--intense",
-      "figmaNodeId": "13965:24550",
+      "figmaNodeId": "13965:24575",
       "interaction": null,
       "verified": true,
-      "expect": { "background-color": "#212121", "color": "#ffffff" }
+      "expect": { "background-color": "#053c6d", "color": "#ffffff" }
     },
     {
       "name": "success",
       "storyId": "components-badge--success",
-      "figmaNodeId": "13965:24550",
+      "figmaNodeId": "13965:24578",
       "interaction": null,
       "verified": true,
-      "expect": { "background-color": "#dfffe6", "color": "#03602e" }
+      "expect": { "background-color": "#01a252", "color": "#ffffff" }
     },
     {
       "name": "error",
       "storyId": "components-badge--error-badge",
-      "figmaNodeId": "13965:24550",
+      "figmaNodeId": "13965:24581",
       "interaction": null,
       "verified": true,
-      "expect": { "background-color": "#fff2ee", "color": "#a30100" }
+      "expect": { "background-color": "#e00903", "color": "#ffffff" }
     },
     {
       "name": "warning",
       "storyId": "components-badge--warning",
-      "figmaNodeId": "13965:24550",
+      "figmaNodeId": "13965:24584",
       "interaction": null,
       "verified": true,
-      "expect": { "background-color": "#fff3e3", "color": "#835900" }
+      "expect": { "background-color": "#e49f04", "color": "#ffffff" }
     },
     {
       "name": "info",
       "storyId": "components-badge--info",
-      "figmaNodeId": "13965:24550",
+      "figmaNodeId": "13965:24587",
       "interaction": null,
       "verified": true,
-      "expect": { "background-color": "#edf3ff", "color": "#0039a9" }
+      "expect": { "background-color": "#2168f6", "color": "#ffffff" }
     }
   ]
 }

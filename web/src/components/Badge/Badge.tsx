@@ -31,13 +31,15 @@ const sizePad: Record<IldsBadgeSize, string> = {
   large: 'px-sp-12 py-sp-4',
 };
 
+// Figma 13965:24550 — verified via get_variable_defs (solid fills, white text;
+// subtle = pale secondary-blue, intense = secondary-blue-500).
 const variantColors: Record<IldsBadgeVariant, string> = {
-  subtle: 'bg-neutral-coolgray-100 text-neutral-coolgray-600',
-  intense: 'bg-neutral-coolgray-900 text-white-000',
-  success: 'bg-success-green-50 text-success-green-700',
-  error: 'bg-error-red-50 text-error-red-700',
-  warning: 'bg-warning-amber-50 text-warning-amber-700',
-  info: 'bg-informative-blue-50 text-informative-blue-700',
+  subtle: 'bg-secondary-blue-50 text-secondary-blue-500',
+  intense: 'bg-secondary-blue-500 text-white-000',
+  success: 'bg-success-green-500 text-white-000',
+  error: 'bg-error-red-600 text-white-000',
+  warning: 'bg-warning-amber-500 text-white-000',
+  info: 'bg-informative-blue-500 text-white-000',
   skeleton: 'bg-neutral-coolgray-100 text-transparent',
 };
 

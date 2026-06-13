@@ -10,20 +10,20 @@
   "shared": { "font-family": "Mulish" },
   "variants": [
     {
-      "name": "high-selected",
+      "name": "high-selected-filled",
       "storyId": "components-tabs--high-emphasis",
-      "figmaNodeId": "17667:2334",
+      "figmaNodeId": "17667:2363",
       "interaction": null,
       "verified": true,
-      "expect": { "color": "#e3530f", "border-bottom-color": "#e3530f", "offsetHeight": 48 }
+      "expect": { "background-color": "#e3530f", "color": "#ffffff", "offsetHeight": 36 }
     },
     {
-      "name": "medium-selected",
+      "name": "medium-selected-underline",
       "storyId": "components-tabs--medium-emphasis",
-      "figmaNodeId": "17667:2334",
+      "figmaNodeId": "17667:2387",
       "interaction": null,
       "verified": true,
-      "expect": { "color": "#212121", "border-bottom-color": "#212121" }
+      "expect": { "color": "#e3530f", "border-bottom-color": "#e3530f" }
     }
   ]
 }

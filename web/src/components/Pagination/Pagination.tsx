@@ -27,8 +27,9 @@ function ChevronRight() {
   );
 }
 
+// Figma 17724:3366 — 32px borderless cell; selected = primary-orange-50 bg + orange-600 text.
 const cellBase =
-  'inline-flex size-[36px] items-center justify-center rounded-medium border box-border text-14 leading-[18px] font-primary font-medium transition-colors';
+  'inline-flex size-[32px] items-center justify-center rounded-[8px] box-border text-16 leading-[20px] font-primary font-bold transition-colors';
 
 function visiblePages(current: number, total: number): number[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
@@ -56,7 +57,8 @@ export function IldsPagination({
     onPageChange?.(next);
   };
 
-  const Arrow = ({ dir }: { dir: 'prev' | 'next' }) => {
+  // Figma — "Back"/"Next" are orange text links with a chevron, not bordered icon buttons.
+  const NavLink = ({ dir }: { dir: 'prev' | 'next' }) => {
     const disabled = dir === 'prev' ? page <= 1 : page >= totalPages;
     return (
       <button
@@ -65,15 +67,24 @@ export function IldsPagination({
         disabled={disabled}
         onClick={() => go(dir === 'prev' ? page - 1 : page + 1)}
         className={[
-          cellBase,
+          'inline-flex items-center gap-sp-4 px-sp-4 text-16 font-bold leading-[20px] font-primary transition-colors',
+          'outline-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-orange-500 rounded-[4px]',
           disabled
-            ? 'border-neutral-coolgray-100 text-neutral-coolgray-200 cursor-not-allowed'
-            : 'border-neutral-coolgray-200 text-neutral-coolgray-600 hover:bg-neutral-coolgray-50',
+            ? 'text-neutral-coolgray-300 cursor-not-allowed'
+            : 'text-primary-orange-500 hover:text-primary-orange-600 cursor-pointer',
         ].join(' ')}
       >
-        <span className="inline-flex size-sp-20 [&>svg]:size-full">
-          {dir === 'prev' ? <ChevronLeft /> : <ChevronRight />}
-        </span>
+        {dir === 'prev' ? (
+          <>
+            <span className="inline-flex size-sp-16 [&>svg]:size-full"><ChevronLeft /></span>
+            <span>Back</span>
+          </>
+        ) : (
+          <>
+            <span>Next</span>
+            <span className="inline-flex size-sp-16 [&>svg]:size-full"><ChevronRight /></span>
+          </>
+        )}
       </button>
     );
   };
@@ -83,13 +94,13 @@ export function IldsPagination({
       <nav
         data-testid="pagination"
         aria-label="Pagination"
-        className={['inline-flex items-center gap-sp-4 font-primary', className].filter(Boolean).join(' ')}
+        className={['inline-flex items-center gap-sp-8 font-primary', className].filter(Boolean).join(' ')}
       >
-        <Arrow dir="prev" />
-        <span className="px-sp-4 text-14 font-medium leading-[18px] text-neutral-coolgray-600">
-          Page {page} of {totalPages}
+        <NavLink dir="prev" />
+        <span className="px-sp-4 text-14 font-medium leading-[18px] text-neutral-coolgray-900">
+          {page} of {totalPages} pages
         </span>
-        <Arrow dir="next" />
+        <NavLink dir="next" />
       </nav>
     );
   }
@@ -102,14 +113,14 @@ export function IldsPagination({
       aria-label="Pagination"
       className={['inline-flex flex-wrap items-center gap-sp-4 font-primary', className].filter(Boolean).join(' ')}
     >
-      <Arrow dir="prev" />
+      <NavLink dir="prev" />
       {pages.map((p, i) => {
         const gap = i > 0 && p - pages[i - 1] > 1;
         const selected = p === page;
         return (
           <span key={p} className="inline-flex items-center gap-sp-4">
             {gap ? (
-              <span className="px-sp-4 text-14 text-neutral-coolgray-500">…</span>
+              <span className="inline-flex size-[32px] items-center justify-center text-16 font-bold text-neutral-coolgray-900">…</span>
             ) : null}
             <button
               type="button"
@@ -119,9 +130,10 @@ export function IldsPagination({
               onClick={() => go(p)}
               className={[
                 cellBase,
+                'outline-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-orange-500',
                 selected
-                  ? 'bg-primary-orange-500 border-primary-orange-500 text-white-000 font-bold'
-                  : 'border-neutral-coolgray-200 text-neutral-coolgray-600 hover:bg-neutral-coolgray-50',
+                  ? 'bg-primary-orange-50 text-primary-orange-600'
+                  : 'text-neutral-coolgray-900 hover:bg-neutral-coolgray-50',
               ].join(' ')}
             >
               {p}
@@ -129,7 +141,7 @@ export function IldsPagination({
           </span>
         );
       })}
-      <Arrow dir="next" />
+      <NavLink dir="next" />
     </nav>
   );
 }

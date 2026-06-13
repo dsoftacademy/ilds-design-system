@@ -7,20 +7,19 @@
   "extractedOn": "2026-06-13",
   "lastVerifiedOn": "2026-06-13",
   "selector": "#storybook-root [data-testid=\"pagination-selected\"]",
-  "shared": { "font-family": "Mulish", "border-radius": "4px" },
+  "shared": { "font-family": "Mulish" },
   "variants": [
     {
       "name": "selected-page",
       "storyId": "components-pagination--extended",
-      "figmaNodeId": "17724:3361",
+      "figmaNodeId": "17724:3366",
       "interaction": null,
       "verified": true,
       "expect": {
-        "background-color": "#e3530f",
-        "border-color": "#e3530f",
-        "color": "#ffffff",
-        "offsetHeight": 36,
-        "offsetWidth": 36
+        "background-color": "#fff2ed",
+        "color": "#c74c01",
+        "offsetHeight": 32,
+        "offsetWidth": 32
       }
     }
   ]
