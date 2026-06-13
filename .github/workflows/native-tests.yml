@@ -1,33 +1,39 @@
 name: Native Component Tests
 
-# Phase 4b — compile + cross-platform QA for iOS (SwiftUI) and Android (Compose).
+# Compile + cross-platform parity QA for iOS (SwiftUI), Android (Compose), and Flutter.
+# All three platforms must pass; the parity matrix (verify:parity) and file-existence
+# guard (verify:phase4b) both run so neither can silently regress.
 
 on:
   pull_request:
     paths:
       - 'ios/**'
       - 'android/**'
+      - 'lib/**'
       - 'dist/ILDSTokens.swift'
       - 'dist/IldsTokens.kt'
       - 'tokens/**'
       - 'style-dictionary.config.mjs'
       - 'tool/verify_phase4b.mjs'
-      - 'lib/ilds_*.dart'
+      - 'tool/verify_cross_platform_parity.mjs'
+      - 'pubspec.yaml'
   push:
     branches: [main]
     paths:
       - 'ios/**'
       - 'android/**'
+      - 'lib/**'
       - 'dist/ILDSTokens.swift'
       - 'dist/IldsTokens.kt'
       - 'tokens/**'
       - 'style-dictionary.config.mjs'
       - 'tool/verify_phase4b.mjs'
-      - 'lib/ilds_*.dart'
+      - 'tool/verify_cross_platform_parity.mjs'
+      - 'pubspec.yaml'
 
 jobs:
   verify:
-    name: Cross-platform native QA
+    name: Cross-platform parity QA
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +42,24 @@ jobs:
           node-version: '20'
           cache: npm
       - run: npm ci
-      - run: npm run verify:phase4b
+      - name: File-existence guard (Phase 4b)
+        run: npm run verify:phase4b
+      - name: Cross-platform parity matrix (47 checks)
+        run: npm run verify:parity
+
+  flutter:
+    name: Flutter analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Get packages
+        run: flutter pub get
+      - name: Analyze (catches undefined symbols, type errors)
+        run: flutter analyze lib/
 
   ios:
     name: iOS compile (Swift Package)
