@@ -1,4 +1,6 @@
-import { useId, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
+
+export type IldsRequiredIndicator = 'text' | 'asterisk';
 
 export type IldsTextFieldProps = {
   /**
@@ -7,6 +9,8 @@ export type IldsTextFieldProps = {
    */
   label?: string;
   required?: boolean;
+  requiredIndicator?: IldsRequiredIndicator;
+  showInfoIcon?: boolean;
   placeholder?: string;
   value?: string;
   helperText?: string;
@@ -18,73 +22,112 @@ export type IldsTextFieldProps = {
   prefixIcon?: ReactNode;
   /** Optional 20px suffix icon slot. Pass SVG with stroke/fill="currentColor". */
   suffixIcon?: ReactNode;
+  suffixText?: string;
   disabled?: boolean;
   onChange?: (value: string) => void;
   className?: string;
 };
 
 /**
- * Returns Tailwind classes for the input container div.
+ * Figma distinguishes two focus-related states on the container:
  *
- * Focus mechanism: `focus-within:` activates when the inner <input> gets keyboard focus.
- * This applies the orange-600 outline ring + coolgray-50 bg + coolgray-800 border
- * together on the container div — matching Figma node 13478:25465 (Focused state).
- *
- * NOTE: The 2px orange ring comes from `focus-within:outline*` on the container,
- * NOT from a separate wrapper div. Same visual outcome, simpler DOM.
+ * - **Focused** (13478:25465): empty field (`:placeholder-shown`) + focus → coolgray-50 bg,
+ *   coolgray-800 border, orange-600 2px outline ring.
+ * - **Typing** (13478:25681): field has value + focus → white bg, primary-orange-500 border,
+ *   NO outline ring.
+ * - **Hover** (13478:25379): coolgray-100 bg (#f5f5f5), coolgray-800 border.
+ *   focus-within:has-[...] has higher specificity than hover: — focused wins when both active.
  */
 function containerClasses(
   isDisabled: boolean,
   hasError: boolean,
   hasSuccess: boolean,
 ): string {
-  const base = [
-    'flex items-center gap-sp-8 min-h-[44px] px-sp-12 rounded-medium border transition-colors font-primary',
-    // Focus ring — activates when inner <input> is focused via Tab
-    'focus-within:outline focus-within:outline-2 focus-within:outline-offset-2',
-    'focus-within:outline-primary-orange-600',
+  const base =
+    'flex items-center gap-sp-8 min-h-[44px] px-sp-12 rounded-medium border transition-colors font-primary';
+
+  const focusedEmpty = [
+    'focus-within:has-[input:placeholder-shown]:bg-neutral-coolgray-50',
+    'focus-within:has-[input:placeholder-shown]:border-neutral-coolgray-800',
+    'focus-within:has-[input:placeholder-shown]:outline',
+    'focus-within:has-[input:placeholder-shown]:outline-2',
+    'focus-within:has-[input:placeholder-shown]:outline-offset-2',
+    'focus-within:has-[input:placeholder-shown]:outline-primary-orange-600',
+  ].join(' ');
+
+  const typingBase = [
+    'focus-within:has-[input:not(:placeholder-shown)]:outline-none',
+    'focus-within:has-[input:not(:placeholder-shown)]:outline-0',
   ].join(' ');
 
   if (isDisabled) {
-    // Figma 13478:25729 — coolgray-200 bg, coolgray-300 border
+    // Figma 13478:25729 — coolgray-200 bg, coolgray-300 border. No hover on disabled.
     return `${base} bg-neutral-coolgray-200 border-neutral-coolgray-300 pointer-events-none`;
   }
+
   if (hasError) {
-    // Figma 13478:25527 — white bg, error-red-600 border
-    // On focus: coolgray-50 bg + coolgray-800 border (PRESUMED — no error+focused node pulled)
+    // Figma 13478:25527 — white bg, error-red-600 border.
     return [
       base,
       'bg-white-000 border-error-red-600',
-      'focus-within:bg-neutral-coolgray-50 focus-within:border-neutral-coolgray-800',
+      'hover:bg-neutral-coolgray-100 hover:border-neutral-coolgray-800',
+      focusedEmpty,
+      typingBase,
+      'focus-within:has-[input:not(:placeholder-shown)]:bg-white-000',
+      'focus-within:has-[input:not(:placeholder-shown)]:border-error-red-600',
     ].join(' ');
   }
+
   if (hasSuccess) {
-    // Figma 13478:25519 — white bg, success-green-500 border
+    // Figma 13478:25519 — white bg, success-green-500 border.
     return [
       base,
       'bg-white-000 border-success-green-500',
-      'focus-within:bg-neutral-coolgray-50 focus-within:border-neutral-coolgray-800',
+      'hover:bg-neutral-coolgray-100 hover:border-neutral-coolgray-800',
+      focusedEmpty,
+      typingBase,
+      'focus-within:has-[input:not(:placeholder-shown)]:bg-white-000',
+      'focus-within:has-[input:not(:placeholder-shown)]:border-success-green-500',
     ].join(' ');
   }
-  // Figma 13478:25333 — Default: white bg, coolgray-500 border
+
+  // Figma 13478:25333 — Default: white bg, coolgray-500 border.
+  // Figma 13478:25379 — Hover: coolgray-100 bg, coolgray-800 border. VERIFIED 2026-06-13.
+  // Figma 13478:25681 — Typing: white bg, orange-500 border, no ring.
   return [
     base,
     'bg-white-000 border-neutral-coolgray-500',
-    'focus-within:bg-neutral-coolgray-50 focus-within:border-neutral-coolgray-800',
+    'hover:bg-neutral-coolgray-100 hover:border-neutral-coolgray-800',
+    focusedEmpty,
+    typingBase,
+    'focus-within:has-[input:not(:placeholder-shown)]:bg-white-000',
+    'focus-within:has-[input:not(:placeholder-shown)]:border-primary-orange-500',
   ].join(' ');
+}
+
+function InfoIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M8 7.25v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="8" cy="4.75" r="0.75" fill="currentColor" />
+    </svg>
+  );
 }
 
 /**
  * ILDS TextField — Standard kind.
  *
  * Figma component set: 13478:25332.
- * Verified: Default (13478:25333), Focused (13478:25465), Error (13478:25527),
- *           Success (13478:25519), Disabled (13478:25729).
- * Deferred: Hover (13478:25379), Typing, Filled, Loading, Skeleton, Password, OTP.
+ * Verified: Default (25333), Hover (25379), Focused (25465), Typing (25681),
+ *           Error (25527), Success (25519), Disabled (25729).
+ * Deferred: Filled, Loading, Skeleton, Password, OTP (Phase 3c).
  */
 export function IldsTextField({
   label,
   required = false,
+  requiredIndicator = 'text',
+  showInfoIcon = false,
   placeholder = 'Enter text',
   value,
   helperText,
@@ -92,11 +135,16 @@ export function IldsTextField({
   successText,
   prefixIcon,
   suffixIcon,
+  suffixText,
   disabled = false,
   onChange,
   className = '',
 }: IldsTextFieldProps) {
   const inputId = useId();
+  const [draft, setDraft] = useState('');
+
+  const isControlled = value !== undefined;
+  const displayValue = isControlled ? value : draft;
 
   const hasError = !!errorText && !disabled;
   const hasSuccess = !!successText && !disabled && !hasError;
@@ -132,8 +180,20 @@ export function IldsTextField({
             {label}
           </label>
           {required ? (
-            <span className="text-[10px] font-normal font-primary leading-[14px] text-neutral-coolgray-800">
-              (Required)
+            <span
+              data-testid="textfield-required-indicator"
+              className={
+                requiredIndicator === 'asterisk'
+                  ? 'text-12 font-bold font-primary leading-[16px] text-error-red-700'
+                  : 'text-[10px] font-normal font-primary leading-[16px] text-neutral-coolgray-800'
+              }
+            >
+              {requiredIndicator === 'asterisk' ? '*' : '(required)'}
+            </span>
+          ) : null}
+          {showInfoIcon ? (
+            <span className="inline-flex size-sp-16 items-center justify-center text-neutral-coolgray-500 [&>svg]:size-full">
+              <InfoIcon />
             </span>
           ) : null}
         </div>
@@ -154,8 +214,12 @@ export function IldsTextField({
           type="text"
           placeholder={placeholder}
           disabled={disabled}
-          value={value}
-          onChange={(e) => onChange?.(e.target.value)}
+          value={displayValue}
+          onChange={(e) => {
+            const next = e.target.value;
+            if (!isControlled) setDraft(next);
+            onChange?.(next);
+          }}
           aria-invalid={hasError || undefined}
           className={[
             'flex-1 bg-transparent outline-none',
@@ -166,9 +230,18 @@ export function IldsTextField({
           ].join(' ')}
         />
 
-        {suffixIcon != null ? (
-          <span className="inline-flex shrink-0 size-sp-20 items-center justify-center text-neutral-coolgray-500 [&>svg]:size-full">
-            {suffixIcon}
+        {suffixText || suffixIcon != null ? (
+          <span className="inline-flex shrink-0 items-center gap-sp-4 text-neutral-coolgray-800">
+            {suffixText ? (
+              <span className="text-14 font-normal font-primary leading-[18px]">
+                {suffixText}
+              </span>
+            ) : null}
+            {suffixIcon != null ? (
+              <span className="inline-flex size-sp-20 items-center justify-center text-neutral-coolgray-500 [&>svg]:size-full">
+                {suffixIcon}
+              </span>
+            ) : null}
           </span>
         ) : null}
       </div>

@@ -1,12 +1,25 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { IldsDropdown } from './Dropdown';
 
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+      <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 const meta = {
   title: 'Components/Dropdown',
   component: IldsDropdown,
   args: {
     label: 'Label',
+    required: true,
+    requiredIndicator: 'text',
+    showInfoIcon: true,
     placeholder: 'Select option',
+    prefixIcon: <SearchIcon />,
   },
 } satisfies Meta<typeof IldsDropdown>;
 
@@ -26,7 +39,7 @@ export const Negative: Story = {
   },
 };
 
-/** PRESUMED — node 13476:22326 not pulled */
+/** Figma 13476:22326 VERIFIED — Disabled: bg=#eeeeee, border=#e0e0e0 */
 export const Disabled: Story = {
   args: {
     isDisabled: true,
@@ -34,7 +47,7 @@ export const Disabled: Story = {
   },
 };
 
-/** PRESUMED — node 13476:22349 not pulled */
+/** Figma 13476:22349 VERIFIED — Filled: bg=#ffffff, border=#9e9e9e (same as default) */
 export const Filled: Story = {
   args: {
     value: 'Option A',
@@ -49,15 +62,28 @@ export const OpenState: Story = {
   },
 };
 
+export const RequiredAsterisk: Story = {
+  args: {
+    required: true,
+    requiredIndicator: 'asterisk',
+  },
+};
+
 export const Playground: Story = {
   argTypes: {
     isNegative: { control: 'boolean' },
     isDisabled: { control: 'boolean' },
     isOpen: { control: 'boolean' },
+    required: { control: 'boolean' },
+    requiredIndicator: { control: 'select', options: ['text', 'asterisk'] },
+    showInfoIcon: { control: 'boolean' },
   },
   args: {
     label: 'Label',
     placeholder: 'Select option',
+    required: true,
+    requiredIndicator: 'text',
+    showInfoIcon: true,
     isNegative: false,
     isDisabled: false,
     isOpen: false,

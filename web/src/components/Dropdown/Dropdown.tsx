@@ -1,3 +1,7 @@
+import type { ReactNode } from 'react';
+
+export type IldsDropdownRequiredIndicator = 'text' | 'asterisk';
+
 export type IldsDropdownProps = {
   /**
    * Figma: 16px Bold coolgray-900.
@@ -5,7 +9,11 @@ export type IldsDropdownProps = {
    * Figma node 13476:22317 explicitly shows text-[16px] font-bold.
    */
   label?: string;
+  required?: boolean;
+  requiredIndicator?: IldsDropdownRequiredIndicator;
+  showInfoIcon?: boolean;
   placeholder?: string;
+  prefixIcon?: ReactNode;
   /** Currently selected display value. Empty/undefined = show placeholder. */
   value?: string;
   helperText?: string;
@@ -60,33 +68,69 @@ function WarningTriangleIcon() {
   );
 }
 
+function InfoIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M8 7.25v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="8" cy="4.75" r="0.75" fill="currentColor" />
+    </svg>
+  );
+}
+
 /**
- * Focus mechanism: `focus-visible:` on the button itself (it IS the focusable element).
- * Dropdown focused = bg coolgray-50 + border coolgray-800 ONLY — NO orange ring (13476:22340).
+ * Focus mechanism: `focus-visible:` on the trigger when closed.
+ * Active/Open (13476:22390): orange-500 border + orange chevron — NOT the same as Focused.
+ * Hover (13476:22377): coolgray-100 bg + coolgray-800 border. VERIFIED 2026-06-13.
+ * Hover only on default (not-open, not-error, not-disabled).
  */
-function triggerClasses(hasError: boolean, isDisabled: boolean): string {
+function triggerClasses(
+  hasError: boolean,
+  isDisabled: boolean,
+  isOpen: boolean,
+): string {
   const base = [
     'w-full flex items-center gap-sp-8 min-h-[44px] px-sp-12 rounded-medium border',
     'text-left cursor-pointer transition-colors font-primary',
     'outline-none',
-    'focus-visible:bg-neutral-coolgray-50 focus-visible:border-neutral-coolgray-800',
   ].join(' ');
 
+  const focusVisible = isOpen
+    ? ''
+    : 'focus-visible:bg-neutral-coolgray-50 focus-visible:border-neutral-coolgray-800';
+
   if (isDisabled) {
-    return `${base} bg-neutral-coolgray-200 border-neutral-coolgray-300 text-neutral-coolgray-500 pointer-events-none`;
+    // Figma 13476:22326 VERIFIED — coolgray-200 bg, coolgray-300 border. No hover.
+    return `${base} ${focusVisible} bg-neutral-coolgray-200 border-neutral-coolgray-300 text-neutral-coolgray-500 pointer-events-none`;
   }
   if (hasError) {
-    return `${base} bg-white-000 border-error-red-600`;
+    // Figma 13476:22367 — white bg, error-red-600 border.
+    return `${base} ${focusVisible} bg-white-000 border-error-red-600`;
   }
-  return `${base} bg-white-000 border-neutral-coolgray-500`;
+  if (isOpen) {
+    // Figma 13476:22390 VERIFIED — white bg, orange-500 border. No hover.
+    return `${base} bg-white-000 border-primary-orange-500`;
+  }
+  // Figma 13476:22317 — Default: white bg, coolgray-500 border.
+  // Figma 13476:22349 VERIFIED — Filled: same as default (white + coolgray-500).
+  // Figma 13476:22377 VERIFIED — Hover: coolgray-100 bg, coolgray-800 border.
+  return `${base} ${focusVisible} bg-white-000 border-neutral-coolgray-500 hover:bg-neutral-coolgray-100 hover:border-neutral-coolgray-800`;
 }
 
 /**
  * ILDS Dropdown Trigger — Figma component set 13476:22316.
+ *
+ * Verified: Empty/Default (22317), Hover (22377), Focused (22340), Active/Open (22390),
+ *           Negative (22367), Disabled (22326), Filled (22349).
+ * Deferred: Dropdown menu panel / open state with list (Phase 3c).
  */
 export function IldsDropdown({
   label,
+  required = false,
+  requiredIndicator = 'text',
+  showInfoIcon = false,
   placeholder = 'Select option',
+  prefixIcon,
   value,
   helperText,
   errorText,
@@ -103,16 +147,35 @@ export function IldsDropdown({
     <div className={['flex flex-col gap-sp-4', className].filter(Boolean).join(' ')}>
 
       {label ? (
-        <span
+        <div
           className={[
-            'text-16 font-bold font-primary leading-[20px] text-neutral-coolgray-900',
+            'flex items-center gap-sp-4',
             isDisabled ? 'opacity-50' : '',
           ]
             .filter(Boolean)
             .join(' ')}
         >
-          {label}
-        </span>
+          <span className="text-16 font-bold font-primary leading-[20px] text-neutral-coolgray-900">
+            {label}
+          </span>
+          {required ? (
+            <span
+              data-testid="dropdown-required-indicator"
+              className={
+                requiredIndicator === 'asterisk'
+                  ? 'text-12 font-bold font-primary leading-[16px] text-error-red-700'
+                  : 'text-[10px] font-normal font-primary leading-[16px] text-neutral-coolgray-800'
+              }
+            >
+              {requiredIndicator === 'asterisk' ? '*' : '(required)'}
+            </span>
+          ) : null}
+          {showInfoIcon ? (
+            <span className="inline-flex size-sp-16 items-center justify-center text-neutral-coolgray-500 [&>svg]:size-full">
+              <InfoIcon />
+            </span>
+          ) : null}
+        </div>
       ) : null}
 
       <button
@@ -123,8 +186,14 @@ export function IldsDropdown({
         aria-expanded={isOpen}
         disabled={isDisabled}
         onClick={onToggle}
-        className={triggerClasses(hasError, isDisabled)}
+        className={triggerClasses(hasError, isDisabled, isOpen)}
       >
+        {prefixIcon != null ? (
+          <span className="inline-flex shrink-0 size-sp-20 items-center justify-center text-neutral-coolgray-500 [&>svg]:size-full">
+            {prefixIcon}
+          </span>
+        ) : null}
+
         <span
           className={[
             'flex-1 text-14 font-normal font-primary leading-[18px]',
@@ -142,11 +211,11 @@ export function IldsDropdown({
           ) : null}
           <span
             className={[
-              'inline-flex size-sp-20 items-center justify-center text-neutral-coolgray-500 [&>svg]:size-full transition-transform duration-200',
-              isOpen ? 'rotate-180' : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
+              'inline-flex size-sp-20 items-center justify-center [&>svg]:size-full transition-[rotate] duration-200',
+              isOpen
+                ? 'rotate-180 text-primary-orange-500'
+                : 'text-neutral-coolgray-500',
+            ].join(' ')}
           >
             <ChevronDownIcon />
           </span>

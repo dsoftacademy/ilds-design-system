@@ -43,23 +43,28 @@ class IldsChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isLarge = size == IldsChipSize.large;
-    final double height = isLarge ? 36.0 : 28.0;
-    final double fontSize = isLarge ? 14.0 : 12.0;
+    // Figma: large=24px, medium=20px — verified chip.spec.json offsetHeight
+    final double height = isLarge ? 24.0 : 20.0;
+    // Figma: both sizes use 12px — verified chip.spec.json shared.font-size
+    const double fontSize = 12.0;
     final double iconSize = isLarge ? 16.0 : 14.0;
-    
+
+    // Figma: large h-padding=8px, medium=4px — verified chip.spec.json shared.padding
     final EdgeInsets padding = EdgeInsets.symmetric(
-      horizontal: isLarge ? ILDSTokens.spacing3 : ILDSTokens.spacing2,
+      horizontal: isLarge ? ILDSTokens.spacing2 : ILDSTokens.spacing1,
     );
 
-    // Filter Logic Colors
-    Color borderColor = isSelected ? ILDSTokens.orange500 : ILDSTokens.neutral200;
-    Color labelColor = isSelected ? ILDSTokens.orange500 : ILDSTokens.neutral500;
+    // Filter chip colors — verified from chip.spec.json Figma values
+    // Default: bg=#ffffff, border=#9e9e9e, label=#212121, weight=Regular
+    // Selected: bg=#fff2ed (primaryOrange50), border=#e3530f (orange500), label=#212121, weight=Regular
+    Color borderColor = isSelected ? ILDSTokens.orange500 : ILDSTokens.neutralCoolgray500;
+    Color labelColor = ILDSTokens.neutralCoolgray900; // #212121 for both states
     Color bgColor = isSelected
-        ? ILDSTokens.orange500.withValues(alpha: 0.08)
-        : Colors.transparent;
-    FontWeight fontWeight = isSelected ? ILDSTokens.fontWeightBold : ILDSTokens.fontWeightRegular;
+        ? ILDSTokens.primaryOrange50    // #fff2ed — verified Figma 14018:6806
+        : ILDSTokens.globalWhite000;    // #ffffff — verified Figma 14018:6787
+    FontWeight fontWeight = ILDSTokens.fontWeightRegular; // Regular for both states
 
-    // Tag Variant Logic Colors
+    // Tag variant colors (unchanged — not audited in this pass)
     if (kind == IldsChipKind.tag) {
       fontWeight = ILDSTokens.fontWeightMedium;
       switch (tagVariant) {
@@ -92,9 +97,11 @@ class IldsChip extends StatelessWidget {
     }
 
     if (!enabled) {
-      borderColor = ILDSTokens.neutral300;
-      labelColor = ILDSTokens.neutral300;
-      bgColor = Colors.transparent;
+      // Figma: bg=#eeeeee (coolgray-200), border=#e0e0e0 (coolgray-300), label=#9e9e9e (coolgray-500)
+      // Verified from chip.spec.json large-disabled / medium-disabled
+      borderColor = ILDSTokens.neutralCoolgray300;
+      labelColor = ILDSTokens.neutralCoolgray500;
+      bgColor = ILDSTokens.neutralCoolgray200;
     }
 
     return Semantics(
@@ -110,8 +117,10 @@ class IldsChip extends StatelessWidget {
           padding: padding,
           decoration: BoxDecoration(
             color: bgColor,
-            border: Border.all(color: borderColor, width: ILDSTokens.borderWidth1),
-            borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusFull),
+            // Figma: border-width=0.5px — no token, use literal
+            border: Border.all(color: borderColor, width: 0.5),
+            // Figma: border-radius=4px = radiusMedium — verified chip.spec.json shared.border-radius
+            borderRadius: BorderRadius.circular(ILDSTokens.radiusMedium),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -141,12 +150,12 @@ class IldsChip extends StatelessWidget {
                 const SizedBox(width: ILDSTokens.spacing1),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: ILDSTokens.spacing1, 
+                    horizontal: ILDSTokens.spacing1,
                     vertical: ILDSTokens.borderWidth1,
                   ),
                   decoration: BoxDecoration(
                     color: ILDSTokens.orange500,
-                    borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusFull),
+                    borderRadius: BorderRadius.circular(ILDSTokens.radiusMassive),
                   ),
                   child: Text(
                     count.toString(),
