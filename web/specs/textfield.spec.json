@@ -43,10 +43,8 @@
       "verified": true,
       "expect": {
         "background-color": "#fafafa",
-        "border-color": "#424242",
-        "outline-color": "#c74c01",
-        "outline-width": "2px",
-        "outline-offset": "2px"
+        "border-color": "#c74c01",
+        "offsetHeight": 44
       }
     },
     {
@@ -150,6 +148,18 @@
       "storyId": "components-text-field--otp-4-default",
       "figmaNodeId": "13478:25366",
       "selector": "#storybook-root [data-testid=\"otp-cell-0\"]",
+      "interaction": null,
+      "verified": true,
+      "expect": {
+        "background-color": "#ffffff",
+        "border-color": "#9e9e9e",
+        "offsetHeight": 44
+      }
+    },
+    {
+      "name": "loading",
+      "storyId": "components-text-field--loading",
+      "figmaNodeId": "13478:25649",
       "interaction": null,
       "verified": true,
       "expect": {

@@ -15,6 +15,8 @@ export type IldsTextFieldProps = {
   showInfoIcon?: boolean;
   placeholder?: string;
   value?: string;
+  /** Figma Loading (13478:25649 Standard / 25657 Password): orange spinner in suffix, non-interactive. */
+  loading?: boolean;
   /** OTP only — called when all cells are filled. */
   onOtpComplete?: (otp: string) => void;
   helperText?: string;
@@ -35,62 +37,50 @@ export type IldsTextFieldProps = {
   className?: string;
 };
 
+/**
+ * Figma states (set 13478:25332), verified via screenshots 2026-06-13:
+ *
+ * - **Focused** (25465): empty + focus → coolgray-50 bg, 2px orange-600 (#c74c01) border that
+ *   HUGS the field. NO detached offset ring (the prior outline-offset-2 halo was incorrect).
+ * - **Typing** (25681): has value + focus → white bg, 1px orange-500 (#e3530f) border.
+ * - **Hover** (25379): coolgray-100 bg, coolgray-800 border.
+ * - **Loading** (25649): white bg, coolgray-500 border, spinner in suffix, non-interactive.
+ */
 function containerClasses(
   isDisabled: boolean,
   hasError: boolean,
   hasSuccess: boolean,
+  isLoading: boolean,
 ): string {
   const base =
-    'flex items-center gap-sp-8 min-h-[44px] px-sp-12 rounded-medium border transition-colors font-primary';
-
-  const focusedEmpty = [
-    'focus-within:has-[input:placeholder-shown]:bg-neutral-coolgray-50',
-    'focus-within:has-[input:placeholder-shown]:border-neutral-coolgray-800',
-    'focus-within:has-[input:placeholder-shown]:outline',
-    'focus-within:has-[input:placeholder-shown]:outline-2',
-    'focus-within:has-[input:placeholder-shown]:outline-offset-2',
-    'focus-within:has-[input:placeholder-shown]:outline-primary-orange-600',
-  ].join(' ');
-
-  const typingBase = [
-    'focus-within:has-[input:not(:placeholder-shown)]:outline-none',
-    'focus-within:has-[input:not(:placeholder-shown)]:outline-0',
-  ].join(' ');
+    'flex items-center gap-sp-8 min-h-[44px] px-sp-12 rounded-medium border outline-0 transition-colors font-primary';
 
   if (isDisabled) {
     return `${base} bg-neutral-coolgray-200 border-neutral-coolgray-300 pointer-events-none`;
   }
 
+  if (isLoading) {
+    // Figma 13478:25649 — white bg, coolgray-500 border, no focus styling while loading.
+    return `${base} bg-white-000 border-neutral-coolgray-500 pointer-events-none`;
+  }
+
   if (hasError) {
-    return [
-      base,
-      'bg-white-000 border-error-red-600',
-      'hover:bg-neutral-coolgray-100 hover:border-neutral-coolgray-800',
-      focusedEmpty,
-      typingBase,
-      'focus-within:has-[input:not(:placeholder-shown)]:bg-white-000',
-      'focus-within:has-[input:not(:placeholder-shown)]:border-error-red-600',
-    ].join(' ');
+    return `${base} bg-white-000 border-error-red-600 hover:bg-neutral-coolgray-100`;
   }
 
   if (hasSuccess) {
-    return [
-      base,
-      'bg-white-000 border-success-green-500',
-      'hover:bg-neutral-coolgray-100 hover:border-neutral-coolgray-800',
-      focusedEmpty,
-      typingBase,
-      'focus-within:has-[input:not(:placeholder-shown)]:bg-white-000',
-      'focus-within:has-[input:not(:placeholder-shown)]:border-success-green-500',
-    ].join(' ');
+    return `${base} bg-white-000 border-success-green-500 hover:bg-neutral-coolgray-100`;
   }
 
+  // Default → Hover → Focused (empty) → Typing (has value).
+  // Focused = orange-600 border hugging (border-box keeps height stable, no offset halo).
   return [
     base,
     'bg-white-000 border-neutral-coolgray-500',
     'hover:bg-neutral-coolgray-100 hover:border-neutral-coolgray-800',
-    focusedEmpty,
-    typingBase,
+    'focus-within:has-[input:placeholder-shown]:bg-neutral-coolgray-50',
+    'focus-within:has-[input:placeholder-shown]:border-2',
+    'focus-within:has-[input:placeholder-shown]:border-primary-orange-600',
     'focus-within:has-[input:not(:placeholder-shown)]:bg-white-000',
     'focus-within:has-[input:not(:placeholder-shown)]:border-primary-orange-500',
   ].join(' ');
@@ -114,37 +104,20 @@ function otpCellClasses(
   }
 
   if (hasError) {
-    return [
-      base,
-      'border-error-red-600',
-      isFocused && hasValue ? 'border-error-red-600' : '',
-      isFocused && !hasValue
-        ? 'border-neutral-coolgray-500 outline outline-2 outline-offset-2 outline-primary-orange-600'
-        : '',
-    ]
-      .filter(Boolean)
-      .join(' ');
+    return `${base} border-error-red-600`;
   }
 
   if (hasSuccess) {
-    return [
-      base,
-      'border-success-green-500',
-      isFocused && hasValue ? 'border-success-green-500' : '',
-      isFocused && !hasValue
-        ? 'border-neutral-coolgray-500 outline outline-2 outline-offset-2 outline-primary-orange-600'
-        : '',
-    ]
-      .filter(Boolean)
-      .join(' ');
+    return `${base} border-success-green-500`;
   }
 
+  // Focused cell: orange border hugging (no detached ring). 500 once a digit is present, 600 while empty.
   if (isFocused && hasValue) {
     return `${base} border-primary-orange-500`;
   }
 
   if (isFocused && !hasValue) {
-    return `${base} border-neutral-coolgray-500 outline outline-2 outline-offset-2 outline-primary-orange-600`;
+    return `${base} border-2 border-primary-orange-600`;
   }
 
   return `${base} border-neutral-coolgray-500`;
@@ -157,6 +130,18 @@ function InfoIcon() {
       <path d="M8 7.25v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       <circle cx="8" cy="4.75" r="0.75" fill="currentColor" />
     </svg>
+  );
+}
+
+/** Figma loading spinner — orange arc (primary-orange-500). */
+function Spinner() {
+  return (
+    <span
+      data-testid="textfield-spinner"
+      className="inline-block size-sp-20 shrink-0 animate-spin rounded-full border-2 border-primary-orange-500 border-r-transparent"
+      role="status"
+      aria-label="Loading"
+    />
   );
 }
 
@@ -309,7 +294,9 @@ function OtpField({
 }) {
   const [draft, setDraft] = useState('');
   const [focusedIndex, setFocusedIndex] = useState(0);
+  const [active, setActive] = useState(false);
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const groupRef = useRef<HTMLDivElement>(null);
 
   const isControlled = value !== undefined;
   const otpValue = (isControlled ? value : draft).slice(0, cellCount).padEnd(cellCount, ' ');
@@ -339,6 +326,7 @@ function OtpField({
 
   return (
     <div
+      ref={groupRef}
       data-testid="textfield-otp"
       className="flex items-center gap-sp-8"
       role="group"
@@ -346,7 +334,7 @@ function OtpField({
     >
       {digits.map((digit, index) => {
         const hasDigit = digit.trim().length > 0;
-        const isFocused = focusedIndex === index;
+        const isFocused = active && focusedIndex === index;
 
         return (
           <div
@@ -365,7 +353,15 @@ function OtpField({
               disabled={disabled}
               value={hasDigit ? digit : ''}
               aria-label={`OTP digit ${index + 1}`}
-              onFocus={() => setFocusedIndex(index)}
+              onFocus={() => {
+                setActive(true);
+                setFocusedIndex(index);
+              }}
+              onBlur={(e) => {
+                if (!groupRef.current?.contains(e.relatedTarget as Node)) {
+                  setActive(false);
+                }
+              }}
               onChange={(e) => {
                 const nextChar = e.target.value.replace(/\D/g, '').slice(-1);
                 const chars = digits.map((d) => (d.trim() ? d : ''));
@@ -422,6 +418,7 @@ export function IldsTextField({
   showInfoIcon = false,
   placeholder = 'Enter text',
   value,
+  loading = false,
   onOtpComplete,
   helperText,
   helpButtonLabel,
@@ -500,7 +497,8 @@ export function IldsTextField({
       ) : (
         <div
           data-testid="textfield-input"
-          className={containerClasses(disabled, hasError, hasSuccess)}
+          aria-busy={loading || undefined}
+          className={containerClasses(disabled, hasError, hasSuccess, loading)}
         >
           {prefixIcon != null ? (
             <span className="inline-flex shrink-0 size-sp-20 items-center justify-center text-neutral-coolgray-500 [&>svg]:size-full">
@@ -513,6 +511,7 @@ export function IldsTextField({
             type={isPassword && !showPassword ? 'password' : 'text'}
             placeholder={placeholder}
             disabled={disabled}
+            readOnly={loading}
             value={displayValue}
             onChange={(e) => {
               const next = e.target.value;
@@ -529,7 +528,9 @@ export function IldsTextField({
             ].join(' ')}
           />
 
-          {isPassword ? (
+          {loading ? (
+            <Spinner />
+          ) : isPassword ? (
             <button
               type="button"
               data-testid="password-toggle"

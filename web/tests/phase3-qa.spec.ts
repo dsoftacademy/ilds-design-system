@@ -44,20 +44,38 @@ test.describe('Pass 1 — Phase 3c visual tokens', () => {
     expect(box?.height).toBe(20);
   });
 
-  test('Password focused-empty gets orange ring', async ({ page }) => {
+  test('Password focused-empty gets orange border (hugging, no offset ring)', async ({
+    page,
+  }) => {
     await gotoStory(page, 'components-text-field--password-default');
     const container = page.locator('[data-testid="textfield-input"]');
     await container.locator('input').focus();
     const s = await styles(container, [
       'background-color',
       'border-color',
-      'outline-color',
-      'outline-width',
+      'border-width',
+      'outline-offset',
     ]);
     expect(s['background-color']).toBe(hexToRgb('#fafafa'));
-    expect(s['border-color']).toBe(hexToRgb('#424242'));
-    expect(s['outline-color']).toBe(hexToRgb('#c74c01'));
-    expect(s['outline-width']).toBe('2px');
+    expect(s['border-color']).toBe(hexToRgb('#c74c01'));
+    expect(s['border-width']).toBe('2px');
+    // No detached focus halo
+    expect(s['outline-offset']).not.toBe('2px');
+  });
+
+  test('TextField loading shows spinner + default border', async ({ page }) => {
+    await gotoStory(page, 'components-text-field--loading');
+    await expect(page.locator('[data-testid="textfield-spinner"]')).toBeVisible();
+    const s = await styles(page.locator('[data-testid="textfield-input"]'), [
+      'border-color',
+    ]);
+    expect(s['border-color']).toBe(hexToRgb('#9e9e9e'));
+  });
+
+  test('Dropdown loading shows spinner instead of chevron', async ({ page }) => {
+    await gotoStory(page, 'components-dropdown--loading');
+    await expect(page.locator('[data-testid="dropdown-spinner"]')).toBeVisible();
+    await expect(page.locator('[data-testid="dropdown-chevron"]')).toHaveCount(0);
   });
 
   test('OTP cell default border is coolgray-500', async ({ page }) => {
@@ -178,6 +196,36 @@ test.describe('Pass 2 — Functional behavior', () => {
     await expect(options.first()).toBeEnabled();
   });
 
+  test('Dropdown Interactive opens menu on click and selects', async ({ page }) => {
+    await gotoStory(page, 'components-dropdown--interactive');
+    const trigger = page.locator('[data-testid="dropdown-trigger"]');
+    await expect(page.locator('[data-testid="dropdown-menu"]')).toHaveCount(0);
+    await trigger.click();
+    await expect(page.locator('[data-testid="dropdown-menu"]')).toBeVisible();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    // selecting an option closes the menu and updates the trigger
+    await page.getByRole('option').first().click();
+    await expect(page.locator('[data-testid="dropdown-menu"]')).toHaveCount(0);
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  test('Dropdown Interactive: clicking chevron opens menu', async ({ page }) => {
+    await gotoStory(page, 'components-dropdown--interactive');
+    await page.locator('[data-testid="dropdown-chevron"]').click();
+    await expect(page.locator('[data-testid="dropdown-menu"]')).toBeVisible();
+  });
+
+  test('Dropdown active state shows orange border + rotated chevron', async ({ page }) => {
+    await gotoStory(page, 'components-dropdown--interactive');
+    const trigger = page.locator('[data-testid="dropdown-trigger"]');
+    await trigger.click();
+    const s = await styles(trigger, ['border-color']);
+    expect(s['border-color']).toBe(hexToRgb('#e3530f'));
+    const chevron = page.locator('[data-testid="dropdown-chevron"]');
+    const color = await chevron.evaluate((n) => getComputedStyle(n).color);
+    expect(color).toBe(hexToRgb('#e3530f'));
+  });
+
   test('Icon-only small button has 28px height', async ({ page }) => {
     await gotoStory(page, 'components-button--icon-only-small');
     const btn = page.locator('#storybook-root button[aria-label="Favorite"]');
@@ -259,13 +307,20 @@ test.describe('Pass 3 — Accessibility', () => {
 // ─── PASS 4: Regression sweep (Phase 3b components) ───
 
 test.describe('Pass 4 — Phase 3b regression', () => {
-  test('TextField standard focused ring intact', async ({ page }) => {
+  test('TextField standard focused = orange border, not offset ring', async ({ page }) => {
     await gotoStory(page, 'components-text-field--standard-default');
     const container = page.locator('[data-testid="textfield-input"]');
     await container.locator('input').focus();
-    const s = await styles(container, ['outline-color', 'outline-width']);
-    expect(s['outline-color']).toBe(hexToRgb('#c74c01'));
-    expect(s['outline-width']).toBe('2px');
+    const s = await styles(container, [
+      'background-color',
+      'border-color',
+      'border-width',
+      'outline-offset',
+    ]);
+    expect(s['background-color']).toBe(hexToRgb('#fafafa'));
+    expect(s['border-color']).toBe(hexToRgb('#c74c01'));
+    expect(s['border-width']).toBe('2px');
+    expect(s['outline-offset']).not.toBe('2px');
   });
 
   test('TextField typing state no ring', async ({ page }) => {

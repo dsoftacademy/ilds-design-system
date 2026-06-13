@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { IldsDropdownMenu, type IldsDropdownMenuOption } from './DropdownMenu';
 
 export type IldsDropdownRequiredIndicator = 'text' | 'asterisk';
@@ -27,9 +27,12 @@ export type IldsDropdownProps = {
    */
   isNegative?: boolean;
   isDisabled?: boolean;
+  /** Figma Loading (13476:22358): orange spinner replaces chevron, non-interactive. */
+  isLoading?: boolean;
   /**
    * Controls chevron rotation (180° when open) and aria-expanded.
-   * When `options` is provided, the menu panel (Figma 16055:6152) renders below the trigger.
+   * If omitted (and no `onToggle`), the dropdown manages its own open state — clicking
+   * the trigger/chevron opens the menu panel (Figma Active 13476:22390 / 16055:6152).
    */
   isOpen?: boolean;
   onToggle?: () => void;
@@ -99,6 +102,7 @@ function triggerClasses(
   hasError: boolean,
   isDisabled: boolean,
   isOpen: boolean,
+  isLoading: boolean,
 ): string {
   const base = [
     'w-full flex items-center gap-sp-8 min-h-[44px] px-sp-12 rounded-medium border',
@@ -114,18 +118,34 @@ function triggerClasses(
     // Figma 13476:22326 VERIFIED — coolgray-200 bg, coolgray-300 border. No hover.
     return `${base} ${focusVisible} bg-neutral-coolgray-200 border-neutral-coolgray-300 text-neutral-coolgray-500 pointer-events-none`;
   }
+  if (isLoading) {
+    // Figma 13476:22358 — white bg, coolgray-500 border, spinner replaces chevron. Non-interactive.
+    return `${base} bg-white-000 border-neutral-coolgray-500 pointer-events-none`;
+  }
   if (hasError) {
     // Figma 13476:22367 — white bg, error-red-600 border.
     return `${base} ${focusVisible} bg-white-000 border-error-red-600`;
   }
   if (isOpen) {
-    // Figma 13476:22390 VERIFIED — white bg, orange-500 border. No hover.
+    // Figma 13476:22390 VERIFIED — Active: white bg, orange-500 border. No hover.
     return `${base} bg-white-000 border-primary-orange-500`;
   }
   // Figma 13476:22317 — Default: white bg, coolgray-500 border.
   // Figma 13476:22349 VERIFIED — Filled: same as default (white + coolgray-500).
   // Figma 13476:22377 VERIFIED — Hover: coolgray-100 bg, coolgray-800 border.
   return `${base} ${focusVisible} bg-white-000 border-neutral-coolgray-500 hover:bg-neutral-coolgray-100 hover:border-neutral-coolgray-800`;
+}
+
+/** Figma loading spinner — orange arc (primary-orange-500). */
+function Spinner() {
+  return (
+    <span
+      data-testid="dropdown-spinner"
+      className="inline-block size-sp-20 shrink-0 animate-spin rounded-full border-2 border-primary-orange-500 border-r-transparent"
+      role="status"
+      aria-label="Loading"
+    />
+  );
 }
 
 /**
@@ -147,7 +167,8 @@ export function IldsDropdown({
   errorText,
   isNegative = false,
   isDisabled = false,
-  isOpen = false,
+  isLoading = false,
+  isOpen,
   onToggle,
   options,
   selectedValue,
@@ -160,13 +181,55 @@ export function IldsDropdown({
   onMenuPrimary,
   className = '',
 }: IldsDropdownProps) {
-  const autoMenuId = useId();
-  const listboxId = autoMenuId;
+  const listboxId = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const [internalSelected, setInternalSelected] = useState<string | undefined>(
+    selectedValue,
+  );
+
+  const isOpenControlled = isOpen !== undefined || onToggle !== undefined;
+  const open = isOpenControlled ? !!isOpen : internalOpen;
+
+  const effectiveSelected =
+    selectedValue !== undefined ? selectedValue : internalSelected;
+  const selectedOption = options?.find((o) => o.value === effectiveSelected);
+  const displayValue = value ?? selectedOption?.label;
+
   const hasError = (isNegative || !!errorText) && !isDisabled;
   const helperContent = hasError ? (errorText ?? helperText) : helperText;
+  const hasMenu = !!options && options.length > 0;
+
+  const handleToggle = () => {
+    if (isDisabled || isLoading) return;
+    onToggle?.();
+    // Uncontrolled: only self-open when there is a menu to show.
+    if (!isOpenControlled && hasMenu) setInternalOpen((o) => !o);
+  };
+
+  const handleSelect = (v: string) => {
+    onSelect?.(v);
+    if (selectedValue === undefined) setInternalSelected(v);
+    if (!isOpenControlled) setInternalOpen(false);
+  };
+
+  // Click-away to close (uncontrolled only).
+  useEffect(() => {
+    if (!open || isOpenControlled) return;
+    const handler = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+        setInternalOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open, isOpenControlled]);
 
   return (
-    <div className={['flex flex-col gap-sp-4', className].filter(Boolean).join(' ')}>
+    <div
+      ref={rootRef}
+      className={['flex flex-col gap-sp-4', className].filter(Boolean).join(' ')}
+    >
 
       {label ? (
         <div
@@ -205,11 +268,12 @@ export function IldsDropdown({
         data-testid="dropdown-trigger"
         role="combobox"
         aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        aria-controls={isOpen && options?.length ? listboxId : undefined}
-        disabled={isDisabled}
-        onClick={onToggle}
-        className={triggerClasses(hasError, isDisabled, isOpen)}
+        aria-expanded={open}
+        aria-controls={open && hasMenu ? listboxId : undefined}
+        aria-busy={isLoading || undefined}
+        disabled={isDisabled || isLoading}
+        onClick={handleToggle}
+        className={triggerClasses(hasError, isDisabled, open, isLoading)}
       >
         {prefixIcon != null ? (
           <span className="inline-flex shrink-0 size-sp-20 items-center justify-center text-neutral-coolgray-500 [&>svg]:size-full">
@@ -220,41 +284,46 @@ export function IldsDropdown({
         <span
           className={[
             'flex-1 text-14 font-normal font-primary leading-[18px]',
-            value ? 'text-neutral-coolgray-900' : 'text-neutral-coolgray-500',
+            displayValue ? 'text-neutral-coolgray-900' : 'text-neutral-coolgray-500',
           ].join(' ')}
         >
-          {value || placeholder}
+          {displayValue || placeholder}
         </span>
 
         <span className="inline-flex shrink-0 items-center gap-sp-4">
-          {hasError ? (
+          {hasError && !isLoading ? (
             <span className="inline-flex size-sp-20 items-center justify-center text-error-red-600 [&>svg]:size-full">
               <WarningTriangleIcon />
             </span>
           ) : null}
-          <span
-            className={[
-              'inline-flex size-sp-20 items-center justify-center [&>svg]:size-full transition-[rotate] duration-200',
-              isOpen
-                ? 'rotate-180 text-primary-orange-500'
-                : 'text-neutral-coolgray-500',
-            ].join(' ')}
-          >
-            <ChevronDownIcon />
-          </span>
+          {isLoading ? (
+            <Spinner />
+          ) : (
+            <span
+              data-testid="dropdown-chevron"
+              className={[
+                'inline-flex size-sp-20 items-center justify-center [&>svg]:size-full transition-[rotate] duration-200',
+                open
+                  ? 'rotate-180 text-primary-orange-500'
+                  : 'text-neutral-coolgray-500',
+              ].join(' ')}
+            >
+              <ChevronDownIcon />
+            </span>
+          )}
         </span>
       </button>
 
-      {isOpen && options && options.length > 0 ? (
+      {open && hasMenu ? (
         <IldsDropdownMenu
           menuId={listboxId}
           sectionLabel={menuSectionLabel}
           options={options}
-          selectedValue={selectedValue}
+          selectedValue={effectiveSelected}
           showFooter={showMenuFooter}
           secondaryLabel={menuSecondaryLabel}
           primaryLabel={menuPrimaryLabel}
-          onSelect={onSelect}
+          onSelect={handleSelect}
           onSecondary={onMenuSecondary}
           onPrimary={onMenuPrimary}
         />

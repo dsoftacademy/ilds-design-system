@@ -216,3 +216,30 @@ export const Otp4Default: Story = {
     suffixIcon: undefined,
   },
 };
+
+/** Figma 13478:25649 — Loading (orange spinner in suffix, value visible) */
+export const Loading: Story = {
+  args: {
+    value: 'Filled text',
+    loading: true,
+    prefixIcon: <SearchIcon />,
+    helperText: 'Helper text goes here.',
+    helpButtonLabel: 'Help button',
+    suffixText: undefined,
+    suffixIcon: undefined,
+  },
+};
+
+/** Figma 13478:25657 — Password Loading */
+export const PasswordLoading: Story = {
+  args: {
+    kind: 'password',
+    value: 'secret',
+    loading: true,
+    prefixIcon: <UserIcon />,
+    helperText: 'Helper text goes here.',
+    helpButtonLabel: 'Help button',
+    suffixText: undefined,
+    suffixIcon: undefined,
+  },
+};

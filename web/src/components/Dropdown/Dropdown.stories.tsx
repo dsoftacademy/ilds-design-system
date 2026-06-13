@@ -95,6 +95,28 @@ export const MenuPanel: Story = {
   ),
 };
 
+/** Uncontrolled — click the trigger/chevron to open the menu (Figma Active 13476:22390). */
+export const Interactive: Story = {
+  args: {
+    label: 'Label',
+    placeholder: 'Select category',
+    prefixIcon: <SearchIcon />,
+    options: sampleOptions,
+    menuSectionLabel: 'Section Label',
+    helperText: 'Helper text goes here.',
+  },
+};
+
+/** Figma 13476:22358 — Loading (orange spinner replaces chevron). */
+export const Loading: Story = {
+  args: {
+    value: 'Filled text',
+    isLoading: true,
+    prefixIcon: <SearchIcon />,
+    helperText: 'Helper text goes here.',
+  },
+};
+
 export const RequiredAsterisk: Story = {
   args: {
     required: true,
