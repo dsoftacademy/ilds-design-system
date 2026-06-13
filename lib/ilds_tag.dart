@@ -60,7 +60,7 @@ class _IldsTagState extends State<IldsTag> {
   Color _textColor() {
     if (widget.isDisabled) return ILDSTokens.neutral300;
     if (widget.isActive || _isFocused) return ILDSTokens.orange600;
-    if (_isHovered || _isPressed) return ILDSTokens.neutral900;
+    if (_isHovered || _isPressed) return ILDSTokens.neutral600;
     return ILDSTokens.neutral600;
   }
 

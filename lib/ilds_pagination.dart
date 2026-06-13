@@ -96,7 +96,7 @@ class IldsPagination extends StatelessWidget {
             style: TextStyle(
               fontSize: ILDSTokens.spacing4,
               fontWeight: ILDSTokens.fontWeightBold,
-              color: selected ? ILDSTokens.orange600 : ILDSTokens.neutral900,
+              color: selected ? ILDSTokens.orange600 : ILDSTokens.neutral600,
             ),
           ),
         ),
@@ -118,7 +118,7 @@ class IldsPagination extends StatelessWidget {
               '$currentPage of $totalPages pages',
               style: const TextStyle(
                 fontSize: ILDSTokens.spacing3 + ILDSTokens.borderWidth2,
-                color: ILDSTokens.neutral900,
+                color: ILDSTokens.neutral600,
                 fontWeight: ILDSTokens.fontWeightMedium,
               ),
             ),
@@ -147,7 +147,7 @@ class IldsPagination extends StatelessWidget {
                   style: TextStyle(
                     fontSize: ILDSTokens.spacing4,
                     fontWeight: ILDSTokens.fontWeightBold,
-                    color: ILDSTokens.neutral900,
+                    color: ILDSTokens.neutral600,
                   ),
                 ),
               ),

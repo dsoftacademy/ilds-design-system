@@ -86,7 +86,7 @@ class _IldsCheckboxState extends State<IldsCheckbox> {
     if (_isHovered && (_isChecked || _isIndeterminate)) return ILDSTokens.orange600;
     if (_isHovered) return ILDSTokens.neutral400;
     if (_isChecked || _isIndeterminate || _isFocused) return ILDSTokens.orange500;
-    return ILDSTokens.neutral300;
+    return ILDSTokens.neutral400;
   }
 
   Color _fillColor() {
@@ -180,7 +180,7 @@ class _IldsCheckboxState extends State<IldsCheckbox> {
               style: TextStyle(
                 fontSize: _fontSize(),
                 fontWeight: ILDSTokens.fontWeightRegular,
-                color: widget.isDisabled ? ILDSTokens.neutral300 : ILDSTokens.neutral900,
+                color: widget.isDisabled ? ILDSTokens.neutral300 : ILDSTokens.neutral600,
               ),
             ),
           ),

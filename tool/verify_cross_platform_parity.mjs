@@ -19,7 +19,7 @@ const HEX_TO_TOKEN = {
   '#ffffff': 'globalWhite000',
   '#9e9e9e': 'neutralCoolgray500',
   '#757575': 'neutralCoolgray600',
-  '#bdbdbd': 'neutralCoolgray300',
+  '#bdbdbd': 'neutralCoolgray400',
   '#e0e0e0': 'neutralCoolgray300',
   '#424242': 'neutralCoolgray800',
   '#212121': 'neutralCoolgray900',
@@ -30,10 +30,10 @@ const HEX_TO_TOKEN = {
   '#dfffe6': 'successGreen50',
   '#2168f6': 'informativeBlue500',
   '#053c6d': 'informativeBlue800',
-  '#edf3ff': 'secondaryBlue50',
+  '#edf3ff': 'informativeBlue50',
   '#edf6ff': 'secondaryBlue50',
   '#e00903': 'errorRed600',
-  '#a30100': 'errorRed800',
+  '#a30100': 'errorRed700',
   '#fff2ee': 'errorRed50',
   '#ffd5cd': 'errorRed100',
   '#e49f04': 'warningAmber500',
@@ -186,9 +186,32 @@ const RULES = [
     state: 'prefix-icon',
     figma: '14018:6787',
     platforms: {
+      react: { must: ['text-primary-orange-500', 'text-neutral-coolgray-500'] },
+      flutter: { must: ['orange500', 'neutralCoolgray500'] },
+      swift: { must: ['primaryOrange500', 'neutralCoolgray500', 'isDisabled ?'] },
+      kotlin: { must: ['colors.label'] },
+    },
+  },
+  {
+    component: 'Checkbox',
+    state: 'checked-default',
+    figma: '13520:33528',
+    platforms: {
       react: { must: ['primary-orange-500'] },
-      swift: { must: ['primaryOrange500'], mustNot: ['prefixIcon\n                    .foregroundStyle(colors.label)'] },
+      flutter: { must: ['orange500'] },
+      swift: { must: ['primaryOrange500'] },
       kotlin: { must: ['primaryOrange500'] },
+    },
+  },
+  {
+    component: 'Checkbox',
+    state: 'unchecked-border',
+    figma: '13520:33544',
+    platforms: {
+      react: { must: ['neutral-coolgray-600'] },
+      flutter: { must: ['neutral400'] },
+      swift: { must: ['neutralCoolgray600'] },
+      kotlin: { must: ['neutralCoolgray600'] },
     },
   },
   {
@@ -231,6 +254,7 @@ function checkRule(rule) {
         TextField: 'web/src/components/TextField/TextField.tsx',
         Search: 'web/src/components/Search/Search.tsx',
         Chip: 'web/src/components/Chip/Chip.tsx',
+        Checkbox: 'web/src/components/Checkbox/Checkbox.tsx',
         Radio: 'web/src/components/Radio/Radio.tsx',
         Switch: 'web/src/components/Switch/Switch.tsx',
       };
@@ -240,6 +264,7 @@ function checkRule(rule) {
         Pagination: 'lib/ilds_pagination.dart',
         Tabs: 'lib/ilds_tab.dart',
         Chip: 'lib/ilds_chip.dart',
+        Checkbox: 'lib/ilds_checkbox.dart',
       };
       filePath = flutterPaths[rule.component] || PLATFORMS.flutter(slug);
     } else if (platform === 'swift') {

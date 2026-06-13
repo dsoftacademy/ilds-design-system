@@ -167,7 +167,7 @@ class IldsToast extends StatelessWidget {
                                 fontFamily: 'Mulish',
                                 fontSize: 14,
                                 fontWeight: ILDSTokens.fontWeightBold,
-                                color: ILDSTokens.neutral900,
+                                color: ILDSTokens.neutral600,
                               ),
                             ),
                             const SizedBox(height: ILDSTokens.spacing1),

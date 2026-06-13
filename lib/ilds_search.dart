@@ -121,7 +121,7 @@ class _IldsSearchState extends State<IldsSearch> {
                   style: const TextStyle(
                     fontSize: ILDSTokens.spacing3 + ILDSTokens.borderWidth2,
                     fontWeight: ILDSTokens.fontWeightRegular,
-                    color: ILDSTokens.neutral900,
+                    color: ILDSTokens.neutral600,
                   ),
                   decoration: InputDecoration(
                     border: InputBorder.none,

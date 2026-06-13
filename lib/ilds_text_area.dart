@@ -106,7 +106,7 @@ class _IldsTextAreaState extends State<IldsTextArea> {
   Color _textColor() {
     if (widget.isDisabled) return ILDSTokens.neutral300;
     if (widget.isReadOnly) return ILDSTokens.neutral500;
-    return ILDSTokens.neutral900;
+    return ILDSTokens.neutral600;
   }
 
   String? _bottomText() {

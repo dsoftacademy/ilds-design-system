@@ -81,7 +81,7 @@ fun IldsChip(
         ) {
             if (hasPrefixIcon && prefixIcon != null) {
                 androidx.compose.runtime.CompositionLocalProvider(
-                    LocalContentColor provides IldsTokens.primaryOrange500,
+                    LocalContentColor provides colors.label,
                 ) {
                     androidx.compose.foundation.layout.Box(
                         modifier = Modifier

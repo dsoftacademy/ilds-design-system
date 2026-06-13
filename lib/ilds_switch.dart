@@ -94,7 +94,7 @@ class _IldsSwitchState extends State<IldsSwitch> {
     return ILDSTokens.white;
   }
 
-  Color _labelColor() => widget.isDisabled ? ILDSTokens.neutral300 : ILDSTokens.neutral900;
+  Color _labelColor() => widget.isDisabled ? ILDSTokens.neutral300 : ILDSTokens.neutral600;
 
   void _handleTap() {
     if (widget.isDisabled || widget.onChanged == null) return;

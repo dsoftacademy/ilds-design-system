@@ -127,9 +127,9 @@ class _IldsTabBarState extends State<IldsTabBar> {
       return _isHigh ? ILDSTokens.white : ILDSTokens.orange500;
     }
     if (_focusedIndex == index && !_isHigh) return ILDSTokens.orange500;
-    if (_pressedIndex == index) return ILDSTokens.neutral800;
-    if (_hoveredIndex == index) return ILDSTokens.neutral900;
-    return _isHigh ? ILDSTokens.neutral800 : ILDSTokens.neutral800;
+    if (_pressedIndex == index) return ILDSTokens.neutral500;
+    if (_hoveredIndex == index) return ILDSTokens.neutral600;
+    return _isHigh ? ILDSTokens.neutral500 : ILDSTokens.neutral500;
   }
 
   Color _backgroundColor(int index) {

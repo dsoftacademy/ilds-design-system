@@ -178,7 +178,7 @@ class _IldsDropdownState extends State<IldsDropdown> {
             final bool isDisabled = option.disabled;
             final Color textColor = isDisabled
                 ? ILDSTokens.neutral300
-                : (isSelected ? ILDSTokens.orange500 : ILDSTokens.neutral900);
+                : (isSelected ? ILDSTokens.orange500 : ILDSTokens.neutral600);
             final FontWeight weight =
                 isSelected ? ILDSTokens.fontWeightBold : ILDSTokens.fontWeightRegular;
 
@@ -235,7 +235,7 @@ class _IldsDropdownState extends State<IldsDropdown> {
     Color borderColor = ILDSTokens.neutral200;
     double borderWidth = ILDSTokens.borderWidth1;
     Color fillColor = ILDSTokens.white;
-    Color textColor = selected == null ? ILDSTokens.neutral300 : ILDSTokens.neutral900;
+    Color textColor = selected == null ? ILDSTokens.neutral300 : ILDSTokens.neutral600;
     Color iconColor = ILDSTokens.neutral400;
 
     if (isDisabled) {

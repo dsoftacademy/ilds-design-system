@@ -178,7 +178,7 @@ class _IldsTextFieldState extends State<IldsTextField> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: ILDSTokens.fontWeightRegular,
-              color: widget.isReadOnly ? ILDSTokens.neutral500 : ILDSTokens.neutral900,
+              color: widget.isReadOnly ? ILDSTokens.neutral500 : ILDSTokens.neutral600,
             ),
             decoration: InputDecoration(
               hintText: widget.placeholder,
@@ -285,7 +285,7 @@ class _IldsTextFieldState extends State<IldsTextField> {
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: ILDSTokens.fontWeightBold,
-                color: ILDSTokens.neutral900,
+                color: ILDSTokens.neutral600,
               ),
               decoration: InputDecoration(
                 counterText: '',

@@ -169,7 +169,7 @@ class _IldsRadioState extends State<IldsRadio> {
               style: TextStyle(
                 fontSize: _fontSize(),
                 fontWeight: ILDSTokens.fontWeightRegular,
-                color: widget.isDisabled ? ILDSTokens.neutral300 : ILDSTokens.neutral900,
+                color: widget.isDisabled ? ILDSTokens.neutral300 : ILDSTokens.neutral600,
               ),
             ),
           ),

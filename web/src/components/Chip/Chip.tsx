@@ -15,15 +15,20 @@ export type IldsChipProps = {
   className?: string;
 };
 
-const prefixIconSlotClasses =
-  'inline-flex shrink-0 items-center justify-center overflow-hidden size-sp-12 pt-[2px] text-primary-orange-500 [&>svg]:size-full [&>img]:size-full';
+function prefixIconSlotClasses(isDisabled: boolean): string {
+  return [
+    'inline-flex shrink-0 items-center justify-center overflow-hidden size-sp-12 pt-[2px]',
+    isDisabled ? 'text-neutral-coolgray-500' : 'text-primary-orange-500',
+    '[&>svg]:size-full [&>img]:size-full',
+  ].join(' ');
+}
+
+function PrefixIconSlot({ children, isDisabled }: { children: ReactNode; isDisabled: boolean }) {
+  return <span className={prefixIconSlotClasses(isDisabled)}>{children}</span>;
+}
 
 const suffixButtonClasses =
   'inline-flex shrink-0 items-center justify-center size-sp-12 pt-[2px] border-0 bg-transparent p-0 text-neutral-coolgray-500 cursor-pointer disabled:cursor-default disabled:pointer-events-none disabled:text-neutral-coolgray-500 [&>svg]:size-full';
-
-function PrefixIconSlot({ children }: { children: ReactNode }) {
-  return <span className={prefixIconSlotClasses}>{children}</span>;
-}
 
 /** Figma Interface / Edit / Close_Circle — 12px slot, currentColor */
 function CloseCircleIcon() {
@@ -113,7 +118,7 @@ export function IldsChip({
         .filter(Boolean)
         .join(' ')}
     >
-      {showPrefix ? <PrefixIconSlot>{prefixIcon}</PrefixIconSlot> : null}
+      {showPrefix ? <PrefixIconSlot isDisabled={isDisabled}>{prefixIcon}</PrefixIconSlot> : null}
       {hasSuffixButton ? (
         <button
           type="button"

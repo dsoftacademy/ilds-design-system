@@ -77,7 +77,7 @@ class _IldsSelectionButtonState extends State<IldsSelectionButton> {
   Color _textColor() {
     if (widget.isDisabled) return ILDSTokens.neutral300;
     if (widget.isSelected || _isFocused) return ILDSTokens.orange500;
-    if (_isPressed || _isHovered) return ILDSTokens.neutral900;
+    if (_isPressed || _isHovered) return ILDSTokens.neutral600;
     return ILDSTokens.neutral600;
   }
 

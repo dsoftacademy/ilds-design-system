@@ -43,12 +43,12 @@ class _IldsAccordionState extends State<IldsAccordion> with TickerProviderStateM
 
   Color _titleColor() {
     if (_isFocused) return ILDSTokens.orange500;
-    return ILDSTokens.neutral900;
+    return ILDSTokens.neutral600;
   }
 
   Color _iconColor() {
     if (_isFocused) return ILDSTokens.orange500;
-    if (_isPressed) return ILDSTokens.neutral900;
+    if (_isPressed) return ILDSTokens.neutral600;
     if (_isHovered) return ILDSTokens.neutral600;
     return ILDSTokens.neutral600;
   }

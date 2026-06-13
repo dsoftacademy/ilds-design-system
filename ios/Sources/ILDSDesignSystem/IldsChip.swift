@@ -47,7 +47,7 @@ public struct IldsChip: View {
         HStack(spacing: metrics.gap) {
             if hasPrefixIcon, let prefixIcon {
                 prefixIcon
-                    .foregroundStyle(ILDSTokens.primaryOrange500)
+                    .foregroundStyle(isDisabled ? ILDSTokens.neutralCoolgray500 : ILDSTokens.primaryOrange500)
                     .frame(width: metrics.iconSlot, height: metrics.iconSlot)
                     .padding(.top, 2)
             }
