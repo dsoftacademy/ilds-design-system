@@ -6,6 +6,7 @@
     "prepare": "git config core.hooksPath .githooks",
     "code-connect:publish": "dotenv -e .env -- npx figma connect publish",
     "build:tokens": "node style-dictionary.config.mjs",
+    "verify:tokens": "node tool/verify_token_exports.mjs",
     "storybook": "npm run storybook --prefix web",
     "build:storybook": "npm run build-storybook --prefix web"
   },

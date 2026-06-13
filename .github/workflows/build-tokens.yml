@@ -1,8 +1,9 @@
 name: Build Design Tokens
 
 # Regenerates the multi-platform token exports (CSS custom properties + Tailwind
-# theme extension) whenever the token source or the generator changes, and commits
-# the refreshed dist/ outputs back to main so consumers always have current values.
+# theme extension + iOS Swift + Android Compose) whenever the token source or the
+# generator changes, and commits the refreshed dist/ outputs back to main so
+# consumers on every platform always have current values.
 
 on:
   workflow_dispatch: {}
@@ -24,7 +25,7 @@ concurrency:
 
 jobs:
   build:
-    name: Export tokens (CSS + Tailwind)
+    name: Export tokens (CSS + Tailwind + Swift + Compose)
     runs-on: ubuntu-latest
 
     steps:
@@ -52,7 +53,7 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dist/tokens.css dist/tokens.theme.css dist/tailwind-tokens.js
-          git commit -m "ci: rebuild design token exports (CSS + Tailwind) [skip ci]"
+          git add dist/tokens.css dist/tokens.theme.css dist/tailwind-tokens.js dist/ILDSTokens.swift dist/IldsTokens.kt
+          git commit -m "ci: rebuild design token exports (CSS + Tailwind + Swift + Compose) [skip ci]"
           git push
           echo "✅ Committed refreshed token exports."

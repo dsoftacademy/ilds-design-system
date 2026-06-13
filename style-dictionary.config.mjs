@@ -193,6 +193,192 @@ StyleDictionary.registerFormat({
   },
 });
 
+// ── Phase 4a: native platform exports (iOS Swift + Android Compose) ──────────
+// Native files mirror the Flutter `ILDSTokens` faithful names (primaryOrange500,
+// neutralCoolgray500, globalWhite000, sp8, radiusMedium, fontSize12, …) so a
+// single token change in tokens.json reaches Flutter, web, iOS, and Android.
+
+const cap = (key) => {
+  const k = `${key}`.trim();
+  if (k === '' || /^\d/.test(k)) return k;
+  return k[0].toUpperCase() + k.slice(1);
+};
+
+const camel = (group) => {
+  const parts = `${group}`.trim().split('-');
+  return parts[0] + parts.slice(1).map((p) => (p ? cap(p) : '')).join('');
+};
+
+// '500' → '500'; 'white-000' → 'White000'
+const stepSuffix = (key) => {
+  const k = `${key}`.trim();
+  if (/^\d+$/.test(k)) return k;
+  return k.split('-').map((p) => (p ? cap(p) : '')).join('');
+};
+
+// Faithful identifier shared by Swift + Kotlin (matches Dart ILDSTokens names).
+function faithfulName(token) {
+  const path = tokenPath(token);
+  const type = tokenType(token);
+  if (type === 'color') {
+    // The `global` color group (white-000/black-1000) collapses to ['color', step]
+    // because tokenPath() strips every 'global' segment (set wrapper + group share
+    // the name). Restore the `global` prefix to match Dart globalWhite000/Black1000.
+    if (path.length === 2) return `global${stepSuffix(path[1])}`;
+    return `${camel(path[1])}${stepSuffix(path[2])}`;
+  }
+  if (type === 'spacing') return camel(path[path.length - 1]);
+  if (type === 'borderRadius') return `radius${cap(path[path.length - 1])}`;
+  if (type === 'fontFamily') return `fontFamily${cap(path[path.length - 1])}`;
+  if (type === 'fontWeight') return `fontWeight${cap(path[path.length - 1])}`;
+  if (type === 'dimension' && path[1] === 'font-size') {
+    return `fontSize${cap(path[path.length - 1])}`;
+  }
+  if (type === 'number' && path[1] === 'line-height') {
+    return `lineHeight${path[path.length - 1]}`;
+  }
+  return path.map(kebab).join('-');
+}
+
+// Native name transform (faithful camelCase) — also makes token.name unique so
+// Style Dictionary does not warn about name collisions on the native platforms.
+StyleDictionary.registerTransform({
+  name: 'ilds/name/faithful',
+  type: 'name',
+  transform: (token) => faithfulName(token),
+});
+
+// Untransformed source value (native platforms keep raw hex + unitless numbers).
+const rawValue = (token) => `${token.original?.$value ?? token.$value ?? token.value}`.trim();
+
+const isFontSize = (token) =>
+  tokenType(token) === 'dimension' && tokenPath(token)[1] === 'font-size';
+const isLineHeight = (token) =>
+  tokenType(token) === 'number' && tokenPath(token)[1] === 'line-height';
+
+const SWIFT_WEIGHT = { 400: '.regular', 500: '.medium', 700: '.bold' };
+const COMPOSE_WEIGHT = {
+  400: 'FontWeight.Normal',
+  500: 'FontWeight.Medium',
+  700: 'FontWeight.Bold',
+};
+
+// iOS — SwiftUI. dist/ILDSTokens.swift → enum ILDSTokens with Color/CGFloat/Font.Weight.
+StyleDictionary.registerFormat({
+  name: 'ilds/swift',
+  format: ({ dictionary }) => {
+    const colors = [];
+    const spacing = [];
+    const radius = [];
+    const family = [];
+    const sizes = [];
+    const weights = [];
+    const leading = [];
+    for (const token of dictionary.allTokens) {
+      const type = tokenType(token);
+      const name = faithfulName(token);
+      const raw = rawValue(token);
+      if (type === 'color') {
+        const hex = raw.replace('#', '').toUpperCase();
+        colors.push(`    public static let ${name} = Color(hex: 0x${hex})`);
+      } else if (type === 'spacing') {
+        spacing.push(`    public static let ${name}: CGFloat = ${raw}`);
+      } else if (type === 'borderRadius') {
+        radius.push(`    public static let ${name}: CGFloat = ${raw}`);
+      } else if (type === 'fontFamily') {
+        family.push(`    public static let ${name} = "${raw}"`);
+      } else if (isFontSize(token)) {
+        sizes.push(`    public static let ${name}: CGFloat = ${raw}`);
+      } else if (type === 'fontWeight') {
+        weights.push(
+          `    public static let ${name}: Font.Weight = ${SWIFT_WEIGHT[raw] ?? '.regular'}`,
+        );
+      } else if (isLineHeight(token)) {
+        leading.push(`    public static let ${name}: CGFloat = ${raw}`);
+      }
+    }
+    return (
+      '// GENERATED FILE — DO NOT EDIT BY HAND.\n' +
+      '// Source: tokens/tokens.json  Generator: style-dictionary.config.mjs\n' +
+      '// Regenerate: npm run build:tokens\n' +
+      'import SwiftUI\n\n' +
+      'public extension Color {\n' +
+      '    init(hex: UInt32, alpha: Double = 1.0) {\n' +
+      '        let r = Double((hex >> 16) & 0xFF) / 255.0\n' +
+      '        let g = Double((hex >> 8) & 0xFF) / 255.0\n' +
+      '        let b = Double(hex & 0xFF) / 255.0\n' +
+      '        self.init(.sRGB, red: r, green: g, blue: b, opacity: alpha)\n' +
+      '    }\n' +
+      '}\n\n' +
+      'public enum ILDSTokens {\n' +
+      '    // MARK: - Colors\n' +
+      colors.join('\n') +
+      '\n\n    // MARK: - Spacing\n' +
+      spacing.join('\n') +
+      '\n\n    // MARK: - Border radius\n' +
+      radius.join('\n') +
+      '\n\n    // MARK: - Typography\n' +
+      [...family, ...sizes, ...weights, ...leading].join('\n') +
+      '\n}\n'
+    );
+  },
+});
+
+// Android — Jetpack Compose. dist/IldsTokens.kt → object IldsTokens with Color/Dp/Sp/FontWeight.
+StyleDictionary.registerFormat({
+  name: 'ilds/compose',
+  format: ({ dictionary }) => {
+    const colors = [];
+    const spacing = [];
+    const radius = [];
+    const family = [];
+    const sizes = [];
+    const weights = [];
+    const leading = [];
+    for (const token of dictionary.allTokens) {
+      const type = tokenType(token);
+      const name = faithfulName(token);
+      const raw = rawValue(token);
+      if (type === 'color') {
+        const hex = raw.replace('#', '').toUpperCase();
+        colors.push(`    val ${name} = Color(0xFF${hex})`);
+      } else if (type === 'spacing') {
+        spacing.push(`    val ${name} = ${raw}.dp`);
+      } else if (type === 'borderRadius') {
+        radius.push(`    val ${name} = ${raw}.dp`);
+      } else if (type === 'fontFamily') {
+        family.push(`    const val ${name} = "${raw}"`);
+      } else if (isFontSize(token)) {
+        sizes.push(`    val ${name} = ${raw}.sp`);
+      } else if (type === 'fontWeight') {
+        weights.push(`    val ${name} = ${COMPOSE_WEIGHT[raw] ?? `FontWeight(${raw})`}`);
+      } else if (isLineHeight(token)) {
+        leading.push(`    const val ${name} = ${raw}f`);
+      }
+    }
+    return (
+      '// GENERATED FILE — DO NOT EDIT BY HAND.\n' +
+      '// Source: tokens/tokens.json  Generator: style-dictionary.config.mjs\n' +
+      '// Regenerate: npm run build:tokens\n' +
+      'package com.icicilombard.ilds.tokens\n\n' +
+      'import androidx.compose.ui.graphics.Color\n' +
+      'import androidx.compose.ui.text.font.FontWeight\n' +
+      'import androidx.compose.ui.unit.dp\n' +
+      'import androidx.compose.ui.unit.sp\n\n' +
+      'object IldsTokens {\n' +
+      '    // Colors\n' +
+      colors.join('\n') +
+      '\n\n    // Spacing\n' +
+      spacing.join('\n') +
+      '\n\n    // Border radius\n' +
+      radius.join('\n') +
+      '\n\n    // Typography\n' +
+      [...family, ...sizes, ...weights, ...leading].join('\n') +
+      '\n}\n'
+    );
+  },
+});
+
 const transforms = [
   'attribute/cti',
   'ilds/name/kebab',
@@ -200,6 +386,9 @@ const transforms = [
   'ilds/size/px',
   'ilds/font/family',
 ];
+
+// Native platforms keep raw token values (hex + unitless); faithful unique names.
+const nativeTransforms = ['attribute/cti', 'ilds/name/faithful'];
 
 const sd = new StyleDictionary({
   source: ['tokens/tokens.json'],
@@ -221,11 +410,21 @@ const sd = new StyleDictionary({
       buildPath: 'dist/',
       files: [{ destination: 'tailwind-tokens.js', format: 'ilds/tailwind' }],
     },
+    swift: {
+      transforms: nativeTransforms,
+      buildPath: 'dist/',
+      files: [{ destination: 'ILDSTokens.swift', format: 'ilds/swift' }],
+    },
+    compose: {
+      transforms: nativeTransforms,
+      buildPath: 'dist/',
+      files: [{ destination: 'IldsTokens.kt', format: 'ilds/compose' }],
+    },
   },
 });
 
 await sd.cleanAllPlatforms();
 await sd.buildAllPlatforms();
 console.log(
-  '✅ ILDS tokens built → dist/tokens.css + dist/tokens.theme.css + dist/tailwind-tokens.js',
+  '✅ ILDS tokens built → dist/tokens.css + dist/tokens.theme.css + dist/tailwind-tokens.js + dist/ILDSTokens.swift + dist/IldsTokens.kt',
 );

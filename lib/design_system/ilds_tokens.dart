@@ -83,7 +83,7 @@ class ILDSTokens {
   static const Color secondaryBlue800 = Color(0xFF002142);
   static const Color secondaryBlue900 = Color(0xFF011933);
   // global
-  static const Color globalWhite000 = Color(0xFFFFFFFE);
+  static const Color globalWhite000 = Color(0xFFFFFFFF);
   static const Color globalBlack1000 = Color(0xFF020202);
   // neutral-coolgray
   static const Color neutralCoolgray50 = Color(0xFFFAFAFA);

@@ -50,7 +50,7 @@ When the user says "continue", "next step", or "what's left" — consult **Secti
 | **Primary platform** | Flutter (iOS + Android) |
 | **DS Lead** | Pratishek — Principal Designer, 11 years experience |
 | **Started** | March 2026 |
-| **Current phase** | Phase 3a complete. **Phase 3b in progress** — Button Milestone 1 (~90%; parity harness 17/17; side-by-side gate pending). |
+| **Current phase** | **Phase 3 complete · Phase 4a complete (Jun 2026).** Native token exports (Swift + Compose) ship from `tokens.json`. **Phase 4b** (iOS/Android components) is next. |
 | **Automation stack** | Figma · Custom Figma Plugin · GitHub · GitHub Actions · Supernova · Slack |
 
 ### What ILDS Is
@@ -71,8 +71,8 @@ The library contains 18 production-ready Flutter components, 112 design tokens, 
 - If the AI Design Assistant encounters a gap — a screen that requires a component that doesn't exist or needs an update — it creates a best-effort DS-aligned version, flags it clearly as unvalidated, completes all screens without blocking, and simultaneously channels the requirement to the DS Management Agent to handle in parallel. When the DS Management Agent releases the validated update, the designer decides whether to update the flow.
 - A developer inspects any Figma component in Dev Mode and sees executable code in their target language (Flutter, React, SwiftUI, Compose, or any configured platform) — already aligned to the latest token values.
 - Token changes propagate to **all platforms** (Flutter, React, iOS SwiftUI, Android Compose) automatically via a single Style Dictionary pipeline triggered by a Figma save.
-- The DS Management Agent — working alongside human design and dev managers — owns the design system entirely. It receives component requests (from the AI Design Assistant or any other source), validates them against the existing system, builds or updates the component, and simultaneously pushes the update to every touch-point: Supernova, Figma, Storybook, DS website, Slack. Human managers approve what ships. The agent handles everything else.
-- Documentation is always current because it is generated, not written — and when it is regenerated, it validates against the previous version and propagates updates simultaneously across all touch-points: the DS website, Storybook, Supernova, and Figma.
+- The DS Management Agent — working alongside human design and dev managers — owns the design system entirely. It receives component requests (from the AI Design Assistant or any other source), validates them against the existing system, builds or updates the component, and simultaneously pushes the update to every touch-point: Supernova, Figma, Storybook, Slack. Human managers approve what ships. The agent handles everything else.
+- Documentation is always current because it is generated, not written — and when it is regenerated, it validates against the previous version and propagates updates simultaneously across all touch-points: Supernova, Storybook, and Figma.
 
 ### Autonomy levels (honest framing)
 
@@ -81,7 +81,7 @@ The library contains 18 production-ready Flutter components, 112 design tokens, 
 | **L1 — Token propagation** | Token changes flow automatically to `tokens.json` + Supernova + Slack + Flutter (`dart run tool/generate_ilds_tokens.dart` regenerates the Dart class from `tokens.json`). Multi-platform (React, iOS, Android) requires Phases 3–4. **Typography is interim repo/plugin-authored until Phase 8** (Figma Variables). | ✅ Flutter achieved (colors/spacing/radius); ⚠️ typography → Phase 8 |
 | **L2 — Component consistency** | All components built to a single architectural pattern, zero hardcoded values | ✅ Achieved |
 | **L3 — Handoff automation** | Dev Mode shows real Flutter code for all 18 components. Multi-language handoff (React, SwiftUI, Compose) requires Phases 3–4. | ✅ Flutter only |
-| **L4 — Platform parity** | Same token file drives Flutter, React, iOS, Android simultaneously | ❌ Phase 3–4 |
+| **L4 — Platform parity** | Same token file drives Flutter, React, iOS, Android simultaneously | 🟡 React ✅ (Phase 3); iOS/Android → Phase 4 |
 | **L5 — Evolution infrastructure** | System proposes, visually regression-tests, and stages component updates via PRs for human sign-off | ❌ Phase 5 |
 | **L6 — DS Management Agent** | Intelligent agent owns DS end-to-end alongside human managers — validates, builds, deploys, and communicates all changes across all platforms simultaneously | ❌ Phase 6 |
 | **L7 — AI-assisted screen design** | AI generates complete UI screens from PRD + design style + references, with non-blocking component gap routing to the DS Management Agent | ❌ Phase 7 |
@@ -281,9 +281,9 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 
 ---
 
-### Phase 3 — Web Platform (React) 🟡 IN PROGRESS (3a ✅ · 3b Button Milestone 1)
+### Phase 3 — Web Platform (React) ✅ COMPLETE (Jun 2026)
 
-**Goal:** Extend ILDS to React. Deliver a Storybook site and a live public design system website.
+**Goal:** Extend ILDS to React. Deliver a Storybook component library for web engineers. **Public documentation is Supernova** — no separate DS website.
 
 > ✅ **Style Dictionary foundation now exists (Jun 2026, Phase 3a complete).** The token-export pipeline (CSS + Tailwind) is built, runs in CI, and is the base that Phases 4, 6, and 7 extend. Phase 3b (React components) can now proceed.
 
@@ -306,72 +306,50 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 
 **Status:** `- [x]` Complete — validated locally (`npm run build:tokens` regenerates both files); CI auto-commit path wired for the Figma → plugin → push → rebuild loop.
 
-#### Phase 3b — React Component Parity (depends on Phase 3a) — IN PROGRESS
+#### Phase 3b — React Component Parity ✅ COMPLETE (Jun 2026)
 
-**Goal:** Build 18 React components matching Flutter component states, styled via the Phase 3a token output.
+**Goal:** Build React components matching Flutter component states, styled via the Phase 3a token output.
 
-**Locked stack (verify against npm before scaffold — Jun 2026):**
-- **Tailwind CSS v4** — import `dist/tokens.theme.css` (`@theme`); no `tailwind.config.js`
-- **Storybook 10** (10.4.x) — not Storybook 8
-- React + TypeScript, Vite scaffold
+**Shipped:**
+- `web/` — Vite + React 19 + TypeScript + Tailwind 4.3 + Storybook 10.4
+- **17 React components** (all Flutter components with Figma specs; Tag deferred — no Figma Tag Display node)
+- **89 parity variants** across 18 spec files (`web/specs/*.spec.json`)
+- Playwright parity + QA + axe-core a11y sweeps in CI (`.github/workflows/web-tests.yml`)
+- Phase 3c: Password/OTP TextField, Dropdown menu panel, Flutter icon-only buttons
 
-**Tailwind default reset (mandatory in 3b scaffold):** `dist/tokens.theme.css` resets `--spacing: initial` and `--color-*` / `--radius-*: initial` before ILDS tokens, so utilities like `p-2` / `bg-red-500` do **not** resolve to Tailwind defaults — only ILDS names (`p-sp-2`, `bg-primary-orange-500`, etc.). Verify in Storybook that no component uses default Tailwind scale classes.
+**Out of scope / deferred:**
+- **Public DS website (Vercel)** — removed from scope Jun 2026; **Supernova** is the canonical public documentation portal
+- **Tag (React)** — deferred until designer publishes Tag Display component set in Figma
+- **Chromatic** — deferred to Phase 5 (visual regression infrastructure)
+- **Manual Flutter ↔ React sign-off** — checklist in `docs/reports/PHASE3C_FLUTTER_REACT_SIGNOFF.md` (non-blocking)
+- **A11y design decisions** — contrast exceptions + dropdown focus ring documented for designer review
 
-**Tailwind reset warnings (read before first component):**
-1. **`--color-*: initial` removes Tailwind's built-in `white`/`black` utilities.** ILDS exports `--color-white-000` / `--color-black-1000` (Figma keys `white-000` / `black-1000`). **Decision (Jun 2026, 3b scaffold):** Style Dictionary also emits `--color-white` / `--color-black` aliases (same values) so `bg-white` / `text-black` work in React. Canonical Figma keys remain `white-000` / `black-1000`.
-2. **`--spacing: initial` removes all numeric spacing utilities** (`p-2`, `gap-4`, and numeric `w-*` / `h-*` / `size-*` derived from the default scale). Only ILDS names (`p-sp-2`, `gap-sp-4`, etc.) and arbitrary values (`p-[12px]`) work. First scaffolded component will "lose" widths if it uses `w-4` — enforce ILDS spacing names in code review.
+**Status:** `- [x]` Complete
 
-**Pre-3b gate (manual — plugin runs in Figma):** ~~Revert test drift via plugin sync~~ **Passed Jun 2026** — preserve-merge proven on no-op sync `585ee66` (typography intact). **Note:** `#E3530F` was restored by manual commit `30439b3` (typography fix after stale `code.js` wipe), not by plugin sync; merge-with-actual-value-change proven on `a8477df` (`white-000` `#FFFFFE` → `#FFFFFF`, typography intact). **`white-000`:** reverted to `#FFFFFF` via plugin sync `a8477df` (Jun 2026) — first real value change through preserve-merge (typography intact).
-
-**3b delivery sequence (do not sprint five components):**
-1. Scaffold: Vite + React + TS + **Tailwind 4.3** + **Storybook 10.4** (`npm view tailwindcss storybook` before install). ✅ `7f1da52`
-2. **Milestone 1 — Button only:** full state parity with `lib/ilds_button.dart`; one Storybook story per state; tokens via `@import` of `dist/tokens.theme.css` only. **~90%** — see shipped list below.
-3. Side-by-side check vs Flutter playground **before** Chip, TextField, Dropdown, Toast.
-4. Gate remaining four Phase-1 components on Button sign-off.
-
-**Milestone 1 Button — shipped (Jun 2026, `f331aff`):**
-- [x] `web/` scaffold + root Storybook scripts
-- [x] React `IldsButton` — types/sizes/appearance/disabled/loading/destructive
-- [x] Figma state alignment (hover/pressed/focus/disabled/gaps/heights/tertiary px)
-- [x] Icon slots (24/20/12px), iconOnly + `aria-label`, loading (leading + trailing spinner)
-- [x] Playwright parity harness — `web/specs/button.spec.json` — **17 verified variants**
-- [x] CI: `.github/workflows/web-tests.yml`
-- [x] Flutter secondary/tertiary pressed (`bae6756`) — `StatefulWidget` + `onHighlightChanged`
-- [x] Destructive pressed nodes `16186:2051` / `16186:2581` (designer updated tertiary to red-700)
-- [ ] Side-by-side Flutter ↔ React playground gate (Pratishek sign-off)
-- [ ] Flutter icon slots / iconOnly (React ahead)
-- [ ] Skeleton state — PRESUMED visual only; defer or pull Figma node
-- [ ] Hover on Flutter — TODO (mobile-first defer)
-
-**Status:** `- [~]` In progress — Button Milestone 1 near complete; **do not start Chip/TextField/Dropdown/Toast until gate passes.**
-
-**Scope:**
-- React + TypeScript component library (same 18 components, same 18 × states)
-- Tailwind CSS v4 consuming `dist/tokens.theme.css` + typography tokens
-- Storybook 10 — all components, all states documented
-- Public design system website — Vercel, auto-deploys on every merge to `main`
-- This is significant engineering effort: 18 components × full state coverage = 18× the effort of Phase 3a
-
-**Why this phase matters:** ILDS currently only serves Flutter. Web engineers have no design system. Phase 3 closes that gap and makes ILDS a true cross-platform system.
-
-**Suggested tech decisions:**
-- Style Dictionary for token export from `tokens.json` → CSS custom properties (Phase 3a)
-- Vercel for DS website hosting (connects to GitHub, auto-deploys)
-- Storybook 10 with Chromatic for visual regression
+**Why this phase matters:** ILDS now serves both Flutter and React web engineers. Supernova remains the public-facing documentation portal; Storybook is the dev-time component reference and parity test target.
 
 ---
 
-### Phase 4 — Native Platform Parity (iOS + Android) 🔴 NOT STARTED
+### Phase 4 — Native Platform Parity (iOS + Android) 🟡 IN PROGRESS (4a ✅ · 4b pending)
 
 **Goal:** Same `tokens.json` drives SwiftUI (iOS) and Compose (Android) — one token change reaches all 4 platforms.
 
-> ⚠️ **Style Dictionary prerequisite:** Same as Phase 3. Style Dictionary must be configured before any Phase 4 work begins. Phase 4 extends the same Style Dictionary config to emit Swift and Kotlin token classes.
+> ✅ **4a complete (Jun 2026):** Style Dictionary now emits `dist/ILDSTokens.swift` + `dist/IldsTokens.kt` from the same `tokens.json`. Token changes auto-propagate to Flutter, web, iOS, and Android via `build-tokens.yml`.
 
-#### Phase 4a — Token Export for Native Platforms (depends on Phase 3a Style Dictionary foundation)
+#### Phase 4a — Token Export for Native Platforms ✅ COMPLETE (Jun 2026)
 
 **Goal:** Extend Style Dictionary to output Swift color/spacing constants (iOS) and a Kotlin/Compose token class (Android). Extend GitHub Action to emit these on every `tokens/tokens.json` push.
 
-**Status:** `- [ ]` Not started
+**What shipped:**
+- `style-dictionary.config.mjs` — two new formats (`ilds/swift`, `ilds/compose`) + platforms + `ilds/name/faithful` name transform.
+- `dist/ILDSTokens.swift` — SwiftUI `enum ILDSTokens` with `Color` (via a generated `Color(hex:)` extension), `CGFloat` spacing/radius/font-size, `Font.Weight`, and line-height multipliers.
+- `dist/IldsTokens.kt` — Jetpack Compose `object IldsTokens` (`com.icicilombard.ilds.tokens`) with `Color(0xAARRGGBB)`, `Dp` spacing/radius, `Sp` font-size, `FontWeight`, and line-height floats.
+- **Faithful names** mirror the Flutter `ILDSTokens` API (`primaryOrange500`, `neutralCoolgray500`, `globalWhite000`, `sp8`, `radiusMedium`, `fontSize12`, `fontWeightRegular`, `lineHeight12`) so one token = same identifier across Flutter, iOS, and Android.
+- `.gitignore` allow-lists both files; `build-tokens.yml` commits them alongside the web exports on every token push.
+
+**Scope notes:** Both files are pure token constants (no components). Compose colors are emitted as opaque `0xFF` ARGB. Display-scale typography (48–72px) follows in Phase 8 when the Figma collection exists. Generation is deterministic (`npm run build:tokens`); native compilation is validated when the iOS/Android app shells land in Phase 4b.
+
+**Status:** `- [x]` Complete
 
 #### Phase 4b — Native Component Parity (depends on Phase 4a)
 
@@ -465,8 +443,7 @@ When a requirement arrives, the agent:
 When an update is approved and deployed, the agent simultaneously notifies:
 - Slack `#design-system-updates` — what changed, which component, which platforms
 - Supernova — documentation auto-updated
-- DS website — regenerated
-- Storybook — updated and redeployed
+- Storybook — updated (dev reference)
 - Figma — component and Code Connect updated
 - Phase 7 AI Design Assistant — notified to update any flagged screens using the new validated component
 
@@ -498,7 +475,7 @@ Slack — human design + dev manager approval required
 GitHub merge → existing token pipeline → all platforms
         │
         ▼
-Simultaneous notification: Supernova + DS website + Storybook + Figma + Slack + Phase 7
+Simultaneous notification: Supernova + Storybook + Figma + Slack + Phase 7
 ```
 
 **Key technical requirements:**
@@ -912,21 +889,20 @@ See Section 5, Phase 3 for full scope.
 - [x] Validated locally; CI auto-commit path wired for Figma → plugin → GitHub → CSS rebuild
 
 **Phase 3b (React components — depends on 3a):**
-- [x] `web/` scaffold — Vite + React + TS + Tailwind 4.3 + Storybook 10.4 (`7f1da52`)
-- [~] **Button Milestone 1** — React + parity harness 17/17 + Flutter pressed states (`f331aff`); side-by-side gate pending
-- [ ] Chip, TextField, Dropdown, Toast (React) — gated on Button sign-off
-- [ ] Remaining 13 Phase-2 components (React)
-- [ ] Public DS website — Vercel, auto-deploys on merge
-- [ ] Visual regression via Chromatic
+- [x] `web/` scaffold — Vite + React + TS + Tailwind 4.3 + Storybook 10.4
+- [x] 17 React components + 89 parity variants + CI tests
+- [x] Phase 3c — Password/OTP, Dropdown menu, Flutter icon-only buttons
+- [x] ~~Public DS website (Vercel)~~ — **out of scope**; Supernova is canonical docs portal
+- [ ] Chromatic visual regression — deferred to Phase 5
 
 ---
 
-### 🟢 PHASE 4 — Start After Phase 3 Is Shipped
+### 🟢 PHASE 4 — Start Now (Phase 3 shipped)
 
 See Section 5, Phase 4.
 
-**Phase 4a:** Style Dictionary extended to Swift + Kotlin. Token export runs on CI.
-**Phase 4b:** 18 SwiftUI (iOS) + 18 Compose (Android) components consuming Phase 4a output.
+**Phase 4a:** ✅ Style Dictionary extended to Swift + Kotlin (`dist/ILDSTokens.swift`, `dist/IldsTokens.kt`); token export + auto-commit runs on CI.
+**Phase 4b:** 18 SwiftUI (iOS) + 18 Compose (Android) components consuming Phase 4a output. — Not started.
 
 ---
 
@@ -1109,14 +1085,14 @@ These apply to every agent, every session, every PR.
 | Documentation portal | Supernova | Synced via CLI in CI |
 | Notifications | Slack | `#design-system-updates` webhook |
 | Code Connect | Figma Code Connect | 18 `.figma.ts` files at repo root |
-| Phase 3 target | React + TypeScript | Not started |
-| Phase 3 styling | Tailwind CSS v4 (`@theme` via `dist/tokens.theme.css`) | Not started |
-| Phase 3 docs | Storybook 10 (verify npm) | Not started |
-| Phase 3 hosting | Vercel | Not started |
+| Phase 3 target | React + TypeScript | ✅ Done (Jun 2026) — 17 components in `web/` |
+| Phase 3 styling | Tailwind CSS v4 (`@theme` via `dist/tokens.theme.css`) | ✅ Done |
+| Phase 3 docs | Storybook 10 (dev reference) + Supernova (public docs) | ✅ Storybook done; Supernova via CI |
+| Phase 3 hosting | ~~Vercel~~ — **out of scope** | Supernova is canonical public portal |
 | Phase 3a token export | Style Dictionary v4 (CSS + Tailwind) | ✅ Done (Jun 2026) — `style-dictionary.config.mjs`, CI `build-tokens.yml` |
-| Phase 4 export | Style Dictionary (Swift + Kotlin) | Not started — extends the Phase 3a config |
-| Phase 4 iOS | SwiftUI | Not started |
-| Phase 4 Android | Jetpack Compose | Not started |
+| Phase 4 export | Style Dictionary (Swift + Kotlin) | ✅ Done (Jun 2026) — `dist/ILDSTokens.swift` + `dist/IldsTokens.kt`, CI `build-tokens.yml` |
+| Phase 4 iOS | SwiftUI | 🟡 Tokens done (4a); components Phase 4b |
+| Phase 4 Android | Jetpack Compose | 🟡 Tokens done (4a); components Phase 4b |
 | Phase 5 visual regression | Chromatic (Storybook/web only) + **Flutter golden tests** | Not started — ⚠️ Chromatic covers React/Storybook only; Flutter components need golden tests (repo currently has none beyond one boilerplate `widget_test.dart`). Phase 5 also only depends on 3b (Storybook), not all of Phase 4 |
 | Phase 5 PR automation | GitHub Branch + PR API | Not started |
 | Phase 6 DS agent intelligence | Claude API (requirement analysis + code generation) | Not started |
@@ -1133,6 +1109,7 @@ These apply to every agent, every session, every PR.
 
 - **Toast surface (resolved Jun 2026):** White surface (`color.neutral.0`) + per-variant colored accent (left 4px bar + icon + action): `info`→orange500, `success`→green600, `warning`→amber500, `error`→red600. Ratified to match shipped `lib/ilds_toast.dart` and the Phase 3 Gemini brief; the Phase 5 Supernova brief's "tinted surface per variant" spec was **corrected** to white+accent (tinted surfaces belong to the **Tag** component, not Toast).
 - **Web token target (resolved Jun 2026):** Phase 3b uses **Tailwind CSS v4** + `dist/tokens.theme.css` (`@theme`), not v3 `tailwind.config.js` / `tailwind-tokens.js`. Storybook **10**, not 8. Verify versions against `npm view` before scaffold.
+- **Public docs portal (resolved Jun 2026):** No dedicated DS website (Vercel removed from scope). **Supernova** is the canonical public documentation portal; Storybook is the dev-time component reference and parity test target.
 - **Typography source (planned — Phase 8):** Interim typography lives in `tokens.json` + plugin `TYPOGRAPHY_TOKENS` until **Phase 8** moves it to Figma Variables only. Scheduled after Phases 3b + 4; mandatory before claiming full Figma single-source-of-truth for tokens.
 
 ---

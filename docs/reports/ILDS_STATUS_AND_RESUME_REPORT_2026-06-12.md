@@ -186,10 +186,11 @@ Chip → TextField → Dropdown → Toast. Each ships with:
 
 ### 🟢 Later
 
-- Public DS website (Vercel)
-- Chromatic visual regression
+- Chromatic visual regression (Phase 5)
 - Phase 4 native token export + components
 - Phase 8 Figma Typography Variables
+
+> **Note (Jun 2026):** Public DS website (Vercel) removed from scope — Supernova is the canonical documentation portal.
 
 ---
 

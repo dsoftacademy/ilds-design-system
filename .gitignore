@@ -94,6 +94,8 @@ dist/*
 !dist/tokens.css
 !dist/tokens.theme.css
 !dist/tailwind-tokens.js
+!dist/ILDSTokens.swift
+!dist/IldsTokens.kt
 
 # Gatsby files
 .cache/
