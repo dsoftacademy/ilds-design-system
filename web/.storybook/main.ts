@@ -18,8 +18,6 @@ const config: StorybookConfig = {
     ];
     return viteConfig;
   },
-
-  addons: ['@chromatic-com/storybook']
 };
 
 export default config;

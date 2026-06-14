@@ -1,5 +1,4 @@
 {
-  "storybookBaseDir": "web",
   "onlyChanged": false,
   "exitZeroOnChanges": true,
   "autoAcceptChanges": "main"
