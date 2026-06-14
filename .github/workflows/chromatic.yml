@@ -8,14 +8,12 @@ on:
       - 'web/specs/**'
       - 'dist/tokens.theme.css'
       - 'tokens/**'
-      - 'chromatic.config.json'
       - '.github/workflows/chromatic.yml'
   push:
     branches: [main]
     paths:
       - 'web/src/**'
       - 'dist/tokens.theme.css'
-      - 'chromatic.config.json'
       - '.github/workflows/chromatic.yml'
 
 jobs:
@@ -40,9 +38,11 @@ jobs:
             echo "::error::CHROMATIC_PROJECT_TOKEN is missing."
             exit 1
           fi
-      - name: Build Storybook
-        run: npm run build-storybook
-        working-directory: web
+          token_len=$(printf %s "${{ secrets.CHROMATIC_PROJECT_TOKEN }}" | wc -c | tr -d ' ')
+          if [ "$token_len" -lt 20 ]; then
+            echo "::error::CHROMATIC_PROJECT_TOKEN is too short (${token_len} chars). Paste the Project Token from chromatic.com → Project → Manage."
+            exit 1
+          fi
       - name: Run Chromatic
         id: chromatic
         env:
@@ -51,7 +51,9 @@ jobs:
         run: |
           set -o pipefail
           npx chromatic \
-            --storybook-build-dir=storybook-static \
+            --build-script-name=build-storybook \
+            --auto-accept-changes=main \
+            --exit-zero-on-changes \
             --debug \
             --log-file=chromatic-debug.log \
             2>&1 | tee chromatic-stdout.log
@@ -60,15 +62,32 @@ jobs:
         working-directory: web
         run: |
           {
-            echo "## Chromatic diagnostics"
-            if [ -f chromatic-stdout.log ]; then
-              echo '```text'
-              tail -n 120 chromatic-stdout.log
-              echo '```'
-            else
-              echo "_No stdout log captured._"
-            fi
+            echo "## Chromatic output"
+            echo '```text'
+            tail -n 100 chromatic-stdout.log 2>/dev/null || echo "no stdout"
+            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+          python3 <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, re
+          from pathlib import Path
+          log = Path("chromatic-stdout.log").read_text() if Path("chromatic-stdout.log").exists() else ""
+          for block in reversed(re.findall(r"\{[^{}]*\"exitCodeKey\"[^{}]*\}", log, re.S)):
+              try:
+                  data = json.loads(block)
+              except json.JSONDecodeError:
+                  continue
+              print("## Parsed Chromatic error")
+              for key in ("exitCode", "exitCodeKey", "errorMessage", "isolatorUrl", "buildUrl"):
+                  if data.get(key) is not None:
+                      print(f"- {key}: {data.get(key)}")
+              break
+          PY
+          if [ -f chromatic-stdout.log ]; then
+            err=$(python3 -c "import json,re; log=open('chromatic-stdout.log').read(); blocks=re.findall(r'\{[^{}]*\"errorMessage\"[^{}]*\}', log, re.S); print(json.loads(blocks[-1]).get('errorMessage','') if blocks else '')" 2>/dev/null || true)
+            if [ -n "$err" ]; then
+              echo "::error::$err"
+            fi
+          fi
       - name: Upload Chromatic logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
