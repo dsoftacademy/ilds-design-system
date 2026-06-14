@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
+    "@chromatic-com/storybook": "^5.2.1",
     "@playwright/test": "^1.55.0",
     "@storybook/react": "10.4.4",
     "@storybook/react-vite": "10.4.4",

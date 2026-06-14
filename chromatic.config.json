@@ -1,0 +1,5 @@
+{
+  "storybookBaseDir": "web",
+  "storybookBuildDir": "storybook-static",
+  "onlyChanged": false
+}
