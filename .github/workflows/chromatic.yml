@@ -30,11 +30,32 @@ jobs:
       - name: Install dependencies
         run: npm ci
         working-directory: web
+      - name: Verify Chromatic secret
+        run: |
+          if [ -z "${{ secrets.CHROMATIC_PROJECT_TOKEN }}" ]; then
+            echo "::error::CHROMATIC_PROJECT_TOKEN is missing. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          echo "CHROMATIC_PROJECT_TOKEN is set."
+      - name: Build Storybook
+        run: npm run build-storybook
+        working-directory: web
       - name: Run Chromatic
-        uses: chromaui/action@latest
+        env:
+          CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+        run: >
+          npx chromatic
+          --storybook-build-dir=storybook-static
+          --build-script-name=build-storybook
+          --exit-zero-on-changes
+          --auto-accept-changes=main
+          --storybook-log-file=chromatic-storybook.log
+        working-directory: web
+      - name: Upload Chromatic logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
         with:
-          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
-          workingDir: web
-          buildScriptName: build-storybook
-          exitZeroOnChanges: true
-          autoAcceptChanges: main
+          name: chromatic-logs
+          path: |
+            web/chromatic-storybook.log
+            web/build-storybook.log
