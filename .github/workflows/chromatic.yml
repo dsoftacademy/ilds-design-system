@@ -33,16 +33,26 @@ jobs:
         run: npm ci
         working-directory: web
       - name: Verify Chromatic secret
+        env:
+          CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
         run: |
-          if [ -z "${{ secrets.CHROMATIC_PROJECT_TOKEN }}" ]; then
+          set -euo pipefail
+          if [ -z "${CHROMATIC_PROJECT_TOKEN}" ]; then
             echo "::error::CHROMATIC_PROJECT_TOKEN is missing."
             exit 1
           fi
-          token_len=$(printf %s "${{ secrets.CHROMATIC_PROJECT_TOKEN }}" | wc -c | tr -d ' ')
-          if [ "$token_len" -lt 20 ]; then
-            echo "::error::CHROMATIC_PROJECT_TOKEN is too short (${token_len} chars). Paste the Project Token from chromatic.com → Project → Manage."
+          token="$(printf '%s' "$CHROMATIC_PROJECT_TOKEN" | tr -d '\r\n')"
+          if printf '%s' "$token" | grep -q '[[:space:]]'; then
+            echo "::error::CHROMATIC_PROJECT_TOKEN must be the token only (starts with chpt_), not a shell command."
             exit 1
           fi
+          if ! [[ "$token" =~ ^chpt_[a-z0-9]+$ ]]; then
+            echo "::error::CHROMATIC_PROJECT_TOKEN must match chpt_<hex>. Copy Project token from chromatic.com → Manage (not the npx command)."
+            exit 1
+          fi
+      - name: Build Storybook
+        run: npm run build-storybook
+        working-directory: web
       - name: Run Chromatic
         id: chromatic
         env:
@@ -50,11 +60,13 @@ jobs:
         working-directory: web
         run: |
           set -o pipefail
+          token="$(printf '%s' "$CHROMATIC_PROJECT_TOKEN" | tr -d '\r\n')"
           npx chromatic \
-            --build-script-name=build-storybook \
+            --project-token="$token" \
+            --storybook-build-dir=storybook-static \
             --auto-accept-changes=main \
             --exit-zero-on-changes \
-            --debug \
+            --diagnostics-file=chromatic-diagnostics.json \
             --log-file=chromatic-debug.log \
             2>&1 | tee chromatic-stdout.log
       - name: Publish Chromatic diagnostics
@@ -64,26 +76,38 @@ jobs:
           {
             echo "## Chromatic output"
             echo '```text'
-            tail -n 100 chromatic-stdout.log 2>/dev/null || echo "no stdout"
+            tail -n 120 chromatic-stdout.log 2>/dev/null || echo "no stdout"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
           python3 <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json, re
           from pathlib import Path
-          log = Path("chromatic-stdout.log").read_text() if Path("chromatic-stdout.log").exists() else ""
-          for block in reversed(re.findall(r"\{[^{}]*\"exitCodeKey\"[^{}]*\}", log, re.S)):
-              try:
-                  data = json.loads(block)
-              except json.JSONDecodeError:
-                  continue
-              print("## Parsed Chromatic error")
+
+          def load_diag():
+              p = Path("chromatic-diagnostics.json")
+              if p.exists():
+                  try:
+                      return json.loads(p.read_text())
+                  except json.JSONDecodeError:
+                      pass
+              log = Path("chromatic-stdout.log").read_text() if Path("chromatic-stdout.log").exists() else ""
+              blocks = re.findall(r"\{[^{}]*\"exitCodeKey\"[\s\S]*?\}\s*$", log, re.M)
+              for block in reversed(blocks):
+                  try:
+                      return json.loads(block)
+                  except json.JSONDecodeError:
+                      continue
+              return {}
+
+          data = load_diag()
+          if data:
+              print("## Parsed Chromatic result")
               for key in ("exitCode", "exitCodeKey", "errorMessage", "isolatorUrl", "buildUrl"):
                   if data.get(key) is not None:
                       print(f"- {key}: {data.get(key)}")
-              break
           PY
-          if [ -f chromatic-stdout.log ]; then
-            err=$(python3 -c "import json,re; log=open('chromatic-stdout.log').read(); blocks=re.findall(r'\{[^{}]*\"errorMessage\"[^{}]*\}', log, re.S); print(json.loads(blocks[-1]).get('errorMessage','') if blocks else '')" 2>/dev/null || true)
+          if [ -f chromatic-diagnostics.json ]; then
+            err=$(python3 -c "import json; print(json.load(open('chromatic-diagnostics.json')).get('errorMessage',''))" 2>/dev/null || true)
             if [ -n "$err" ]; then
               echo "::error::$err"
             fi
@@ -96,3 +120,4 @@ jobs:
           path: |
             web/chromatic-debug.log
             web/chromatic-stdout.log
+            web/chromatic-diagnostics.json
