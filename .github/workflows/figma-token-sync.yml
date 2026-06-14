@@ -61,11 +61,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
           git add tokens/tokens.json
-          git commit -m "chore(tokens): sync Figma Variables → tokens.json [$(date +%Y-%m-%d)]
-
-Automated sync from Figma file PCUj412f0Z1zZLLxQUX22e.
-Merging this PR will trigger build-tokens.yml to regenerate
-all platform outputs (CSS, Swift, Kotlin, Dart)."
+          git commit -m "chore(tokens): sync Figma Variables to tokens.json [$(date +%Y-%m-%d)]"
           git push origin "$BRANCH"
           echo "BRANCH=$BRANCH" >> "$GITHUB_ENV"
 
@@ -78,18 +74,7 @@ all platform outputs (CSS, Swift, Kotlin, Dart)."
             --base main \
             --head "$BRANCH" \
             --title "chore(tokens): sync Figma Variables [$(date +%Y-%m-%d)]" \
-            --body "## Automated token sync
-
-Figma Variables have changed since the last sync.
-
-**Review checklist before merging:**
-- [ ] Diff looks like intentional design token updates (not noise)
-- [ ] No color group has been removed unexpectedly
-- [ ] Spacing or typography values look correct
-
-**After merging:** \`build-tokens.yml\` runs automatically and regenerates all platform outputs (CSS, Swift, Kotlin, Dart).
-
-> This PR was opened automatically by \`figma-token-sync.yml\`."
+            --body "Automated token sync from Figma file PCUj412f0Z1zZLLxQUX22e. Review tokens/tokens.json before merge; build-tokens.yml runs after merge."
 
       - name: No changes
         if: steps.diff.outputs.changed == 'false'
