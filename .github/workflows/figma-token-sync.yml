@@ -9,9 +9,11 @@ name: Sync Figma Tokens
 #   GITHUB_TOKEN       — automatically available in all Actions workflows.
 
 on:
-  schedule:
-    - cron: '0 9 * * 1-5'
+  # Disabled: requires Figma Enterprise file_variables:read on PAT.
+  # Use ilds-plugin/ (Plugin API) instead — see ilds-plugin/README.md
   workflow_dispatch:
+  # schedule:
+  #   - cron: '0 9 * * 1-5'
 
 permissions:
   contents: write
