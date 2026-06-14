@@ -9,12 +9,14 @@ on:
       - 'dist/tokens.theme.css'
       - 'tokens/**'
       - 'chromatic.config.json'
+      - '.github/workflows/chromatic.yml'
   push:
     branches: [main]
     paths:
       - 'web/src/**'
       - 'dist/tokens.theme.css'
       - 'chromatic.config.json'
+      - '.github/workflows/chromatic.yml'
 
 jobs:
   chromatic:
@@ -35,24 +37,38 @@ jobs:
       - name: Verify Chromatic secret
         run: |
           if [ -z "${{ secrets.CHROMATIC_PROJECT_TOKEN }}" ]; then
-            echo "::error::CHROMATIC_PROJECT_TOKEN is missing. Add it under Settings → Secrets and variables → Actions."
+            echo "::error::CHROMATIC_PROJECT_TOKEN is missing."
             exit 1
           fi
       - name: Build Storybook
         run: npm run build-storybook
         working-directory: web
       - name: Run Chromatic
-        uses: chromaui/action@v17
-        with:
-          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
-          workingDir: web
-          storybookBaseDir: web
-          storybookBuildDir: storybook-static
-          buildScriptName: build-storybook
-          exitZeroOnChanges: true
-          autoAcceptChanges: main
-          debug: true
-          logFile: chromatic-debug.log
+        id: chromatic
+        env:
+          CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+        working-directory: web
+        run: |
+          set -o pipefail
+          npx chromatic \
+            --storybook-build-dir=storybook-static \
+            --debug \
+            --log-file=chromatic-debug.log \
+            2>&1 | tee chromatic-stdout.log
+      - name: Publish Chromatic diagnostics
+        if: always()
+        working-directory: web
+        run: |
+          {
+            echo "## Chromatic diagnostics"
+            if [ -f chromatic-stdout.log ]; then
+              echo '```text'
+              tail -n 120 chromatic-stdout.log
+              echo '```'
+            else
+              echo "_No stdout log captured._"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload Chromatic logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -60,4 +76,4 @@ jobs:
           name: chromatic-logs
           path: |
             web/chromatic-debug.log
-            web/build-storybook.log
+            web/chromatic-stdout.log

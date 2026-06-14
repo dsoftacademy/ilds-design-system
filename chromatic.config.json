@@ -1,5 +1,6 @@
 {
   "storybookBaseDir": "web",
-  "storybookBuildDir": "storybook-static",
-  "onlyChanged": false
+  "onlyChanged": false,
+  "exitZeroOnChanges": true,
+  "autoAcceptChanges": "main"
 }
