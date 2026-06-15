@@ -48,6 +48,6 @@ private fun badgeColors(variant: IldsBadgeVariant): Pair<Color, Color> = when (v
 private fun badgeMetrics(size: IldsBadgeSize): Triple<androidx.compose.ui.unit.Dp, androidx.compose.ui.unit.Dp, TextStyle> =
     when (size) {
         IldsBadgeSize.Small -> Triple(IldsTokens.sp8, 2.dp, TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Medium))
-        IldsBadgeSize.Medium -> Triple(IldsTokens.sp8, IldsTokens.sp4, TextStyle(fontSize = IldsTokens.fontSize12.sp, fontWeight = FontWeight.Medium))
+        IldsBadgeSize.Medium -> Triple(IldsTokens.sp8, IldsTokens.sp4, TextStyle(fontSize = IldsTokens.fontSize12, fontWeight = FontWeight.Medium))
         IldsBadgeSize.Large -> Triple(IldsTokens.sp12, IldsTokens.sp4, TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Medium))
     }
