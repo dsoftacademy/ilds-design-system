@@ -21,6 +21,9 @@ export const Skeleton: Story = { args: { variant: 'skeleton' } };
 export const Small: Story = { args: { variant: 'success', size: 'small', label: 'Small' } };
 export const Large: Story = { args: { variant: 'success', size: 'large', label: 'Large' } };
 
+// Throwaway story to exercise the PR + Chromatic path. Delete with the test branch.
+export const CiSmokeTest: Story = { args: { variant: 'info', size: 'large', label: 'CI Smoke Test' } };
+
 export const Playground: Story = {
   argTypes: {
     variant: {
