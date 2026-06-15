@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:ilds_design_system/ilds_button.dart';
 import 'package:ilds_design_system/ilds_accordion.dart';
 import 'package:ilds_design_system/ilds_badge.dart';
+import 'package:ilds_design_system/ilds_button.dart';
 import 'package:ilds_design_system/ilds_checkbox.dart';
+import 'package:ilds_design_system/ilds_chip.dart';
+import 'package:ilds_design_system/ilds_dropdown.dart';
 import 'package:ilds_design_system/ilds_pagination.dart';
 import 'package:ilds_design_system/ilds_radio.dart';
+import 'package:ilds_design_system/ilds_scrollbar.dart';
 import 'package:ilds_design_system/ilds_search.dart';
 import 'package:ilds_design_system/ilds_selection_button.dart';
 import 'package:ilds_design_system/ilds_switch.dart';
 import 'package:ilds_design_system/ilds_tab.dart';
 import 'package:ilds_design_system/ilds_tag.dart';
 import 'package:ilds_design_system/ilds_text_area.dart';
+import 'package:ilds_design_system/ilds_text_field.dart';
 import 'package:ilds_design_system/ilds_text_link.dart';
+import 'package:ilds_design_system/ilds_toast.dart';
 
 void main() {
   runApp(const IldsStandalonePlaygroundApp());
@@ -43,38 +48,48 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
   dynamic radioValue = 'A';
   IldsCheckboxState checkboxState = IldsCheckboxState.unchecked;
   bool switchValue = false;
-  int selectedTab = 0;
+  int selectedTabHigh = 0;
+  int selectedTabMedium = 1;
   int currentPage = 3;
   bool selectionOn = false;
   bool tagActive = false;
+  bool chipSelected = false;
+  String? dropdownValue;
   final TextEditingController searchController = TextEditingController();
   final TextEditingController textAreaController = TextEditingController();
+  final TextEditingController textFieldController = TextEditingController(text: 'Filled value');
+
+  static const List<String> _sections = [
+    'Button',
+    'Radio',
+    'Checkbox',
+    'Switch',
+    'TextField',
+    'Text Area',
+    'Dropdown',
+    'Tab',
+    'Pagination',
+    'Selection Button',
+    'Badge',
+    'Chip',
+    'Tag',
+    'Accordion',
+    'Text Link',
+    'Search',
+    'Scrollbar',
+    'Toast',
+  ];
 
   @override
   void dispose() {
     searchController.dispose();
     textAreaController.dispose();
+    textFieldController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<String> sections = <String>[
-      'Button',
-      'Radio',
-      'Checkbox',
-      'Switch',
-      'Text Area',
-      'Tab',
-      'Pagination',
-      'Selection Button',
-      'Badge',
-      'Tag',
-      'Accordion',
-      'Text Link',
-      'Search',
-    ];
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('ILDS Standalone Component Playground'),
@@ -86,9 +101,11 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
               children: const [
                 Icon(Icons.sync, size: 14),
                 SizedBox(width: 8),
-                Text(
-                  'Repo-linked live preview (hot reload reflects component updates).',
-                  style: TextStyle(fontSize: 12),
+                Expanded(
+                  child: Text(
+                    'All 18 Flutter components — hot reload reflects lib/ updates.',
+                    style: TextStyle(fontSize: 12),
+                  ),
                 ),
               ],
             ),
@@ -98,31 +115,20 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
       body: Row(
         children: [
           SizedBox(
-            width: 128,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                    child: IntrinsicHeight(
-                      child: NavigationRail(
-                        selectedIndex: selectedNav,
-                        onDestinationSelected: (index) =>
-                            setState(() => selectedNav = index),
-                        labelType: NavigationRailLabelType.all,
-                        destinations: sections
-                            .map((label) => NavigationRailDestination(
-                                  icon: const Icon(Icons.circle_outlined, size: 16),
-                                  selectedIcon:
-                                      const Icon(Icons.check_circle_outline, size: 16),
-                                  label: Text(label),
-                                ))
-                            .toList(),
-                      ),
+            width: 132,
+            child: NavigationRail(
+              selectedIndex: selectedNav,
+              onDestinationSelected: (index) => setState(() => selectedNav = index),
+              labelType: NavigationRailLabelType.all,
+              destinations: _sections
+                  .map(
+                    (label) => NavigationRailDestination(
+                      icon: const Icon(Icons.circle_outlined, size: 16),
+                      selectedIcon: const Icon(Icons.check_circle_outline, size: 16),
+                      label: Text(label, style: const TextStyle(fontSize: 11)),
                     ),
-                  ),
-                );
-              },
+                  )
+                  .toList(),
             ),
           ),
           const VerticalDivider(width: 1),
@@ -140,50 +146,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
   Widget _buildSelectedPanel(int index) {
     switch (index) {
       case 0:
-        return _panel('Button — press & hold secondary/tertiary + icon-only', [
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              IldsButton(
-                label: 'Secondary',
-                type: IldsButtonType.secondary,
-                onPressed: () {},
-              ),
-              IldsButton(
-                label: 'Secondary destructive',
-                type: IldsButtonType.secondary,
-                appearance: IldsButtonAppearance.destructive,
-                onPressed: () {},
-              ),
-              IldsButton(
-                label: 'Tertiary',
-                type: IldsButtonType.tertiary,
-                onPressed: () {},
-              ),
-              IldsButton(
-                label: 'Tertiary destructive',
-                type: IldsButtonType.tertiary,
-                appearance: IldsButtonAppearance.destructive,
-                onPressed: () {},
-              ),
-              IldsButton(
-                iconOnly: true,
-                icon: const Icon(Icons.favorite_border),
-                semanticLabel: 'Favorite',
-                onPressed: () {},
-              ),
-              IldsButton(
-                iconOnly: true,
-                size: IldsButtonSize.small,
-                icon: const Icon(Icons.favorite_border),
-                semanticLabel: 'Favorite',
-                onPressed: () {},
-              ),
-            ],
-          ),
-        ]);
+        return _buttonPanel();
       case 1:
         return _panel('Radio', [
           IldsRadioGroup(
@@ -212,6 +175,8 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
           ),
         ]);
       case 4:
+        return _textFieldPanel();
+      case 5:
         return _panel('Text Area', [
           IldsTextArea(
             label: 'Notes',
@@ -222,19 +187,11 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             onChanged: (_) => setState(() {}),
           ),
         ]);
-      case 5:
-        return _panel('Tab', [
-          IldsTabBar(
-            tabs: const [
-              IldsTabItem(label: 'Overview'),
-              IldsTabItem(label: 'Details'),
-              IldsTabItem(label: 'Settings'),
-            ],
-            selectedIndex: selectedTab,
-            onTabChanged: (index) => setState(() => selectedTab = index),
-          ),
-        ]);
       case 6:
+        return _dropdownPanel();
+      case 7:
+        return _tabsPanel();
+      case 8:
         return _panel('Pagination', [
           IldsPagination(
             currentPage: currentPage,
@@ -243,7 +200,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             variant: IldsPaginationVariant.extended,
           ),
         ]);
-      case 7:
+      case 9:
         return _panel('Selection Button', [
           IldsSelectionButton(
             label: 'Filter',
@@ -253,7 +210,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             onTap: () => setState(() => selectionOn = !selectionOn),
           ),
         ]);
-      case 8:
+      case 10:
         return _panel('Badge', const [
           IldsBadge(
             label: 'Success',
@@ -261,7 +218,9 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             prefixIcon: Icons.check_circle_outline,
           ),
         ]);
-      case 9:
+      case 11:
+        return _chipPanel();
+      case 12:
         return _panel('Tag', [
           IldsTag(
             label: 'Active tag',
@@ -271,15 +230,15 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             onRemove: () => setState(() => tagActive = false),
           ),
         ]);
-      case 10:
+      case 13:
         return _panel('Accordion', const [
           IldsAccordion(
             title: 'What is ILDS?',
             initiallyOpen: true,
-            content: Text('This area helps validate open/close interactions in real time.'),
+            content: Text('Open/close interactions for accordion parity.'),
           ),
         ]);
-      case 11:
+      case 14:
         return _panel('Text Link', [
           IldsTextLink(
             label: 'Open docs',
@@ -287,7 +246,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             suffixIcon: Icons.open_in_new,
           ),
         ]);
-      case 12:
+      case 15:
         return _panel('Search', [
           IldsSearch(
             controller: searchController,
@@ -295,9 +254,248 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
             onClear: () => setState(() {}),
           ),
         ]);
+      case 16:
+        return _scrollbarPanel();
+      case 17:
+        return _toastPanel();
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  Widget _buttonPanel() {
+    final types = IldsButtonType.values;
+    final sizes = IldsButtonSize.values;
+    final appearances = IldsButtonAppearance.values;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle('Button — primary / secondary / tertiary × L/M/S × normal / destructive'),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            for (final type in types)
+              for (final size in sizes)
+                for (final appearance in appearances)
+                  IldsButton(
+                    label: '${type.name} ${size.name}',
+                    type: type,
+                    size: size,
+                    appearance: appearance,
+                    onPressed: () {},
+                  ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('Button — disabled + loading'),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            IldsButton(label: 'Disabled primary', isDisabled: true, onPressed: () {}),
+            IldsButton(
+              label: 'Loading',
+              isLoading: true,
+              leading: const Icon(Icons.add),
+              trailing: const Icon(Icons.arrow_forward),
+              onPressed: () {},
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('Button — icon-only L / S'),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            IldsButton(
+              iconOnly: true,
+              icon: const Icon(Icons.favorite_border),
+              semanticLabel: 'Favorite large',
+              onPressed: () {},
+            ),
+            IldsButton(
+              iconOnly: true,
+              size: IldsButtonSize.small,
+              icon: const Icon(Icons.favorite_border),
+              semanticLabel: 'Favorite small',
+              onPressed: () {},
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _textFieldPanel() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle('TextField — standard'),
+        IldsTextField(
+          label: 'Email',
+          placeholder: 'you@example.com',
+          controller: textFieldController,
+          onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('TextField — password + disabled'),
+        const IldsTextField(
+          label: 'Password',
+          placeholder: '••••••••',
+          kind: IldsTextFieldKind.password,
+        ),
+        const SizedBox(height: 12),
+        const IldsTextField(
+          label: 'Disabled',
+          placeholder: 'Cannot edit',
+          enabled: false,
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('TextField — OTP x6'),
+        const IldsTextField(
+          label: 'OTP',
+          kind: IldsTextFieldKind.otpX6,
+        ),
+      ],
+    );
+  }
+
+  Widget _dropdownPanel() {
+    const options = [
+      IldsDropdownOption(label: 'Option one', value: '1'),
+      IldsDropdownOption(label: 'Option two', value: '2'),
+      IldsDropdownOption(label: 'Option three', value: '3'),
+      IldsDropdownOption(label: 'Disabled option', value: '4', disabled: true),
+    ];
+
+    return _panel('Dropdown', [
+      SizedBox(
+        width: 360,
+        child: IldsDropdown(
+          label: 'Category',
+          placeholder: 'Select category',
+          options: options,
+          selectedValue: dropdownValue,
+          onChanged: (v) => setState(() => dropdownValue = v),
+        ),
+      ),
+    ]);
+  }
+
+  Widget _tabsPanel() {
+    const tabs = [
+      IldsTabItem(label: 'Overview'),
+      IldsTabItem(label: 'Details'),
+      IldsTabItem(label: 'Settings'),
+      IldsTabItem(label: 'Billing'),
+      IldsTabItem(label: 'Support'),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle('Tabs — high emphasis / fixed / left'),
+        IldsTabBar(
+          tabs: tabs,
+          selectedIndex: selectedTabHigh,
+          emphasis: IldsTabEmphasis.high,
+          type: IldsTabType.fixed,
+          alignment: IldsTabAlignment.left,
+          onTabChanged: (i) => setState(() => selectedTabHigh = i),
+        ),
+        const SizedBox(height: 24),
+        _sectionTitle('Tabs — medium emphasis / scrollable / center'),
+        IldsTabBar(
+          tabs: tabs,
+          selectedIndex: selectedTabMedium,
+          emphasis: IldsTabEmphasis.medium,
+          type: IldsTabType.scrollable,
+          alignment: IldsTabAlignment.center,
+          onTabChanged: (i) => setState(() => selectedTabMedium = i),
+        ),
+      ],
+    );
+  }
+
+  Widget _chipPanel() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle('Chip — filter'),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            IldsChip(
+              label: 'Default',
+              isSelected: chipSelected,
+              showPrefixIcon: true,
+              prefixIcon: Icons.tune,
+              onPressed: () => setState(() => chipSelected = !chipSelected),
+            ),
+            const IldsChip(label: 'Disabled', enabled: false),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('Chip — tag variants'),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: IldsChipTagVariant.values
+              .map(
+                (v) => IldsChip(
+                  label: v.name,
+                  kind: IldsChipKind.tag,
+                  tagVariant: v,
+                ),
+              )
+              .toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _scrollbarPanel() {
+    return _panel('Scrollbar', [
+      SizedBox(
+        height: 160,
+        child: IldsScrollbar(
+          child: ListView.builder(
+            itemCount: 24,
+            itemBuilder: (_, i) => ListTile(dense: true, title: Text('Row ${i + 1}')),
+          ),
+        ),
+      ),
+    ]);
+  }
+
+  Widget _toastPanel() {
+    return _panel('Toast variants', [
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final variant in IldsToastVariant.values)
+            IldsButton(
+              label: 'Show ${variant.name}',
+              type: IldsButtonType.secondary,
+              size: IldsButtonSize.small,
+              onPressed: () {
+                IldsToast.show(
+                  context,
+                  title: '${variant.name[0].toUpperCase()}${variant.name.substring(1)}',
+                  message: 'ILDS toast ${variant.name} variant preview.',
+                  variant: variant,
+                  showClose: true,
+                );
+              },
+            ),
+        ],
+      ),
+    ]);
   }
 
   Widget _panel(String title, List<Widget> children) {

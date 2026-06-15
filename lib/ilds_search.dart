@@ -64,21 +64,20 @@ class _IldsSearchState extends State<IldsSearch> {
   void _onTextChanged() => setState(() {});
 
   Color _borderColor() {
-    if (_isFocused) return ILDSTokens.orange500;
-    if (_isHovered) return ILDSTokens.neutral300;
-    if (_hasText) return ILDSTokens.neutral300;
-    return ILDSTokens.neutral200;
+    if (_isFocused) return ILDSTokens.orange600;
+    if (_isHovered) return ILDSTokens.neutralCoolgray800;
+    return ILDSTokens.neutralCoolgray500;
   }
 
   Color _backgroundColor() {
-    if (_isHovered && !_isFocused) return ILDSTokens.neutral50;
-    return ILDSTokens.white;
+    if (_isHovered && !_isFocused) return ILDSTokens.neutralCoolgray100;
+    return ILDSTokens.neutralCoolgray50;
   }
 
   Color _leadingIconColor() {
-    if (_isFocused) return ILDSTokens.orange500;
-    if (_isHovered) return ILDSTokens.neutral500;
-    return ILDSTokens.neutral400;
+    if (_isFocused) return ILDSTokens.orange600;
+    if (_isHovered) return ILDSTokens.neutralCoolgray800;
+    return ILDSTokens.neutralCoolgray600;
   }
 
   void _clear() {
@@ -100,7 +99,7 @@ class _IldsSearchState extends State<IldsSearch> {
           height: ILDSTokens.spacing10,
           decoration: BoxDecoration(
             color: _backgroundColor(),
-            borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusFull),
+            borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusSm),
             border: Border.all(
               color: _borderColor(),
               width: _isFocused ? ILDSTokens.borderWidth2 : ILDSTokens.borderWidth1,

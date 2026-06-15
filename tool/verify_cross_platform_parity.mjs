@@ -70,11 +70,28 @@ const PLATFORMS = {
     return `ios/Sources/ILDSDesignSystem/${map[slug]}`;
   },
   kotlin: (slug) => {
-    const name = slug
-      .split('-')
-      .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-      .join('');
-    return `android/ilds-design-system/src/main/kotlin/com/icicilombard/ilds/components/Ilds${name}.kt`;
+    const map = {
+      button: 'IldsButton.kt',
+      chip: 'IldsChip.kt',
+      badge: 'IldsBadge.kt',
+      switch: 'IldsSwitch.kt',
+      checkbox: 'IldsCheckbox.kt',
+      radio: 'IldsRadio.kt',
+      textlink: 'IldsTextLink.kt',
+      toast: 'IldsToast.kt',
+      'selection-button': 'IldsSelectionButton.kt',
+      accordion: 'IldsAccordion.kt',
+      tabs: 'IldsTabs.kt',
+      pagination: 'IldsPagination.kt',
+      search: 'IldsSearch.kt',
+      scrollbar: 'IldsScrollbar.kt',
+      textarea: 'IldsTextArea.kt',
+      textfield: 'IldsTextField.kt',
+      dropdown: 'IldsDropdown.kt',
+      'dropdown-menu': 'IldsDropdownMenu.kt',
+    };
+    const file = map[slug] || `Ilds${slug.split('-').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join('')}.kt`;
+    return `android/ilds-design-system/src/main/kotlin/com/icicilombard/ilds/components/${file}`;
   },
 };
 
@@ -117,6 +134,7 @@ const RULES = [
     figma: '17667:2387',
     platforms: {
       react: { must: ['border-primary-orange-500', 'text-primary-orange-500'] },
+      flutter: { must: ['!_isHigh', 'orange500'] },
       swift: { must: ['primaryOrange500'], mustNot: ['emphasis == .high ? ILDSTokens.primaryOrange500 : ILDSTokens.neutralCoolgray900'] },
       kotlin: { must: ['primaryOrange500', 'IldsTabEmphasis.High'] },
     },
@@ -127,6 +145,7 @@ const RULES = [
     figma: '17708:3510',
     platforms: {
       react: { must: ['border-secondary-blue-50', 'text-informative-blue-500'] },
+      flutter: { must: ['secondaryBlue50', 'informativeBlue500'], mustNot: ['case IldsToastVariant.info:\n        return ILDSTokens.orange500'] },
       swift: { must: ['informativeBlue500', 'secondaryBlue50'], mustNot: ['showAccentBar: Bool = true', 'case .info:\n            return IldsToastColors(accent: ILDSTokens.primaryOrange500'] },
       kotlin: { must: ['informativeBlue500', 'secondaryBlue50'] },
     },
@@ -137,6 +156,7 @@ const RULES = [
     figma: '17708:3491',
     platforms: {
       react: { must: ['rounded-xlarge', 'border', 'neutral-coolgray-800'] },
+      flutter: { must: ['borderRadiusLg', 'neutralCoolgray800', '_borderColor()'] },
       swift: { must: ['radiusXlarge', 'neutralCoolgray800'], mustNot: ['showAccentBar: Bool = true'] },
       kotlin: { must: ['radiusXlarge', 'neutralCoolgray800'] },
     },
@@ -147,6 +167,7 @@ const RULES = [
     figma: '16055:6152',
     platforms: {
       react: { must: ['data-testid="dropdown-menu"', 'RadioCircleIcon'] },
+      flutter: { must: ['_buildOptionsPanel', 'orange500'], mustNot: ['Image(systemName: "checkmark")'] },
       swift: { must: ['sectionLabel', 'Circle()', 'IldsButton'], mustNot: ['Image(systemName: "checkmark")'] },
       kotlin: { must: ['sectionLabel', 'CircleShape', 'IldsButton'] },
     },
@@ -157,6 +178,7 @@ const RULES = [
     figma: '13478:25333',
     platforms: {
       react: { must: ['neutral-coolgray-500'] },
+      flutter: { must: ['neutralCoolgray500'], mustNot: ['borderColor = ILDSTokens.neutral200'] },
       swift: { must: ['neutralCoolgray500'], mustNot: ['border = ILDSTokens.neutralCoolgray200\n        }'] },
       kotlin: { must: ['neutralCoolgray500'] },
     },
@@ -167,6 +189,7 @@ const RULES = [
     figma: '13478:25729',
     platforms: {
       react: { must: ['neutral-coolgray-200'] },
+      flutter: { must: ['neutralCoolgray200'], mustNot: ['fillColor: !widget.enabled\n                  ? ILDSTokens.neutral100'] },
       swift: { must: ['neutralCoolgray200'], mustNot: ['background = ILDSTokens.neutralCoolgray100'] },
       kotlin: { must: ['neutralCoolgray200'] },
     },
@@ -199,6 +222,7 @@ const RULES = [
     figma: '13965:16190',
     platforms: {
       react: { must: ['rounded-medium', 'min-h-[44px]', 'neutral-coolgray-50'] },
+      flutter: { must: ['borderRadiusSm', 'neutralCoolgray50', 'spacing10'], mustNot: ['borderRadiusFull'] },
       swift: { must: ['radiusMedium', 'neutralCoolgray50'], mustNot: ['Capsule()', 'sp40'] },
       kotlin: { must: ['radiusMedium', '44.dp'] },
     },
@@ -242,6 +266,7 @@ const RULES = [
     figma: '13486:38524',
     platforms: {
       react: { must: ['bg-white-000', 'primary-orange-500'] },
+      flutter: { must: ['ILDSTokens.white', 'orange500'], mustNot: ['if (_isSelected) return ILDSTokens.orange50'] },
       swift: { must: ['globalWhite000'], mustNot: ['isSelected {\n            background = ILDSTokens.primaryOrange50'] },
       kotlin: { must: ['globalWhite000'] },
     },
@@ -252,6 +277,7 @@ const RULES = [
     figma: '14371:6410',
     platforms: {
       react: { must: ['neutral-coolgray-100'] },
+      flutter: { must: ['neutralCoolgray100'], mustNot: [': ILDSTokens.neutral200;'] },
       swift: { must: ['neutralCoolgray100'], mustNot: ['neutralCoolgray200\n        }'] },
       kotlin: { must: ['neutralCoolgray100'] },
     },
@@ -286,9 +312,15 @@ function checkRule(rule) {
       const flutterPaths = {
         Pagination: 'lib/ilds_pagination.dart',
         Tabs: 'lib/ilds_tab.dart',
+        Toast: 'lib/ilds_toast.dart',
         Dropdown: 'lib/ilds_dropdown.dart',
+        DropdownMenu: 'lib/ilds_dropdown.dart',
+        TextField: 'lib/ilds_text_field.dart',
+        Search: 'lib/ilds_search.dart',
         Chip: 'lib/ilds_chip.dart',
         Checkbox: 'lib/ilds_checkbox.dart',
+        Radio: 'lib/ilds_radio.dart',
+        Switch: 'lib/ilds_switch.dart',
       };
       filePath = flutterPaths[rule.component] || PLATFORMS.flutter(slug);
     } else if (platform === 'swift') {

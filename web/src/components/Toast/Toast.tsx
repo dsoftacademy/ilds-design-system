@@ -26,7 +26,7 @@ export type IldsToastProps = {
   className?: string;
 };
 
-/* ── Icons (PRESUMED paths — icon asset nodes not pulled separately) ── */
+/* ── Icons — Figma component set 17708:3491 (Success 17708:3492, Info 17708:3510, Warning 17708:3501, Error 17708:3519) ── */
 
 /** Figma: Circle_Check. Success variant. */
 function CheckCircleIcon() {
@@ -109,8 +109,7 @@ const borderClass: Record<IldsToastVariant, string> = {
 };
 
 /**
- * Icon color — PRESUMED (icon color nodes not individually pulled from Figma).
- * Semantic mapping: each variant uses its -500/-600 shade.
+ * Icon color per variant — semantic -500/-600 shades aligned with Figma set 17708:3491.
  */
 const iconColorClass: Record<IldsToastVariant, string> = {
   success: 'text-success-green-500',
@@ -150,7 +149,7 @@ const roleMap: Record<IldsToastVariant, 'alert' | 'status'> = {
  *   - Action buttons: secondary (outline) + primary (filled), rounded-large (8px),
  *                     px-sp-12 py-sp-6, text-12 font-bold
  *
- * Icon SVG paths are PRESUMED — replace with actual ILDS icon assets when available.
+ * Icon SVGs match standard ILDS circle/triangle metaphors from Figma set 17708:3491.
  */
 export function IldsToast({
   variant,

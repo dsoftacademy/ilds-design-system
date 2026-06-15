@@ -99,9 +99,9 @@ class _IldsTextFieldState extends State<IldsTextField> {
     final bool hasSuccess = widget.successText != null;
 
     // Determine Border Colors
-    Color borderColor = ILDSTokens.neutral200;
+    Color borderColor = ILDSTokens.neutralCoolgray500;
     if (widget.isReadOnly) {
-      borderColor = ILDSTokens.neutral200;
+      borderColor = ILDSTokens.neutralCoolgray500;
     } else if (hasError) {
       borderColor = ILDSTokens.red600;
     } else if (hasSuccess) {
@@ -210,12 +210,15 @@ class _IldsTextFieldState extends State<IldsTextField> {
               ),
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
-                borderSide: const BorderSide(color: ILDSTokens.neutral300, width: ILDSTokens.borderWidth1),
+                borderSide: const BorderSide(
+                  color: ILDSTokens.neutralCoolgray300,
+                  width: ILDSTokens.borderWidth1,
+                ),
               ),
               filled: !widget.enabled || widget.isReadOnly,
               fillColor: !widget.enabled
-                  ? ILDSTokens.neutral100
-                  : (widget.isReadOnly ? ILDSTokens.neutral50 : null),
+                  ? ILDSTokens.neutralCoolgray200
+                  : (widget.isReadOnly ? ILDSTokens.neutralCoolgray50 : null),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: ILDSTokens.spacing4,
                 // TODO: verify Figma spec if spacing3 should be spacing4 here.

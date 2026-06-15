@@ -48,7 +48,7 @@ jobs:
       - run: npm ci
       - name: File-existence guard (Phase 4b)
         run: npm run verify:phase4b
-      - name: Cross-platform parity matrix (55 checks)
+      - name: Cross-platform parity matrix (64 checks)
         run: npm run verify:parity
 
   flutter-golden:
