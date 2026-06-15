@@ -53,11 +53,15 @@ try {
 
 // ── PASS 3: iOS compile ──────────────────────────────────────────────────────
 section('PASS 3 — iOS Swift package compile');
-try {
-  execSync('swift build', { cwd: 'ios', stdio: 'pipe' });
-  check(true, 'swift build (ios/) succeeded');
-} catch (e) {
-  check(false, 'swift build (ios/) succeeded', e.stderr?.toString().slice(0, 400) || e.message);
+if (process.platform === 'darwin') {
+  try {
+    execSync('swift build', { cwd: 'ios', stdio: 'pipe' });
+    check(true, 'swift build (ios/) succeeded');
+  } catch (e) {
+    check(false, 'swift build (ios/) succeeded', e.stderr?.toString().slice(0, 400) || e.message);
+  }
+} else {
+  check(true, 'swift build — skipped on non-macOS (covered by iOS compile job)');
 }
 
 const swiftBtn = read('ios/Sources/ILDSDesignSystem/IldsButton.swift');
