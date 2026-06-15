@@ -99,17 +99,30 @@ class IldsToast extends StatelessWidget {
     }
   }
 
-  /// Token: orange.500 (info) | green.600 (success) | amber.500 (warning) | red.600 (error)
+  /// Token: informativeBlue500 (info) | green.600 (success) | amber.500 (warning) | red.600 (error)
   Color _accent() {
     switch (variant) {
       case IldsToastVariant.info:
-        return ILDSTokens.orange500;
+        return ILDSTokens.informativeBlue500;
       case IldsToastVariant.success:
         return ILDSTokens.green600;
       case IldsToastVariant.warning:
         return ILDSTokens.amber500;
       case IldsToastVariant.error:
         return ILDSTokens.red600;
+    }
+  }
+
+  Color _borderColor() {
+    switch (variant) {
+      case IldsToastVariant.info:
+        return ILDSTokens.secondaryBlue50;
+      case IldsToastVariant.success:
+        return ILDSTokens.green50;
+      case IldsToastVariant.warning:
+        return ILDSTokens.amber50;
+      case IldsToastVariant.error:
+        return ILDSTokens.red50;
     }
   }
 
@@ -122,13 +135,17 @@ class IldsToast extends StatelessWidget {
       label: hasTitle ? '$title. $message' : message,
       liveRegion: true,
       child: Material(
-        // Token: color.neutral.0 (white surface)
         color: ILDSTokens.white,
-        elevation: 4, // TODO: add shadow elevation token to ILDSTokens.
+        elevation: 4,
         shadowColor: Colors.black26,
-        // Token: borderRadius.md
-        borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
-        child: Row(
+        borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusLg),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: ILDSTokens.white,
+            borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusLg),
+            border: Border.all(color: _borderColor(), width: ILDSTokens.borderWidth1),
+          ),
+          child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (showAccentBar)
@@ -137,8 +154,8 @@ class IldsToast extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: accent,
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(ILDSTokens.borderRadiusMd),
-                    bottomLeft: Radius.circular(ILDSTokens.borderRadiusMd),
+                    topLeft: Radius.circular(ILDSTokens.borderRadiusLg),
+                    bottomLeft: Radius.circular(ILDSTokens.borderRadiusLg),
                   ),
                 ),
               ),
@@ -181,7 +198,7 @@ class IldsToast extends StatelessWidget {
                               fontWeight: hasTitle
                                   ? ILDSTokens.fontWeightRegular
                                   : ILDSTokens.fontWeightMedium,
-                              color: ILDSTokens.neutral500,
+                              color: ILDSTokens.neutralCoolgray800,
                             ),
                           ),
                         ],
@@ -231,6 +248,7 @@ class IldsToast extends StatelessWidget {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

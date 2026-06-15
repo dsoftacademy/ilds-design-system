@@ -86,7 +86,7 @@ class _IldsSwitchState extends State<IldsSwitch> {
     if (widget.isDisabled) return widget.value ? ILDSTokens.orange200 : ILDSTokens.neutral100;
     if (_isPressed) return widget.value ? ILDSTokens.orange700 : ILDSTokens.neutral400;
     if (_isHovered) return widget.value ? ILDSTokens.orange600 : ILDSTokens.neutral300;
-    return widget.value ? ILDSTokens.orange500 : ILDSTokens.neutral200;
+    return widget.value ? ILDSTokens.orange500 : ILDSTokens.neutralCoolgray100;
   }
 
   Color _thumbColor() {

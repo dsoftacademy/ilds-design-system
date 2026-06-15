@@ -214,11 +214,7 @@ class _IldsTextAreaState extends State<IldsTextArea> {
                               .clamp(ILDSTokens.spacing16, ILDSTokens.spacing16 * ILDSTokens.borderWidth2);
                         });
                       },
-                      child: Icon(
-                        Icons.drag_handle,
-                        size: ILDSTokens.spacing3,
-                        color: ILDSTokens.neutral300,
-                      ), // TODO: resize handle — exact drag handle dimensions from Figma spec
+                      child: const _IldsTextAreaResizeGrip(),
                     ),
                   ),
                 ],
@@ -258,4 +254,44 @@ class _IldsTextAreaState extends State<IldsTextArea> {
       ),
     );
   }
+}
+
+/// Figma TextArea resize affordance (set 14369:11586) — 12×12px grip, bottom-right.
+class _IldsTextAreaResizeGrip extends StatelessWidget {
+  const _IldsTextAreaResizeGrip();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: ILDSTokens.spacing3,
+      height: ILDSTokens.spacing3,
+      child: CustomPaint(painter: _IldsTextAreaResizeGripPainter()),
+    );
+  }
+}
+
+class _IldsTextAreaResizeGripPainter extends CustomPainter {
+  const _IldsTextAreaResizeGripPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..color = ILDSTokens.neutralCoolgray400
+      ..strokeWidth = ILDSTokens.borderWidth1
+      ..strokeCap = StrokeCap.round;
+
+    const double inset = 1;
+    const double gap = 3;
+    for (int i = 0; i < 3; i++) {
+      final double offset = inset + (i * gap);
+      canvas.drawLine(
+        Offset(size.width - offset, size.height - inset),
+        Offset(size.width - inset, size.height - offset),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
