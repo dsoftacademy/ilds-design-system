@@ -58,7 +58,7 @@ fun IldsToast(
     onClose: (() -> Unit)? = null,
 ) {
     val style = remember(variant) { IldsToastStyle.resolve(variant) }
-    val liveRegion = if (variant == IldsToastVariant.Success || variant == IldsToastVariant.Info) {
+    val liveRegionMode = if (variant == IldsToastVariant.Success || variant == IldsToastVariant.Info) {
         LiveRegionMode.Polite
     } else {
         LiveRegionMode.Assertive
@@ -67,7 +67,7 @@ fun IldsToast(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .semantics { liveRegion = liveRegion },
+            .semantics { liveRegion = liveRegionMode },
         shape = RoundedCornerShape(IldsTokens.radiusXlarge),
         color = IldsTokens.globalWhite000,
         shadowElevation = 8.dp,
