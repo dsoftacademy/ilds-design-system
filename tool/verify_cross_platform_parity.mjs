@@ -70,11 +70,28 @@ const PLATFORMS = {
     return `ios/Sources/ILDSDesignSystem/${map[slug]}`;
   },
   kotlin: (slug) => {
-    const name = slug
-      .split('-')
-      .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-      .join('');
-    return `android/ilds-design-system/src/main/kotlin/com/icicilombard/ilds/components/Ilds${name}.kt`;
+    const map = {
+      button: 'IldsButton.kt',
+      chip: 'IldsChip.kt',
+      badge: 'IldsBadge.kt',
+      switch: 'IldsSwitch.kt',
+      checkbox: 'IldsCheckbox.kt',
+      radio: 'IldsRadio.kt',
+      textlink: 'IldsTextLink.kt',
+      toast: 'IldsToast.kt',
+      'selection-button': 'IldsSelectionButton.kt',
+      accordion: 'IldsAccordion.kt',
+      tabs: 'IldsTabs.kt',
+      pagination: 'IldsPagination.kt',
+      search: 'IldsSearch.kt',
+      scrollbar: 'IldsScrollbar.kt',
+      textarea: 'IldsTextArea.kt',
+      textfield: 'IldsTextField.kt',
+      dropdown: 'IldsDropdown.kt',
+      'dropdown-menu': 'IldsDropdownMenu.kt',
+    };
+    const file = map[slug] || `Ilds${slug.split('-').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join('')}.kt`;
+    return `android/ilds-design-system/src/main/kotlin/com/icicilombard/ilds/components/${file}`;
   },
 };
 
