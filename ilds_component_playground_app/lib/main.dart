@@ -143,19 +143,48 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
         children: [
           SizedBox(
             width: 132,
-            child: NavigationRail(
-              selectedIndex: selectedNav,
-              onDestinationSelected: (index) => setState(() => selectedNav = index),
-              labelType: NavigationRailLabelType.all,
-              destinations: _sections
-                  .map(
-                    (label) => NavigationRailDestination(
-                      icon: const Icon(Icons.circle_outlined, size: 16),
-                      selectedIcon: const Icon(Icons.check_circle_outline, size: 16),
-                      label: Text(label, style: const TextStyle(fontSize: 11)),
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: _sections.length,
+              itemBuilder: (context, index) {
+                final bool selected = index == selectedNav;
+                return Semantics(
+                  button: true,
+                  selected: selected,
+                  label: _sections[index],
+                  child: InkWell(
+                    onTap: () => setState(() => selectedNav = index),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: selected ? ILDSTokens.orange50 : Colors.transparent,
+                        borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusLg),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            selected ? Icons.check_circle_outline : Icons.circle_outlined,
+                            size: 16,
+                            color: selected ? ILDSTokens.orange500 : ILDSTokens.neutralCoolgray500,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _sections[index],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                              color: selected ? ILDSTokens.orange500 : ILDSTokens.neutralCoolgray800,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  )
-                  .toList(),
+                  ),
+                );
+              },
             ),
           ),
           const VerticalDivider(width: 1),
