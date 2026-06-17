@@ -1,5 +1,6 @@
 // lib/components/ilds_text_field.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'design_system/ilds_tokens.dart';
 
 enum IldsTextFieldKind { standard, password, otpX6, otpX4 }
@@ -267,48 +268,134 @@ class _IldsTextFieldState extends State<IldsTextField> {
 
   Widget _buildOtp() {
     final int count = widget.kind == IldsTextFieldKind.otpX6 ? 6 : 4;
+    return _OtpInput(
+      count: count,
+      enabled: widget.enabled,
+      onChanged: widget.onChanged,
+    );
+  }
+}
+
+class _OtpInput extends StatefulWidget {
+  const _OtpInput({
+    required this.count,
+    required this.enabled,
+    this.onChanged,
+  });
+
+  final int count;
+  final bool enabled;
+  final ValueChanged<String>? onChanged;
+
+  @override
+  State<_OtpInput> createState() => _OtpInputState();
+}
+
+class _OtpInputState extends State<_OtpInput> {
+  late final List<TextEditingController> _controllers;
+  late final List<FocusNode> _focusNodes;
+
+  @override
+  void initState() {
+    super.initState();
+    _controllers = List.generate(widget.count, (_) => TextEditingController());
+    _focusNodes = List.generate(widget.count, (_) => FocusNode());
+  }
+
+  @override
+  void dispose() {
+    for (final TextEditingController controller in _controllers) {
+      controller.dispose();
+    }
+    for (final FocusNode node in _focusNodes) {
+      node.dispose();
+    }
+    super.dispose();
+  }
+
+  void _emitValue() {
+    widget.onChanged?.call(_controllers.map((c) => c.text).join());
+  }
+
+  void _onDigitChanged(int index, String value) {
+    if (value.length > 1) {
+      final digits = value.replaceAll(RegExp(r'\D'), '');
+      for (int i = 0; i < digits.length && index + i < widget.count; i++) {
+        _controllers[index + i].text = digits[i];
+      }
+      final int next = (index + digits.length).clamp(0, widget.count - 1);
+      _focusNodes[next].requestFocus();
+      _emitValue();
+      return;
+    }
+
+    if (value.isNotEmpty && index < widget.count - 1) {
+      _focusNodes[index + 1].requestFocus();
+    }
+    _emitValue();
+  }
+
+  KeyEventResult _onKey(int index, KeyEvent event) {
+    if (event is! KeyDownEvent || event.logicalKey != LogicalKeyboardKey.backspace) {
+      return KeyEventResult.ignored;
+    }
+    if (_controllers[index].text.isEmpty && index > 0) {
+      _focusNodes[index - 1].requestFocus();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: List.generate(
-        count,
-        (index) => Container(
-          // TODO: add otp cell size tokens to ILDSTokens.
+      children: List.generate(widget.count, (index) {
+        return Container(
           width: 48,
           height: 56,
           margin: EdgeInsets.only(
-            right: index < count - 1 ? ILDSTokens.spacing2 : 0,
+            right: index < widget.count - 1 ? ILDSTokens.spacing2 : 0,
           ),
-          child: Semantics(
-            label: 'OTP digit ${index + 1}',
-            textField: true,
-            child: TextField(
-              textAlign: TextAlign.center,
-              maxLength: 1,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: ILDSTokens.fontWeightBold,
-                color: ILDSTokens.neutral600,
-              ),
-              decoration: InputDecoration(
-                counterText: '',
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
-                  borderSide: const BorderSide(color: ILDSTokens.neutral200),
+          child: Focus(
+            onKeyEvent: (node, event) => _onKey(index, event),
+            child: Semantics(
+              label: 'OTP digit ${index + 1}',
+              textField: true,
+              child: TextField(
+                controller: _controllers[index],
+                focusNode: _focusNodes[index],
+                enabled: widget.enabled,
+                textAlign: TextAlign.center,
+                maxLength: 1,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                onChanged: (value) => _onDigitChanged(index, value),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: ILDSTokens.fontWeightBold,
+                  color: ILDSTokens.neutral600,
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
-                  borderSide: const BorderSide(
-                    color: ILDSTokens.orange500,
-                    width: ILDSTokens.borderWidth2,
+                decoration: InputDecoration(
+                  counterText: '',
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
+                    borderSide: const BorderSide(color: ILDSTokens.neutral200),
                   ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
+                    borderSide: const BorderSide(
+                      color: ILDSTokens.orange500,
+                      width: ILDSTokens.borderWidth2,
+                    ),
+                  ),
+                  contentPadding: EdgeInsets.zero,
                 ),
-                contentPadding: EdgeInsets.zero,
               ),
             ),
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
 }

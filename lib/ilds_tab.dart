@@ -127,9 +127,9 @@ class _IldsTabBarState extends State<IldsTabBar> {
       return _isHigh ? ILDSTokens.white : ILDSTokens.orange500;
     }
     if (_focusedIndex == index && !_isHigh) return ILDSTokens.orange500;
-    if (_pressedIndex == index) return ILDSTokens.neutral500;
-    if (_hoveredIndex == index) return ILDSTokens.neutral600;
-    return _isHigh ? ILDSTokens.neutral500 : ILDSTokens.neutral500;
+    if (_pressedIndex == index) return ILDSTokens.neutralCoolgray800;
+    if (_hoveredIndex == index) return ILDSTokens.neutralCoolgray800;
+    return _isHigh ? ILDSTokens.neutralCoolgray800 : ILDSTokens.neutralCoolgray800;
   }
 
   Color _backgroundColor(int index) {
@@ -234,15 +234,27 @@ class _IldsTabBarState extends State<IldsTabBar> {
   @override
   Widget build(BuildContext context) {
     final Widget tabsRow = widget.type == IldsTabType.fixed
-        ? Row(
-            mainAxisAlignment: widget.alignment == IldsTabAlignment.center
-                ? MainAxisAlignment.center
-                : MainAxisAlignment.start,
-            children: List.generate(
-              widget.tabs.length,
-              (index) => Expanded(child: _buildTab(index)),
-            ),
-          )
+        ? (_isHigh
+            ? Row(
+                mainAxisAlignment: widget.alignment == IldsTabAlignment.center
+                    ? MainAxisAlignment.center
+                    : MainAxisAlignment.start,
+                children: [
+                  for (int index = 0; index < widget.tabs.length; index++) ...[
+                    if (index > 0) const SizedBox(width: ILDSTokens.spacing2),
+                    _buildTab(index),
+                  ],
+                ],
+              )
+            : Row(
+                mainAxisAlignment: widget.alignment == IldsTabAlignment.center
+                    ? MainAxisAlignment.center
+                    : MainAxisAlignment.start,
+                children: List.generate(
+                  widget.tabs.length,
+                  (index) => Expanded(child: _buildTab(index)),
+                ),
+              ))
         : LayoutBuilder(
             builder: (context, constraints) {
               _scheduleMeasure();
@@ -259,9 +271,12 @@ class _IldsTabBarState extends State<IldsTabBar> {
                           : MainAxisAlignment.start,
                       children: List.generate(
                         widget.tabs.length,
-                        (index) => KeyedSubtree(
-                          key: _tabKeys[index],
-                          child: _buildTab(index),
+                        (index) => Padding(
+                          padding: EdgeInsets.only(left: index == 0 ? 0 : ILDSTokens.spacing2),
+                          child: KeyedSubtree(
+                            key: _tabKeys[index],
+                            child: _buildTab(index),
+                          ),
                         ),
                       ),
                     ),

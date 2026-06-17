@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'design_system/ilds_tokens.dart';
+import 'ilds_button.dart';
 
 enum IldsDropdownSize { large, medium }
 
@@ -26,6 +27,12 @@ class IldsDropdown extends StatefulWidget {
   final String? errorText;
   final String? helperText;
   final IldsDropdownSize size;
+  final String? sectionLabel;
+  final bool showMenuFooter;
+  final String menuSecondaryLabel;
+  final String menuPrimaryLabel;
+  final VoidCallback? onMenuSecondary;
+  final VoidCallback? onMenuPrimary;
 
   const IldsDropdown({
     super.key,
@@ -39,6 +46,12 @@ class IldsDropdown extends StatefulWidget {
     this.errorText,
     this.helperText,
     this.size = IldsDropdownSize.large,
+    this.sectionLabel = 'Section Label',
+    this.showMenuFooter = true,
+    this.menuSecondaryLabel = 'Secondary button',
+    this.menuPrimaryLabel = 'Primary button',
+    this.onMenuSecondary,
+    this.onMenuPrimary,
   });
 
   @override
@@ -52,9 +65,6 @@ class _IldsDropdownState extends State<IldsDropdown> {
   bool _isOpen = false;
 
   double get _triggerHeight =>
-      widget.size == IldsDropdownSize.large ? ILDSTokens.spacing12 : ILDSTokens.spacing10;
-
-  double get _optionRowHeight =>
       widget.size == IldsDropdownSize.large ? ILDSTokens.spacing12 : ILDSTokens.spacing10;
 
   double get _fontSize => widget.size == IldsDropdownSize.large ? 14 : 12;
@@ -145,82 +155,137 @@ class _IldsDropdownState extends State<IldsDropdown> {
   }
 
   Widget _buildOptionsPanel() {
-    final int visibleCount = widget.options.length > 5 ? 5 : widget.options.length;
-    final double maxHeight = _optionRowHeight * visibleCount;
     return Material(
-      elevation: 4, // TODO: add shadow elevation token to ILDSTokens.
+      elevation: 4,
       color: ILDSTokens.white,
-      borderRadius: const BorderRadius.only(
-        bottomLeft: Radius.circular(ILDSTokens.borderRadiusMd),
-        bottomRight: Radius.circular(ILDSTokens.borderRadiusMd),
-      ),
+      borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
       child: Container(
-        constraints: BoxConstraints(maxHeight: maxHeight),
-        decoration: const BoxDecoration(
+        padding: const EdgeInsets.all(ILDSTokens.spacing2),
+        decoration: BoxDecoration(
           color: ILDSTokens.white,
-          borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(ILDSTokens.borderRadiusMd),
-            bottomRight: Radius.circular(ILDSTokens.borderRadiusMd),
-          ),
-          border: Border(
-            left: BorderSide(color: ILDSTokens.orange500, width: ILDSTokens.borderWidth2),
-            right: BorderSide(color: ILDSTokens.orange500, width: ILDSTokens.borderWidth2),
-            bottom: BorderSide(color: ILDSTokens.orange500, width: ILDSTokens.borderWidth2),
-          ),
+          borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
+          border: Border.all(color: ILDSTokens.neutralCoolgray200),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0xFFBDBDBD),
+              blurRadius: 12,
+              offset: Offset(0, 4),
+            ),
+          ],
         ),
-        child: ListView.builder(
-          padding: EdgeInsets.zero,
-          shrinkWrap: true,
-          itemCount: widget.options.length,
-          itemBuilder: (BuildContext context, int index) {
-            final IldsDropdownOption option = widget.options[index];
-            final bool isSelected = option.value == widget.selectedValue;
-            final bool isDisabled = option.disabled;
-            final Color textColor = isDisabled
-                ? ILDSTokens.neutral300
-                : (isSelected ? ILDSTokens.orange500 : ILDSTokens.neutral600);
-            final FontWeight weight =
-                isSelected ? ILDSTokens.fontWeightBold : ILDSTokens.fontWeightRegular;
-
-            return Semantics(
-              button: true,
-              enabled: !isDisabled,
-              selected: isSelected,
-              label: option.label,
-              child: InkWell(
-                onTap: isDisabled ? null : () => _onOptionSelected(option),
-                hoverColor: ILDSTokens.neutral50,
-                focusColor: ILDSTokens.neutral50,
-                highlightColor: ILDSTokens.neutral50,
-                child: Container(
-                  height: _optionRowHeight,
-                  padding: const EdgeInsets.symmetric(horizontal: ILDSTokens.spacing4),
-                  color: isSelected ? ILDSTokens.orange50 : null,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          option.label,
-                          style: TextStyle(
-                            fontFamily: 'Mulish',
-                            fontSize: _fontSize,
-                            fontWeight: weight,
-                            color: textColor,
-                          ),
-                        ),
-                      ),
-                      if (isSelected)
-                        const Icon(
-                          Icons.check,
-                          color: ILDSTokens.orange500,
-                          size: ILDSTokens.spacing5,
-                        ),
-                    ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (widget.sectionLabel != null && widget.sectionLabel!.isNotEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: ILDSTokens.spacing2,
+                  vertical: ILDSTokens.spacing3,
+                ),
+                decoration: BoxDecoration(
+                  color: ILDSTokens.neutralCoolgray100,
+                  borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
+                ),
+                child: Text(
+                  widget.sectionLabel!,
+                  style: const TextStyle(
+                    fontFamily: 'Mulish',
+                    fontSize: ILDSTokens.fontSize14,
+                    fontWeight: ILDSTokens.fontWeightBold,
+                    color: ILDSTokens.neutralCoolgray800,
+                    height: 18 / 14,
                   ),
                 ),
               ),
-            );
-          },
+            for (int index = 0; index < widget.options.length; index++) ...[
+              _buildMenuRow(widget.options[index]),
+              if (index < widget.options.length - 1)
+                const Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: ILDSTokens.neutralCoolgray200,
+                ),
+            ],
+            if (widget.showMenuFooter) ...[
+              const SizedBox(height: ILDSTokens.spacing3),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  ILDSTokens.spacing2,
+                  ILDSTokens.spacing3,
+                  ILDSTokens.spacing2,
+                  ILDSTokens.spacing1 + ILDSTokens.borderWidth2,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: IldsButton(
+                        label: widget.menuSecondaryLabel,
+                        type: IldsButtonType.secondary,
+                        size: IldsButtonSize.medium,
+                        onPressed: widget.onMenuSecondary ?? _removeOverlay,
+                      ),
+                    ),
+                    const SizedBox(width: ILDSTokens.spacing3),
+                    Expanded(
+                      child: IldsButton(
+                        label: widget.menuPrimaryLabel,
+                        type: IldsButtonType.primary,
+                        size: IldsButtonSize.medium,
+                        onPressed: widget.onMenuPrimary ?? _removeOverlay,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuRow(IldsDropdownOption option) {
+    final bool isSelected = option.value == widget.selectedValue;
+    final bool isDisabled = option.disabled;
+    final Color textColor = isDisabled
+        ? ILDSTokens.neutralCoolgray300
+        : (isSelected ? ILDSTokens.orange500 : ILDSTokens.neutralCoolgray800);
+
+    return Semantics(
+      button: true,
+      enabled: !isDisabled,
+      selected: isSelected,
+      label: option.label,
+      child: InkWell(
+        onTap: isDisabled ? null : () => _onOptionSelected(option),
+        hoverColor: ILDSTokens.neutralCoolgray50,
+        child: Container(
+          color: isSelected ? ILDSTokens.orange50 : null,
+          padding: const EdgeInsets.symmetric(
+            horizontal: ILDSTokens.spacing2,
+            vertical: ILDSTokens.spacing3,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _DropdownMenuRadioIcon(isSelected: isSelected && !isDisabled),
+              const SizedBox(width: ILDSTokens.spacing2),
+              Expanded(
+                child: Text(
+                  option.label,
+                  style: TextStyle(
+                    fontFamily: 'Mulish',
+                    fontSize: ILDSTokens.fontSize14,
+                    fontWeight: isSelected ? ILDSTokens.fontWeightBold : ILDSTokens.fontWeightRegular,
+                    color: textColor,
+                    height: 1.6,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -232,17 +297,17 @@ class _IldsDropdownState extends State<IldsDropdown> {
     final bool isDisabled = !widget.enabled;
     final IldsDropdownOption? selected = _selectedOption;
 
-    Color borderColor = ILDSTokens.neutral200;
+    Color borderColor = ILDSTokens.neutralCoolgray500;
     double borderWidth = ILDSTokens.borderWidth1;
     Color fillColor = ILDSTokens.white;
-    Color textColor = selected == null ? ILDSTokens.neutral300 : ILDSTokens.neutral600;
-    Color iconColor = ILDSTokens.neutral400;
+    Color textColor = selected == null ? ILDSTokens.neutralCoolgray500 : ILDSTokens.neutralCoolgray800;
+    Color iconColor = ILDSTokens.neutralCoolgray500;
 
     if (isDisabled) {
-      borderColor = ILDSTokens.neutral300;
-      fillColor = ILDSTokens.neutral100;
-      textColor = ILDSTokens.neutral300;
-      iconColor = ILDSTokens.neutral300;
+      borderColor = ILDSTokens.neutralCoolgray300;
+      fillColor = ILDSTokens.neutralCoolgray200;
+      textColor = ILDSTokens.neutralCoolgray500;
+      iconColor = ILDSTokens.neutralCoolgray500;
     } else if (hasError) {
       borderColor = ILDSTokens.red600;
       borderWidth = _isOpen ? ILDSTokens.borderWidth2 : ILDSTokens.borderWidth1;
@@ -254,7 +319,7 @@ class _IldsDropdownState extends State<IldsDropdown> {
     }
 
     final String? bottomText = hasError ? widget.errorText : widget.helperText;
-    final Color bottomTextColor = hasError ? ILDSTokens.red600 : ILDSTokens.neutral400;
+    final Color bottomTextColor = hasError ? ILDSTokens.red600 : ILDSTokens.neutralCoolgray700;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,10 +382,10 @@ class _IldsDropdownState extends State<IldsDropdown> {
                       ),
                     ),
                     if (widget.isLoading)
-                      SizedBox(
+                      const SizedBox(
                         width: ILDSTokens.spacing5,
                         height: ILDSTokens.spacing5,
-                        child: const CircularProgressIndicator(
+                        child: CircularProgressIndicator(
                           strokeWidth: ILDSTokens.borderWidth2,
                           color: ILDSTokens.orange500,
                         ),
@@ -328,7 +393,7 @@ class _IldsDropdownState extends State<IldsDropdown> {
                     else
                       AnimatedRotation(
                         turns: _isOpen ? 0.5 : 0,
-                        duration: const Duration(milliseconds: 150), // TODO: add motion duration token to ILDSTokens.
+                        duration: const Duration(milliseconds: 150),
                         child: Icon(
                           Icons.keyboard_arrow_down,
                           color: iconColor,
@@ -354,6 +419,45 @@ class _IldsDropdownState extends State<IldsDropdown> {
           ),
         ],
       ],
+    );
+  }
+}
+
+class _DropdownMenuRadioIcon extends StatelessWidget {
+  const _DropdownMenuRadioIcon({required this.isSelected});
+
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: ILDSTokens.spacing5,
+      height: ILDSTokens.spacing5,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: ILDSTokens.spacing5,
+            height: ILDSTokens.spacing5,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected ? ILDSTokens.orange500 : ILDSTokens.neutralCoolgray500,
+                width: 1.5,
+              ),
+            ),
+          ),
+          if (isSelected)
+            Container(
+              width: 10,
+              height: 10,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: ILDSTokens.orange500,
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

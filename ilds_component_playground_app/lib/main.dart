@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ilds_design_system/design_system/ilds_tokens.dart';
 import 'package:ilds_design_system/ilds_accordion.dart';
 import 'package:ilds_design_system/ilds_badge.dart';
 import 'package:ilds_design_system/ilds_button.dart';
@@ -22,6 +23,32 @@ void main() {
   runApp(const IldsStandalonePlaygroundApp());
 }
 
+ThemeData _playgroundTheme() {
+  return ThemeData(
+    useMaterial3: true,
+    fontFamily: ILDSTokens.fontFamilyPrimary,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: ILDSTokens.orange500,
+      primary: ILDSTokens.orange500,
+      surface: ILDSTokens.white,
+    ),
+    textSelectionTheme: TextSelectionThemeData(
+      cursorColor: ILDSTokens.orange500,
+      selectionColor: ILDSTokens.orange500.withValues(alpha: 0.2),
+      selectionHandleColor: ILDSTokens.orange500,
+    ),
+    navigationRailTheme: NavigationRailThemeData(
+      selectedIconTheme: const IconThemeData(color: ILDSTokens.orange500),
+      selectedLabelTextStyle: const TextStyle(color: ILDSTokens.orange500),
+      indicatorColor: ILDSTokens.orange50,
+    ),
+    inputDecorationTheme: const InputDecorationTheme(
+      focusColor: ILDSTokens.orange500,
+      hoverColor: ILDSTokens.neutralCoolgray50,
+    ),
+  );
+}
+
 class IldsStandalonePlaygroundApp extends StatelessWidget {
   const IldsStandalonePlaygroundApp({super.key});
 
@@ -30,7 +57,7 @@ class IldsStandalonePlaygroundApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'ILDS Standalone Playground',
-      theme: ThemeData(useMaterial3: true),
+      theme: _playgroundTheme(),
       home: const IldsStandalonePlaygroundPage(),
     );
   }
@@ -159,13 +186,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
           ),
         ]);
       case 2:
-        return _panel('Checkbox', [
-          IldsCheckbox(
-            label: 'Accept terms',
-            state: checkboxState,
-            onChanged: (value) => setState(() => checkboxState = value),
-          ),
-        ]);
+        return _checkboxPanel();
       case 3:
         return _panel('Switch', [
           IldsSwitch(
@@ -201,23 +222,9 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
           ),
         ]);
       case 9:
-        return _panel('Selection Button', [
-          IldsSelectionButton(
-            label: 'Filter',
-            isSelected: selectionOn,
-            variant: IldsSelectionButtonVariant.labelWithSuffix,
-            suffixIcon: Icons.keyboard_arrow_down,
-            onTap: () => setState(() => selectionOn = !selectionOn),
-          ),
-        ]);
+        return _selectionButtonPanel();
       case 10:
-        return _panel('Badge', const [
-          IldsBadge(
-            label: 'Success',
-            variant: IldsBadgeVariant.success,
-            prefixIcon: Icons.check_circle_outline,
-          ),
-        ]);
+        return _badgePanel();
       case 11:
         return _chipPanel();
       case 12:
@@ -231,13 +238,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
           ),
         ]);
       case 13:
-        return _panel('Accordion', const [
-          IldsAccordion(
-            title: 'What is ILDS?',
-            initiallyOpen: true,
-            content: Text('Open/close interactions for accordion parity.'),
-          ),
-        ]);
+        return _accordionPanel();
       case 14:
         return _panel('Text Link', [
           IldsTextLink(
@@ -289,19 +290,35 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
           ],
         ),
         const SizedBox(height: 16),
-        _sectionTitle('Button — disabled + loading'),
+        _sectionTitle('Button — disabled (all types)'),
         Wrap(
           spacing: 12,
           runSpacing: 12,
           children: [
-            IldsButton(label: 'Disabled primary', isDisabled: true, onPressed: () {}),
-            IldsButton(
-              label: 'Loading',
-              isLoading: true,
-              leading: const Icon(Icons.add),
-              trailing: const Icon(Icons.arrow_forward),
-              onPressed: () {},
-            ),
+            for (final type in types)
+              IldsButton(
+                label: 'Disabled ${type.name}',
+                type: type,
+                isDisabled: true,
+                onPressed: () {},
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('Button — loading (all types)'),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            for (final type in types)
+              IldsButton(
+                label: 'Loading ${type.name}',
+                type: type,
+                isLoading: true,
+                leading: const Icon(Icons.add),
+                trailing: const Icon(Icons.arrow_forward),
+                onPressed: () {},
+              ),
           ],
         ),
         const SizedBox(height: 16),
@@ -324,6 +341,162 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
               onPressed: () {},
             ),
           ],
+        ),
+      ],
+    );
+  }
+
+  Widget _checkboxPanel() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle('Checkbox — interactive'),
+        IldsCheckbox(
+          label: 'Accept terms',
+          state: checkboxState,
+          onChanged: (value) => setState(() => checkboxState = value),
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('Checkbox — sizes × states'),
+        Wrap(
+          spacing: 24,
+          runSpacing: 16,
+          children: [
+            for (final size in IldsCheckboxSize.values) ...[
+              IldsCheckbox(
+                label: '${size.name} checked',
+                size: size,
+                state: IldsCheckboxState.checked,
+                onChanged: (_) {},
+              ),
+              IldsCheckbox(
+                label: '${size.name} unchecked',
+                size: size,
+                state: IldsCheckboxState.unchecked,
+                onChanged: (_) {},
+              ),
+            ],
+            const IldsCheckbox(
+              label: 'Disabled',
+              state: IldsCheckboxState.unchecked,
+              isDisabled: true,
+              onChanged: null,
+            ),
+            IldsCheckbox(
+              label: 'Error',
+              state: IldsCheckboxState.unchecked,
+              hasError: true,
+              errorText: 'Required field',
+              onChanged: (_) {},
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _badgePanel() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final variant in IldsBadgeVariant.values) ...[
+          _sectionTitle('Badge — ${variant.name}'),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              for (final size in IldsBadgeSize.values)
+                IldsBadge(
+                  label: variant == IldsBadgeVariant.skeleton ? 'Skeleton' : variant.name,
+                  variant: variant,
+                  size: size,
+                  prefixIcon: variant == IldsBadgeVariant.skeleton
+                      ? null
+                      : Icons.circle_outlined,
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+        ],
+      ],
+    );
+  }
+
+  Widget _selectionButtonPanel() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle('Selection Button — variants'),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            IldsSelectionButton(
+              label: 'Label only',
+              isSelected: selectionOn,
+              onTap: () => setState(() => selectionOn = !selectionOn),
+            ),
+            IldsSelectionButton(
+              label: 'With suffix',
+              isSelected: selectionOn,
+              variant: IldsSelectionButtonVariant.labelWithSuffix,
+              suffixIcon: Icons.keyboard_arrow_down,
+              onTap: () => setState(() => selectionOn = !selectionOn),
+            ),
+            IldsSelectionButton(
+              label: 'Icon only',
+              isSelected: selectionOn,
+              variant: IldsSelectionButtonVariant.iconOnly,
+              suffixIcon: Icons.tune,
+              onTap: () => setState(() => selectionOn = !selectionOn),
+            ),
+            const IldsSelectionButton(
+              label: 'Disabled',
+              isSelected: false,
+              isDisabled: true,
+              onTap: null,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _sectionTitle('Selection Button — sizes'),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: IldsSelectionButtonSize.values
+              .map(
+                (size) => IldsSelectionButton(
+                  label: size.name,
+                  size: size,
+                  isSelected: size == IldsSelectionButtonSize.medium,
+                  onTap: () {},
+                ),
+              )
+              .toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _accordionPanel() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle('Accordion — multiple items'),
+        const IldsAccordion(
+          title: 'What is ILDS?',
+          initiallyOpen: true,
+          content: Text('ILDS is the ICICI Lombard design system for cross-platform UI.'),
+        ),
+        const SizedBox(height: 8),
+        const IldsAccordion(
+          title: 'How do tokens propagate?',
+          content: Text('Figma plugin → tokens.json → Style Dictionary → platform outputs.'),
+        ),
+        const SizedBox(height: 8),
+        const IldsAccordion(
+          title: 'Where is the playground?',
+          content: Text('ilds_component_playground_app — hot reload against lib/.'),
         ),
       ],
     );
