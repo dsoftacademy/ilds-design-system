@@ -235,16 +235,19 @@ class _IldsTabBarState extends State<IldsTabBar> {
   Widget build(BuildContext context) {
     final Widget tabsRow = widget.type == IldsTabType.fixed
         ? (_isHigh
-            ? Row(
-                mainAxisAlignment: widget.alignment == IldsTabAlignment.center
-                    ? MainAxisAlignment.center
-                    : MainAxisAlignment.start,
-                children: [
-                  for (int index = 0; index < widget.tabs.length; index++) ...[
-                    if (index > 0) const SizedBox(width: ILDSTokens.spacing2),
-                    _buildTab(index),
+            ? SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: widget.alignment == IldsTabAlignment.center
+                      ? MainAxisAlignment.center
+                      : MainAxisAlignment.start,
+                  children: [
+                    for (int index = 0; index < widget.tabs.length; index++) ...[
+                      if (index > 0) const SizedBox(width: ILDSTokens.spacing2),
+                      _buildTab(index),
+                    ],
                   ],
-                ],
+                ),
               )
             : Row(
                 mainAxisAlignment: widget.alignment == IldsTabAlignment.center

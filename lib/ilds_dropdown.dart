@@ -63,6 +63,7 @@ class _IldsDropdownState extends State<IldsDropdown> {
   final GlobalKey _targetKey = GlobalKey();
   OverlayEntry? _overlayEntry;
   bool _isOpen = false;
+  ScrollPosition? _ancestorScrollPosition;
 
   double get _triggerHeight =>
       widget.size == IldsDropdownSize.large ? ILDSTokens.spacing12 : ILDSTokens.spacing10;
@@ -79,8 +80,24 @@ class _IldsDropdownState extends State<IldsDropdown> {
 
   @override
   void dispose() {
+    _detachScrollListener();
     _removeOverlay();
     super.dispose();
+  }
+
+  void _attachScrollListener() {
+    _detachScrollListener();
+    _ancestorScrollPosition = Scrollable.maybeOf(context)?.position;
+    _ancestorScrollPosition?.addListener(_onAncestorScroll);
+  }
+
+  void _detachScrollListener() {
+    _ancestorScrollPosition?.removeListener(_onAncestorScroll);
+    _ancestorScrollPosition = null;
+  }
+
+  void _onAncestorScroll() {
+    if (_isOpen) _removeOverlay();
   }
 
   @override
@@ -123,6 +140,7 @@ class _IldsDropdownState extends State<IldsDropdown> {
               offset: Offset(0, _triggerHeight),
               child: Material(
                 color: Colors.transparent,
+                elevation: 8,
                 child: SizedBox(
                   width: size.width,
                   child: _buildOptionsPanel(),
@@ -134,11 +152,13 @@ class _IldsDropdownState extends State<IldsDropdown> {
       },
     );
 
-    Overlay.of(context).insert(_overlayEntry!);
+    _attachScrollListener();
+    Overlay.of(context, rootOverlay: true).insert(_overlayEntry!);
     setState(() => _isOpen = true);
   }
 
   void _removeOverlay() {
+    _detachScrollListener();
     _overlayEntry?.remove();
     _overlayEntry = null;
     if (mounted && _isOpen) {
