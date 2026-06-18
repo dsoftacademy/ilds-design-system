@@ -318,6 +318,14 @@ class _OtpInputState extends State<_OtpInput> {
   }
 
   void _onDigitChanged(int index, String value) {
+    if (value.isEmpty) {
+      if (index > 0) {
+        _focusNodes[index - 1].requestFocus();
+      }
+      _emitValue();
+      return;
+    }
+
     if (value.length > 1) {
       final digits = value.replaceAll(RegExp(r'\D'), '');
       for (int i = 0; i < digits.length && index + i < widget.count; i++) {
@@ -371,6 +379,19 @@ class _OtpInputState extends State<_OtpInput> {
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 onChanged: (value) => _onDigitChanged(index, value),
+                textInputAction:
+                    index < widget.count - 1 ? TextInputAction.next : TextInputAction.done,
+                onSubmitted: (_) {
+                  if (index < widget.count - 1) {
+                    _focusNodes[index + 1].requestFocus();
+                  }
+                },
+                onTap: () {
+                  _controllers[index].selection = TextSelection(
+                    baseOffset: 0,
+                    extentOffset: _controllers[index].text.length,
+                  );
+                },
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: ILDSTokens.fontWeightBold,

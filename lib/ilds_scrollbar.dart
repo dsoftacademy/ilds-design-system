@@ -3,9 +3,8 @@ import 'design_system/ilds_tokens.dart';
 
 /// Scrollbar aligned with Figma component **Scrollbar** (`17730:521`).
 ///
-/// Figma documents **Default** and **Hover** (thumb grows 6px → 12px; fills stay on-token).
-/// **Active** (thumb drag) is mapped to Flutter’s [WidgetState.dragged] with a darker thumb
-/// so pressed/drag feedback is visible (no separate Figma variant).
+/// Pass the same [controller] to this widget and the scrollable child
+/// (`ListView`, `SingleChildScrollView`, etc.).
 class IldsScrollbar extends StatefulWidget {
   const IldsScrollbar({
     super.key,
@@ -18,10 +17,7 @@ class IldsScrollbar extends StatefulWidget {
   final ScrollController? controller;
   final bool thumbVisibility;
 
-  /// Default rail thickness (Figma vertical default width 6px).
   static double get _thicknessDefault => ILDSTokens.borderWidth2 + ILDSTokens.spacing1;
-
-  /// Hover / dragged rail thickness (Figma vertical hover width 12px).
   static double get _thicknessExpanded => ILDSTokens.spacing3;
 
   static Color _thumbColorFor(Set<WidgetState> states) {
@@ -59,29 +55,30 @@ class _IldsScrollbarState extends State<IldsScrollbar> {
     super.dispose();
   }
 
+  ScrollController get _controller => widget.controller ?? _effectiveController;
+
   @override
   Widget build(BuildContext context) {
     final Radius thumbRadius = Radius.circular(ILDSTokens.borderRadiusFull);
 
     return Semantics(
       label: 'Scrollable content',
-      child: ScrollbarTheme(
-        data: ScrollbarThemeData(
-          thumbColor: WidgetStateColor.resolveWith(IldsScrollbar._thumbColorFor),
-          trackColor: WidgetStateProperty.all(ILDSTokens.neutral100),
-          thickness: WidgetStateProperty.resolveWith(IldsScrollbar._thicknessFor),
-          radius: thumbRadius,
-          crossAxisMargin: ILDSTokens.spacing1,
-          mainAxisMargin: ILDSTokens.spacing1,
-          interactive: true,
-        ),
-        child: RawScrollbar(
-          controller: _effectiveController,
-          thumbVisibility: widget.thumbVisibility,
-          trackVisibility: true,
-          radius: thumbRadius,
-          child: PrimaryScrollController(
-            controller: _effectiveController,
+      child: ClipRect(
+        child: ScrollbarTheme(
+          data: ScrollbarThemeData(
+            thumbColor: WidgetStateColor.resolveWith(IldsScrollbar._thumbColorFor),
+            trackColor: WidgetStateProperty.all(ILDSTokens.neutral100),
+            thickness: WidgetStateProperty.resolveWith(IldsScrollbar._thicknessFor),
+            radius: thumbRadius,
+            crossAxisMargin: ILDSTokens.spacing1,
+            mainAxisMargin: ILDSTokens.spacing1,
+            interactive: true,
+          ),
+          child: RawScrollbar(
+            controller: _controller,
+            thumbVisibility: widget.thumbVisibility,
+            trackVisibility: true,
+            radius: thumbRadius,
             child: widget.child,
           ),
         ),

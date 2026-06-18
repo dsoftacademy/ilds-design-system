@@ -155,10 +155,8 @@ class _IldsTextAreaState extends State<IldsTextArea> {
             ],
             AnimatedContainer(
               duration: const Duration(milliseconds: 150),
-              constraints: BoxConstraints(
-                minHeight: _minHeight,
-                minWidth: _minWidth,
-              ),
+              width: _minWidth,
+              height: _minHeight,
               decoration: BoxDecoration(
                 color: _fillColor(),
                 borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
@@ -166,32 +164,41 @@ class _IldsTextAreaState extends State<IldsTextArea> {
               ),
               child: Stack(
                 children: [
-                  TextField(
-                    controller: _controller,
-                    focusNode: _focusNode,
-                    enabled: _isInteractive,
-                    readOnly: widget.isReadOnly,
-                    minLines: widget.minLines,
-                    maxLines: widget.maxLines,
-                    maxLength: widget.maxLength,
-                    onChanged: widget.onChanged,
-                    style: TextStyle(
-                      fontSize: ILDSTokens.spacing3 + ILDSTokens.borderWidth2,
-                      fontWeight: ILDSTokens.fontWeightRegular,
-                      color: _textColor(),
-                    ),
-                    decoration: InputDecoration(
-                      counterText: '',
-                      hintText: widget.placeholder,
-                      hintStyle: const TextStyle(
-                        fontSize: ILDSTokens.spacing3 + ILDSTokens.borderWidth2,
-                        fontWeight: ILDSTokens.fontWeightRegular,
-                        color: ILDSTokens.neutral300,
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        right: ILDSTokens.spacing4,
+                        bottom: ILDSTokens.spacing4,
                       ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: ILDSTokens.spacing4,
-                        vertical: ILDSTokens.spacing3,
+                      child: TextField(
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        enabled: _isInteractive,
+                        readOnly: widget.isReadOnly,
+                        expands: true,
+                        maxLines: null,
+                        minLines: null,
+                        maxLength: widget.maxLength,
+                        onChanged: widget.onChanged,
+                        style: TextStyle(
+                          fontSize: ILDSTokens.spacing3 + ILDSTokens.borderWidth2,
+                          fontWeight: ILDSTokens.fontWeightRegular,
+                          color: _textColor(),
+                        ),
+                        decoration: InputDecoration(
+                          counterText: '',
+                          hintText: widget.placeholder,
+                          hintStyle: const TextStyle(
+                            fontSize: ILDSTokens.spacing3 + ILDSTokens.borderWidth2,
+                            fontWeight: ILDSTokens.fontWeightRegular,
+                            color: ILDSTokens.neutral300,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: ILDSTokens.spacing4,
+                            vertical: ILDSTokens.spacing3,
+                          ),
+                        ),
                       ),
                     ),
                   ),
