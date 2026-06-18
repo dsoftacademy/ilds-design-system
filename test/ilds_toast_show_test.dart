@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ilds_design_system/ilds_toast.dart';
 
 void main() {
-  testWidgets('IldsToast.show renders inside SnackBar without layout exception', (tester) async {
+  testWidgets('IldsToast.show renders in overlay without layout exception', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Builder(
@@ -29,5 +29,7 @@ void main() {
 
     expect(find.byType(IldsToast), findsOneWidget);
     expect(tester.takeException(), isNull);
+
+    await tester.pump(const Duration(seconds: 5));
   });
 }

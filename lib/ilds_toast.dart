@@ -63,29 +63,19 @@ class IldsToast extends StatelessWidget {
     bool showClose = false,
     bool showAccentBar = false,
     bool isPersistent = false,
-    IldsToastPosition position = IldsToastPosition.bottom,
+    IldsToastPosition position = IldsToastPosition.top,
     Duration duration = const Duration(seconds: 4),
   }) {
     assert(
       !isPersistent || showClose,
       'isPersistent requires showClose: true so the toast can be dismissed.',
     );
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    if (messenger == null) return;
-    final MediaQueryData mediaQuery = MediaQuery.of(context);
+    final OverlayState? overlay = Overlay.maybeOf(context, rootOverlay: true);
+    if (overlay == null) return;
 
     final Duration effectiveDuration = isPersistent && showClose
         ? const Duration(days: 365)
         : duration;
-
-    final EdgeInsets margin = position == IldsToastPosition.top
-        ? EdgeInsets.only(
-            top: mediaQuery.padding.top + ILDSTokens.spacing4,
-            left: ILDSTokens.spacing4,
-            right: ILDSTokens.spacing4,
-            bottom: ILDSTokens.spacing4,
-          )
-        : const EdgeInsets.all(ILDSTokens.spacing4);
 
     final IldsToastActions? resolvedActions = actions ??
         (actionLabel != null && onAction != null
@@ -94,27 +84,22 @@ class IldsToast extends StatelessWidget {
               )
             : null);
 
-    messenger.clearSnackBars();
-    messenger.showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        margin: margin,
-        padding: EdgeInsets.zero,
-        duration: effectiveDuration,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        content: SizedBox(
-          width: 320,
-          child: IldsToast(
-            message: message,
-            title: title,
-            variant: variant,
-            showIcon: showIcon,
-            actions: resolvedActions,
-            showClose: showClose,
-            showAccentBar: showAccentBar,
-            onClose: () => messenger.hideCurrentSnackBar(),
-          ),
+    _IldsToastOverlay.show(
+      overlay: overlay,
+      position: position,
+      duration: effectiveDuration,
+      isPersistent: isPersistent && showClose,
+      builder: (VoidCallback dismiss) => SizedBox(
+        width: 320,
+        child: IldsToast(
+          message: message,
+          title: title,
+          variant: variant,
+          showIcon: showIcon,
+          actions: resolvedActions,
+          showClose: showClose,
+          showAccentBar: showAccentBar,
+          onClose: dismiss,
         ),
       ),
     );
@@ -175,8 +160,7 @@ class IldsToast extends StatelessWidget {
     final Color iconColor = _iconColor();
     final bool hasTitle = title != null && title!.isNotEmpty;
     final IldsToastActions? footerActions = _resolvedActions;
-    final VoidCallback? closeHandler =
-        onClose ?? (showClose ? () => ScaffoldMessenger.of(context).hideCurrentSnackBar() : null);
+    final VoidCallback? closeHandler = onClose;
 
     Widget content = DecoratedBox(
       decoration: BoxDecoration(
@@ -309,6 +293,112 @@ class IldsToast extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: content,
+      ),
+    );
+  }
+}
+
+typedef _IldsToastBuilder = Widget Function(VoidCallback dismiss);
+
+class _ActiveToast {
+  _ActiveToast({
+    required this.id,
+    required this.builder,
+    required this.duration,
+    required this.isPersistent,
+  });
+
+  final int id;
+  final _IldsToastBuilder builder;
+  final Duration duration;
+  final bool isPersistent;
+}
+
+/// Root overlay host — top-right stack, max width 320px per toast (Figma 17708:3491).
+class _IldsToastOverlay {
+  static final List<_ActiveToast> _toasts = <_ActiveToast>[];
+  static OverlayEntry? _entry;
+  static int _nextId = 0;
+  static IldsToastPosition _position = IldsToastPosition.top;
+
+  static void show({
+    required OverlayState overlay,
+    required IldsToastPosition position,
+    required Duration duration,
+    required bool isPersistent,
+    required _IldsToastBuilder builder,
+  }) {
+    _position = position;
+    final int id = _nextId++;
+    _toasts.add(_ActiveToast(
+      id: id,
+      builder: builder,
+      duration: duration,
+      isPersistent: isPersistent,
+    ));
+
+    void dismiss() => _remove(id);
+
+    if (!isPersistent) {
+      Future<void>.delayed(duration, () {
+        if (_toasts.any((toast) => toast.id == id)) {
+          dismiss();
+        }
+      });
+    }
+
+    if (_entry == null) {
+      _entry = OverlayEntry(builder: _buildOverlay);
+      overlay.insert(_entry!);
+    } else {
+      _entry!.markNeedsBuild();
+    }
+  }
+
+  static void _remove(int id) {
+    _toasts.removeWhere((toast) => toast.id == id);
+    if (_toasts.isEmpty) {
+      _entry?.remove();
+      _entry = null;
+    } else {
+      _entry?.markNeedsBuild();
+    }
+  }
+
+  static Widget _buildOverlay(BuildContext context) {
+    final MediaQueryData mediaQuery = MediaQuery.of(context);
+    final double inset = ILDSTokens.spacing4;
+
+    return Positioned.fill(
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            top: _position == IldsToastPosition.top
+                ? mediaQuery.padding.top + inset
+                : null,
+            bottom: _position == IldsToastPosition.bottom ? inset : null,
+            right: inset,
+            child: Material(
+              type: MaterialType.transparency,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 320),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final _ActiveToast toast in _toasts) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: ILDSTokens.spacing2),
+                        child: toast.builder(() => _remove(toast.id)),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
