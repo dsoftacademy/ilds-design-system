@@ -217,6 +217,7 @@ class _IldsTabBarState extends State<IldsTabBar> {
                   Text(
                     tab.label,
                     style: TextStyle(
+                      fontFamily: ILDSTokens.fontFamilyPrimary,
                       fontSize: _labelSize(),
                       fontWeight: ILDSTokens.fontWeightBold,
                       color: _textColor(index),

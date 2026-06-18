@@ -184,8 +184,9 @@ class IldsToast extends StatelessWidget {
                             Text(
                               title!,
                               style: const TextStyle(
-                                fontFamily: 'Mulish',
-                                fontSize: 14,
+                                fontFamily: ILDSTokens.fontFamilyPrimary,
+                                fontSize: ILDSTokens.fontSize14,
+                                height: ILDSTokens.lineHeight14,
                                 fontWeight: ILDSTokens.fontWeightBold,
                                 color: ILDSTokens.neutral600,
                               ),
@@ -195,9 +196,9 @@ class IldsToast extends StatelessWidget {
                           Text(
                             message,
                             style: TextStyle(
-                              fontFamily: 'Mulish',
-                              fontSize: 14,
-                              height: 1.35,
+                              fontFamily: ILDSTokens.fontFamilyPrimary,
+                              fontSize: ILDSTokens.fontSize14,
+                              height: ILDSTokens.lineHeight14,
                               fontWeight: hasTitle
                                   ? ILDSTokens.fontWeightRegular
                                   : ILDSTokens.fontWeightMedium,
@@ -220,9 +221,10 @@ class IldsToast extends StatelessWidget {
                         child: Text(
                           actionLabel!,
                           style: const TextStyle(
-                            fontFamily: 'Mulish',
+                            fontFamily: ILDSTokens.fontFamilyPrimary,
                             fontWeight: ILDSTokens.fontWeightBold,
-                            fontSize: 14,
+                            fontSize: ILDSTokens.fontSize14,
+                            height: ILDSTokens.lineHeight14,
                           ),
                         ),
                       ),

@@ -147,7 +147,9 @@ class _IldsTextAreaState extends State<IldsTextArea> {
               Text(
                 widget.label!,
                 style: const TextStyle(
-                  fontSize: ILDSTokens.spacing3,
+                  fontFamily: ILDSTokens.fontFamilyPrimary,
+                  fontSize: ILDSTokens.fontSize12,
+                  height: ILDSTokens.lineHeight12,
                   fontWeight: ILDSTokens.fontWeightMedium,
                   color: ILDSTokens.neutral500,
                 ),
@@ -168,7 +170,9 @@ class _IldsTextAreaState extends State<IldsTextArea> {
                           : Text(
                               bottomText,
                               style: TextStyle(
-                                fontSize: ILDSTokens.spacing3,
+                                fontFamily: ILDSTokens.fontFamilyPrimary,
+                                fontSize: ILDSTokens.fontSize12,
+                                height: ILDSTokens.lineHeight12,
                                 fontWeight: ILDSTokens.fontWeightRegular,
                                 color: _bottomTextColor(),
                               ),
@@ -178,7 +182,9 @@ class _IldsTextAreaState extends State<IldsTextArea> {
                       Text(
                         '${_charCount()}/${widget.maxLength}',
                         style: const TextStyle(
-                          fontSize: ILDSTokens.spacing3,
+                          fontFamily: ILDSTokens.fontFamilyPrimary,
+                          fontSize: ILDSTokens.fontSize12,
+                          height: ILDSTokens.lineHeight12,
                           fontWeight: ILDSTokens.fontWeightRegular,
                           color: ILDSTokens.neutral400,
                         ),
@@ -219,7 +225,9 @@ class _IldsTextAreaState extends State<IldsTextArea> {
               maxLength: widget.maxLength,
               onChanged: widget.onChanged,
               style: TextStyle(
-                fontSize: ILDSTokens.spacing3 + ILDSTokens.borderWidth2,
+                fontFamily: ILDSTokens.fontFamilyPrimary,
+                fontSize: ILDSTokens.fontSize14,
+                height: ILDSTokens.lineHeight14,
                 fontWeight: ILDSTokens.fontWeightRegular,
                 color: _textColor(),
               ),
@@ -227,7 +235,9 @@ class _IldsTextAreaState extends State<IldsTextArea> {
                 counterText: '',
                 hintText: widget.placeholder,
                 hintStyle: const TextStyle(
-                  fontSize: ILDSTokens.spacing3 + ILDSTokens.borderWidth2,
+                  fontFamily: ILDSTokens.fontFamilyPrimary,
+                  fontSize: ILDSTokens.fontSize14,
+                  height: ILDSTokens.lineHeight14,
                   fontWeight: ILDSTokens.fontWeightRegular,
                   color: ILDSTokens.neutral300,
                 ),

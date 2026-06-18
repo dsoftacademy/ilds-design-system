@@ -159,7 +159,9 @@ class _IldsTextFieldState extends State<IldsTextField> {
         Text(
           widget.label,
           style: const TextStyle(
-            fontSize: 12,
+            fontFamily: ILDSTokens.fontFamilyPrimary,
+            fontSize: ILDSTokens.fontSize12,
+            height: ILDSTokens.lineHeight12,
             fontWeight: ILDSTokens.fontWeightMedium,
             color: ILDSTokens.neutral500,
           ),
@@ -177,14 +179,18 @@ class _IldsTextFieldState extends State<IldsTextField> {
             onChanged: widget.onChanged,
             maxLength: widget.maxLength,
             style: TextStyle(
-              fontSize: 14,
+              fontFamily: ILDSTokens.fontFamilyPrimary,
+              fontSize: ILDSTokens.fontSize14,
+              height: ILDSTokens.lineHeight14,
               fontWeight: ILDSTokens.fontWeightRegular,
               color: widget.isReadOnly ? ILDSTokens.neutral500 : ILDSTokens.neutral600,
             ),
             decoration: InputDecoration(
               hintText: widget.placeholder,
               hintStyle: const TextStyle(
-                fontSize: 14,
+                fontFamily: ILDSTokens.fontFamilyPrimary,
+                fontSize: ILDSTokens.fontSize14,
+                height: ILDSTokens.lineHeight14,
                 fontWeight: ILDSTokens.fontWeightRegular,
                 color: ILDSTokens.neutral300,
               ),
@@ -239,7 +245,9 @@ class _IldsTextFieldState extends State<IldsTextField> {
                   child: Text(
                     bottomText,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontFamily: ILDSTokens.fontFamilyPrimary,
+                      fontSize: ILDSTokens.fontSize12,
+                      height: ILDSTokens.lineHeight12,
                       fontWeight: ILDSTokens.fontWeightRegular,
                       color: bottomTextColor,
                     ),
@@ -253,7 +261,9 @@ class _IldsTextFieldState extends State<IldsTextField> {
                   child: Text(
                     '${_effectiveController.text.length}/${widget.maxLength}',
                     style: const TextStyle(
-                      fontSize: 12,
+                      fontFamily: ILDSTokens.fontFamilyPrimary,
+                      fontSize: ILDSTokens.fontSize12,
+                      height: ILDSTokens.lineHeight12,
                       fontWeight: ILDSTokens.fontWeightRegular,
                       color: ILDSTokens.neutral400,
                     ),
@@ -406,7 +416,9 @@ class _OtpInputState extends State<_OtpInput> {
                   );
                 },
                 style: const TextStyle(
-                  fontSize: 20,
+                  fontFamily: ILDSTokens.fontFamilyPrimary,
+                  fontSize: ILDSTokens.fontSize20,
+                  height: ILDSTokens.lineHeight20,
                   fontWeight: ILDSTokens.fontWeightBold,
                   color: ILDSTokens.neutral600,
                 ),

@@ -113,20 +113,23 @@ class _IldsButtonState extends State<IldsButton> {
     switch (widget.size) {
       case IldsButtonSize.large:
         return const TextStyle(
-          fontSize: 16,
-          height: 1.25,
+          fontFamily: ILDSTokens.fontFamilyPrimary,
+          fontSize: ILDSTokens.fontSize16,
+          height: ILDSTokens.lineHeight16,
           fontWeight: ILDSTokens.fontWeightBold,
         );
       case IldsButtonSize.medium:
         return const TextStyle(
-          fontSize: 14,
-          height: 1.1428571428571428,
+          fontFamily: ILDSTokens.fontFamilyPrimary,
+          fontSize: ILDSTokens.fontSize14,
+          height: ILDSTokens.lineHeight14,
           fontWeight: ILDSTokens.fontWeightBold,
         );
       case IldsButtonSize.small:
         return const TextStyle(
-          fontSize: 12,
-          height: 1.3333333333333333,
+          fontFamily: ILDSTokens.fontFamilyPrimary,
+          fontSize: ILDSTokens.fontSize12,
+          height: ILDSTokens.lineHeight12,
           fontWeight: ILDSTokens.fontWeightBold,
         );
     }
