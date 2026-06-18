@@ -317,6 +317,20 @@ class _OtpInputState extends State<_OtpInput> {
     widget.onChanged?.call(_controllers.map((c) => c.text).join());
   }
 
+  void _applyPastedDigits(int index, String raw) {
+    final String digits = raw.replaceAll(RegExp(r'\D'), '');
+    if (digits.isEmpty) return;
+
+    final int start = digits.length >= widget.count ? 0 : index;
+    for (int i = 0; i < digits.length && start + i < widget.count; i++) {
+      _controllers[start + i].text = digits[i];
+    }
+
+    final int lastFilled = (start + digits.length - 1).clamp(0, widget.count - 1);
+    _focusNodes[lastFilled].requestFocus();
+    _emitValue();
+  }
+
   void _onDigitChanged(int index, String value) {
     if (value.isEmpty) {
       if (index > 0) {
@@ -327,17 +341,11 @@ class _OtpInputState extends State<_OtpInput> {
     }
 
     if (value.length > 1) {
-      final digits = value.replaceAll(RegExp(r'\D'), '');
-      for (int i = 0; i < digits.length && index + i < widget.count; i++) {
-        _controllers[index + i].text = digits[i];
-      }
-      final int next = (index + digits.length).clamp(0, widget.count - 1);
-      _focusNodes[next].requestFocus();
-      _emitValue();
+      _applyPastedDigits(index, value);
       return;
     }
 
-    if (value.isNotEmpty && index < widget.count - 1) {
+    if (index < widget.count - 1 && _controllers[index + 1].text.isEmpty) {
       _focusNodes[index + 1].requestFocus();
     }
     _emitValue();
@@ -375,9 +383,14 @@ class _OtpInputState extends State<_OtpInput> {
                 focusNode: _focusNodes[index],
                 enabled: widget.enabled,
                 textAlign: TextAlign.center,
-                maxLength: 1,
                 keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                inputFormatters: [
+                  _OtpDigitInputFormatter(
+                    index: index,
+                    count: widget.count,
+                    onPaste: _applyPastedDigits,
+                  ),
+                ],
                 onChanged: (value) => _onDigitChanged(index, value),
                 textInputAction:
                     index < widget.count - 1 ? TextInputAction.next : TextInputAction.done,
@@ -417,6 +430,47 @@ class _OtpInputState extends State<_OtpInput> {
           ),
         );
       }),
+    );
+  }
+}
+
+class _OtpDigitInputFormatter extends TextInputFormatter {
+  const _OtpDigitInputFormatter({
+    required this.index,
+    required this.count,
+    required this.onPaste,
+  });
+
+  final int index;
+  final int count;
+  final void Function(int index, String raw) onPaste;
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final String digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+
+    if (digits.isEmpty) {
+      return const TextEditingValue(text: '');
+    }
+
+    if (digits.length > 1) {
+      onPaste(index, digits);
+      final int start = digits.length >= count ? 0 : index;
+      final int localIndex = index - start;
+      final String cellText =
+          localIndex >= 0 && localIndex < digits.length ? digits[localIndex] : '';
+      return TextEditingValue(
+        text: cellText,
+        selection: TextSelection.collapsed(offset: cellText.length),
+      );
+    }
+
+    return TextEditingValue(
+      text: digits,
+      selection: TextSelection.collapsed(offset: digits.length),
     );
   }
 }
