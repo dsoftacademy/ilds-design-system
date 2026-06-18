@@ -81,8 +81,12 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
   bool selectionOn = false;
   bool tagActive = false;
   bool chipSelected = false;
+  bool chipDisabledSelected = true;
+  bool searchLoading = false;
   String? dropdownValue;
+  String? dropdownFilledValue = '1';
   final TextEditingController searchController = TextEditingController();
+  final TextEditingController searchFilledController = TextEditingController(text: 'Policy search');
   final TextEditingController textAreaController = TextEditingController();
   final TextEditingController textFieldController = TextEditingController(text: 'Filled value');
   final ScrollController scrollbarDemoController = ScrollController();
@@ -111,6 +115,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
   @override
   void dispose() {
     searchController.dispose();
+    searchFilledController.dispose();
     textAreaController.dispose();
     textFieldController.dispose();
     scrollbarDemoController.dispose();
@@ -213,26 +218,11 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
       case 0:
         return _buttonPanel();
       case 1:
-        return _panel('Radio', [
-          IldsRadioGroup(
-            options: const [
-              IldsRadioOption(value: 'A', label: 'Option A'),
-              IldsRadioOption(value: 'B', label: 'Option B'),
-            ],
-            groupValue: radioValue,
-            onChanged: (v) => setState(() => radioValue = v),
-          ),
-        ]);
+        return _radioPanel();
       case 2:
         return _checkboxPanel();
       case 3:
-        return _panel('Switch', [
-          IldsSwitch(
-            value: switchValue,
-            label: 'Enable notifications',
-            onChanged: (value) => setState(() => switchValue = value),
-          ),
-        ]);
+        return _switchPanel();
       case 4:
         return _textFieldPanel();
       case 5:
@@ -251,14 +241,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
       case 7:
         return _tabsPanel();
       case 8:
-        return _panel('Pagination', [
-          IldsPagination(
-            currentPage: currentPage,
-            totalPages: 20,
-            onPageChanged: (page) => setState(() => currentPage = page),
-            variant: IldsPaginationVariant.extended,
-          ),
-        ]);
+        return _paginationPanel();
       case 9:
         return _selectionButtonPanel();
       case 10:
@@ -266,33 +249,13 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
       case 11:
         return _chipPanel();
       case 12:
-        return _panel('Tag', [
-          IldsTag(
-            label: 'Active tag',
-            isActive: tagActive,
-            prefixIcon: Icons.label_outline,
-            onTap: () => setState(() => tagActive = !tagActive),
-            onRemove: () => setState(() => tagActive = false),
-          ),
-        ]);
+        return _tagPanel();
       case 13:
         return _accordionPanel();
       case 14:
-        return _panel('Text Link', [
-          IldsTextLink(
-            label: 'Open docs',
-            onTap: () {},
-            suffixIcon: Icons.open_in_new,
-          ),
-        ]);
+        return _textLinkPanel();
       case 15:
-        return _panel('Search', [
-          IldsSearch(
-            controller: searchController,
-            onChanged: (_) => setState(() {}),
-            onClear: () => setState(() {}),
-          ),
-        ]);
+        return _searchPanel();
       case 16:
         return _scrollbarPanel();
       case 17:
@@ -300,6 +263,120 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  Widget _radioPanel() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle('Radio — interactive group'),
+        IldsRadioGroup(
+          options: const [
+            IldsRadioOption(value: 'A', label: 'Option A'),
+            IldsRadioOption(value: 'B', label: 'Option B'),
+          ],
+          groupValue: radioValue,
+          onChanged: (v) => setState(() => radioValue = v),
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('Radio — size matrix'),
+        Wrap(
+          spacing: 24,
+          runSpacing: 12,
+          children: [
+            for (final size in IldsRadioSize.values)
+              IldsRadio(
+                value: size.name,
+                groupValue: 'medium',
+                size: size,
+                label: size.name,
+                onChanged: (_) {},
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('Radio — disabled & error'),
+        Wrap(
+          spacing: 24,
+          runSpacing: 12,
+          children: const [
+            IldsRadio(
+              value: 'x',
+              groupValue: 'y',
+              label: 'Disabled',
+              isDisabled: true,
+              onChanged: null,
+            ),
+            IldsRadio(
+              value: 'err',
+              groupValue: 'err',
+              label: 'Error',
+              hasError: true,
+              errorText: 'Selection required',
+              onChanged: null,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _switchPanel() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle('Switch — interactive'),
+        IldsSwitch(
+          value: switchValue,
+          label: 'Enable notifications',
+          onChanged: (value) => setState(() => switchValue = value),
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('Switch — sizes'),
+        Wrap(
+          spacing: 24,
+          runSpacing: 12,
+          children: IldsSwitchSize.values
+              .map(
+                (size) => IldsSwitch(
+                  value: true,
+                  size: size,
+                  label: size.name,
+                  onChanged: (_) {},
+                ),
+              )
+              .toList(),
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('Switch — disabled & icon variants'),
+        Wrap(
+          spacing: 24,
+          runSpacing: 12,
+          children: [
+            const IldsSwitch(
+              value: false,
+              label: 'Disabled off',
+              isDisabled: true,
+              onChanged: null,
+            ),
+            IldsSwitch(
+              value: true,
+              label: 'With icon',
+              showIcon: true,
+              leadingIcon: Icons.notifications_outlined,
+              onChanged: (_) {},
+            ),
+            IldsSwitch(
+              value: true,
+              showLabel: false,
+              showIcon: true,
+              leadingIcon: Icons.dark_mode_outlined,
+              onChanged: (_) {},
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   Widget _buttonPanel() {
@@ -464,6 +541,24 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _sectionTitle('Selection Button — selected / unselected'),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            IldsSelectionButton(
+              label: 'Unselected',
+              isSelected: false,
+              onTap: () => setState(() => selectionOn = false),
+            ),
+            IldsSelectionButton(
+              label: 'Selected',
+              isSelected: true,
+              onTap: () => setState(() => selectionOn = true),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
         _sectionTitle('Selection Button — variants'),
         Wrap(
           spacing: 12,
@@ -536,6 +631,25 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
           title: 'Where is the playground?',
           content: Text('ilds_component_playground_app — hot reload against lib/.'),
         ),
+        const SizedBox(height: 16),
+        _sectionTitle('Accordion — prefix icon & number'),
+        const IldsAccordion(
+          title: 'With prefix icon',
+          prefix: Icons.help_outline,
+          content: Text('Prefix icon variant.'),
+        ),
+        const SizedBox(height: 8),
+        const IldsAccordion(
+          title: 'With prefix number',
+          prefixNumber: 2,
+          content: Text('Numbered accordion item.'),
+        ),
+        const SizedBox(height: 8),
+        const IldsAccordion(
+          title: 'Disabled accordion',
+          isDisabled: true,
+          content: Text('Cannot expand.'),
+        ),
       ],
     );
   }
@@ -582,18 +696,67 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
       IldsDropdownOption(label: 'Disabled option', value: '4', disabled: true),
     ];
 
-    return _panel('Dropdown', [
-      SizedBox(
-        width: 360,
-        child: IldsDropdown(
-          label: 'Category',
-          placeholder: 'Select category',
-          options: options,
-          selectedValue: dropdownValue,
-          onChanged: (v) => setState(() => dropdownValue = v),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle('Dropdown — default'),
+        SizedBox(
+          width: 360,
+          child: IldsDropdown(
+            label: 'Category',
+            placeholder: 'Select category',
+            options: options,
+            selectedValue: dropdownValue,
+            onChanged: (v) => setState(() => dropdownValue = v),
+          ),
         ),
-      ),
-    ]);
+        const SizedBox(height: 16),
+        _sectionTitle('Dropdown — filled / error / disabled / loading'),
+        Wrap(
+          spacing: 16,
+          runSpacing: 16,
+          children: [
+            SizedBox(
+              width: 280,
+              child: IldsDropdown(
+                label: 'Filled',
+                placeholder: 'Select',
+                options: options,
+                selectedValue: dropdownFilledValue,
+                onChanged: (v) => setState(() => dropdownFilledValue = v),
+              ),
+            ),
+            const SizedBox(
+              width: 280,
+              child: IldsDropdown(
+                label: 'Error',
+                placeholder: 'Select',
+                options: options,
+                errorText: 'Please select a value',
+              ),
+            ),
+            const SizedBox(
+              width: 280,
+              child: IldsDropdown(
+                label: 'Disabled',
+                placeholder: 'Select',
+                options: options,
+                enabled: false,
+              ),
+            ),
+            SizedBox(
+              width: 280,
+              child: IldsDropdown(
+                label: 'Loading',
+                placeholder: 'Select',
+                options: options,
+                isLoading: true,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   Widget _tabsPanel() {
@@ -635,19 +798,37 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionTitle('Chip — filter'),
+        _sectionTitle('Chip — filter sizes L / M'),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
+            for (final size in IldsChipSize.values) ...[
+              IldsChip(
+                label: '${size.name} default',
+                size: size,
+                isSelected: chipSelected,
+                showPrefixIcon: true,
+                prefixIcon: Icons.tune,
+                onPressed: () => setState(() => chipSelected = !chipSelected),
+              ),
+              IldsChip(
+                label: '${size.name} selected',
+                size: size,
+                isSelected: true,
+                showPrefixIcon: true,
+                prefixIcon: Icons.tune,
+                onPressed: () {},
+              ),
+            ],
             IldsChip(
-              label: 'Default',
-              isSelected: chipSelected,
+              label: 'Disabled selected',
+              isSelected: chipDisabledSelected,
+              enabled: false,
               showPrefixIcon: true,
               prefixIcon: Icons.tune,
-              onPressed: () => setState(() => chipSelected = !chipSelected),
+              onPressed: () {},
             ),
-            const IldsChip(label: 'Disabled', enabled: false),
           ],
         ),
         const SizedBox(height: 16),
@@ -664,6 +845,178 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
                 ),
               )
               .toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _tagPanel() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle('Tag — active (interactive)'),
+        IldsTag(
+          label: 'Active tag',
+          isActive: tagActive,
+          prefixIcon: Icons.label_outline,
+          onTap: () => setState(() => tagActive = !tagActive),
+          onRemove: () => setState(() => tagActive = false),
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('Tag — default / inactive / disabled'),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: const [
+            IldsTag(label: 'Default'),
+            IldsTag(label: 'Inactive', isActive: false, prefixIcon: Icons.label_outline),
+            IldsTag(label: 'Disabled', isDisabled: true, prefixIcon: Icons.label_outline),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('Tag — sizes'),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: IldsTagSize.values
+              .map((size) => IldsTag(label: size.name, size: size, prefixIcon: Icons.sell_outlined))
+              .toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _paginationPanel() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle('Pagination — extended'),
+        IldsPagination(
+          currentPage: currentPage,
+          totalPages: 20,
+          onPageChanged: (page) => setState(() => currentPage = page),
+          variant: IldsPaginationVariant.extended,
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('Pagination — compact'),
+        IldsPagination(
+          currentPage: currentPage,
+          totalPages: 20,
+          onPageChanged: (page) => setState(() => currentPage = page),
+          variant: IldsPaginationVariant.compact,
+        ),
+      ],
+    );
+  }
+
+  Widget _textLinkPanel() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle('Text Link — sizes S / M / L'),
+        Wrap(
+          spacing: 16,
+          runSpacing: 8,
+          children: IldsTextLinkSize.values
+              .map(
+                (size) => IldsTextLink(
+                  label: 'Link ${size.name}',
+                  size: size,
+                  onTap: () {},
+                ),
+              )
+              .toList(),
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('Text Link — defaultBlue states'),
+        Wrap(
+          spacing: 16,
+          runSpacing: 8,
+          children: [
+            IldsTextLink(label: 'Default', onTap: () {}),
+            IldsTextLink(label: 'Visited', isVisited: true, onTap: () {}),
+            const IldsTextLink(label: 'Disabled', isDisabled: true, onTap: null),
+            IldsTextLink(
+              label: 'With prefix',
+              prefixIcon: Icons.link,
+              onTap: () {},
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('Text Link — white on dark'),
+        Container(
+          width: double.infinity,
+          color: ILDSTokens.neutralCoolgray800,
+          padding: const EdgeInsets.all(ILDSTokens.spacing3),
+          child: Wrap(
+            spacing: 16,
+            runSpacing: 8,
+            children: [
+              IldsTextLink(
+                label: 'White default',
+                colour: IldsTextLinkColour.white,
+                onTap: () {},
+              ),
+              IldsTextLink(
+                label: 'White visited',
+                colour: IldsTextLinkColour.white,
+                isVisited: true,
+                onTap: () {},
+              ),
+              const IldsTextLink(
+                label: 'White disabled',
+                colour: IldsTextLinkColour.white,
+                isDisabled: true,
+                onTap: null,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _searchPanel() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle('Search — empty with clear'),
+        IldsSearch(
+          controller: searchController,
+          onChanged: (_) => setState(() {}),
+          onClear: () {
+            searchController.clear();
+            setState(() {});
+          },
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('Search — filled'),
+        IldsSearch(
+          controller: searchFilledController,
+          onChanged: (_) => setState(() {}),
+          onClear: () {
+            searchFilledController.clear();
+            setState(() {});
+          },
+        ),
+        const SizedBox(height: 16),
+        _sectionTitle('Search — loading'),
+        IldsSearch(
+          controller: searchController,
+          isLoading: searchLoading,
+          onChanged: (_) => setState(() {}),
+          onClear: () {
+            searchController.clear();
+            setState(() {});
+          },
+        ),
+        const SizedBox(height: 8),
+        IldsButton(
+          label: searchLoading ? 'Stop loading' : 'Show loading',
+          type: IldsButtonType.secondary,
+          size: IldsButtonSize.small,
+          onPressed: () => setState(() => searchLoading = !searchLoading),
         ),
       ],
     );
