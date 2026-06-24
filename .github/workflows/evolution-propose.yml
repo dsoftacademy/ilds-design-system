@@ -1,0 +1,84 @@
+name: Evolution Propose PR
+
+# Phase 5c — workflow_dispatch wrapper for tool/propose_change.mjs.
+# Primary usage is local: node tool/propose_change.mjs ...
+# This workflow is for sample/demo runs from GitHub Actions UI.
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Feature branch name (auto-generated if sample mode)
+        required: false
+      title:
+        description: PR title (auto-generated if sample mode)
+        required: false
+      change_type:
+        description: component | token | variant | state | infrastructure
+        required: false
+        default: infrastructure
+      scope:
+        description: Short description of the change
+        required: false
+        default: Phase 5c workflow_dispatch sample
+      platforms:
+        description: Comma-separated platforms (react,flutter,ios,android)
+        required: false
+        default: ''
+      figma:
+        description: Figma node ID(s) or URL
+        required: false
+        default: ''
+      sample:
+        description: Create a safe sample PR (recommended for first test)
+        type: boolean
+        required: false
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  propose:
+    name: Propose change PR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Configure git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run propose_change.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          ARGS=()
+          if [ "${{ inputs.sample }}" = "true" ]; then
+            ARGS+=(--sample)
+          fi
+          if [ -n "${{ inputs.branch }}" ]; then
+            ARGS+=(--branch "${{ inputs.branch }}")
+          fi
+          if [ -n "${{ inputs.title }}" ]; then
+            ARGS+=(--title "${{ inputs.title }}")
+          fi
+          ARGS+=(--type "${{ inputs.change_type }}")
+          ARGS+=(--scope "${{ inputs.scope }}")
+          if [ -n "${{ inputs.platforms }}" ]; then
+            ARGS+=(--platforms "${{ inputs.platforms }}")
+          fi
+          if [ -n "${{ inputs.figma }}" ]; then
+            ARGS+=(--figma "${{ inputs.figma }}")
+          fi
+          node tool/propose_change.mjs "${ARGS[@]}"
