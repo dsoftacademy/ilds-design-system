@@ -35,7 +35,8 @@
 | **Scrollbar** | `17730:521` | Not in playground | **Fixed** — scrollable list demo |
 | **TextField** | — | Not in playground | **Fixed** — standard/password/disabled/OTP |
 | **Toast** | — | Not in playground | **Fixed** — all variants via `IldsToast.show` |
-| **Dropdown menu** | `16055:6152` | Flutter overlay lacks radio-row + section label parity with React `DropdownMenu` | **Deferred** — React menu is canonical; Flutter overlay refresh tracked for native pass |
+| **Dropdown menu** | `16055:6152` | Flutter overlay lacked radio-row + section label parity with React `DropdownMenu` | **Fixed** — section header, radio rows, footer buttons; trigger tokens aligned to Figma |
+| **Checkbox** | `13520:33495` | Indeterminate state not in Figma | **Fixed** — removed; checked/unchecked only |
 | **Dropdown label** | `13476:22317` | Flutter label uses `neutral600` alias vs Figma coolgray900 | **Deferred** — alias maps to coolgray900; harness accepts `neutral600` |
 | **TextArea** | `14369:11586` | Default border uses alias tokens not faithful coolgray names | **Deferred** — visual match verified; token naming cleanup optional |
 

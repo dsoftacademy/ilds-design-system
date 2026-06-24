@@ -167,7 +167,7 @@ const RULES = [
     figma: '16055:6152',
     platforms: {
       react: { must: ['data-testid="dropdown-menu"', 'RadioCircleIcon'] },
-      flutter: { must: ['_buildOptionsPanel', 'orange500'], mustNot: ['Image(systemName: "checkmark")'] },
+      flutter: { must: ['_buildOptionsPanel', 'sectionLabel', 'orange500', '_DropdownMenuRadioIcon'], mustNot: ['Image(systemName: "checkmark")'] },
       swift: { must: ['sectionLabel', 'Circle()', 'IldsButton'], mustNot: ['Image(systemName: "checkmark")'] },
       kotlin: { must: ['sectionLabel', 'CircleShape', 'IldsButton'] },
     },

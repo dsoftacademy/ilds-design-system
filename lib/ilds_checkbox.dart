@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'design_system/ilds_tokens.dart';
 
 enum IldsCheckboxSize { small, medium, large }
-enum IldsCheckboxState { unchecked, checked, indeterminate }
+enum IldsCheckboxState { unchecked, checked }
 
 class IldsCheckbox extends StatefulWidget {
   const IldsCheckbox({
@@ -34,7 +34,6 @@ class _IldsCheckboxState extends State<IldsCheckbox> {
   bool _isFocused = false;
 
   bool get _isChecked => widget.state == IldsCheckboxState.checked;
-  bool get _isIndeterminate => widget.state == IldsCheckboxState.indeterminate;
 
   double _boxSize() {
     switch (widget.size) {
@@ -80,66 +79,51 @@ class _IldsCheckboxState extends State<IldsCheckbox> {
   }
 
   Color _borderColor() {
-    if (widget.isDisabled) return _isChecked || _isIndeterminate ? ILDSTokens.neutral300 : ILDSTokens.neutral200;
+    if (widget.isDisabled) return _isChecked ? ILDSTokens.neutral300 : ILDSTokens.neutral200;
     if (widget.hasError) return ILDSTokens.red600;
     if (_isPressed) return ILDSTokens.orange700;
-    if (_isHovered && (_isChecked || _isIndeterminate)) return ILDSTokens.orange600;
+    if (_isHovered && _isChecked) return ILDSTokens.orange600;
     if (_isHovered) return ILDSTokens.neutral400;
-    if (_isChecked || _isIndeterminate || _isFocused) return ILDSTokens.orange500;
+    if (_isChecked || _isFocused) return ILDSTokens.orange500;
     return ILDSTokens.neutral400;
   }
 
   Color _fillColor() {
-    if (widget.isDisabled) return _isChecked || _isIndeterminate ? ILDSTokens.neutral200 : ILDSTokens.neutral50;
-    if (widget.hasError) return _isChecked || _isIndeterminate ? ILDSTokens.red600 : ILDSTokens.red50;
+    if (widget.isDisabled) return _isChecked ? ILDSTokens.neutral200 : ILDSTokens.neutral50;
+    if (widget.hasError) return _isChecked ? ILDSTokens.red600 : ILDSTokens.red50;
     if (_isPressed) return ILDSTokens.orange700;
-    if (_isHovered && (_isChecked || _isIndeterminate)) return ILDSTokens.orange600;
-    if (_isHovered && !(_isChecked || _isIndeterminate)) return ILDSTokens.neutral50;
-    if (_isChecked || _isIndeterminate) return ILDSTokens.orange500;
+    if (_isHovered && _isChecked) return ILDSTokens.orange600;
+    if (_isHovered && !_isChecked) return ILDSTokens.neutral50;
+    if (_isChecked) return ILDSTokens.orange500;
     return ILDSTokens.white;
   }
 
   Color _iconColor() {
-    if (widget.isDisabled && (_isChecked || _isIndeterminate)) return ILDSTokens.neutral400;
+    if (widget.isDisabled && _isChecked) return ILDSTokens.neutral400;
     return ILDSTokens.white;
   }
 
   double _borderWidth() {
-    if (_isChecked || _isIndeterminate || _isPressed || _isFocused || widget.hasError) {
+    if (_isChecked || _isPressed || _isFocused || widget.hasError) {
       return ILDSTokens.borderWidth2;
     }
     return ILDSTokens.borderWidth1;
   }
 
-  IldsCheckboxState _nextState() {
-    switch (widget.state) {
-      case IldsCheckboxState.unchecked:
-        return IldsCheckboxState.checked;
-      case IldsCheckboxState.checked:
-        return IldsCheckboxState.indeterminate;
-      case IldsCheckboxState.indeterminate:
-        return IldsCheckboxState.unchecked;
-    }
-  }
-
   void _handleTap() {
     if (widget.isDisabled || widget.onChanged == null) return;
-    widget.onChanged!(_nextState());
+    widget.onChanged!(
+      _isChecked ? IldsCheckboxState.unchecked : IldsCheckboxState.checked,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final Widget indicator = _isIndeterminate
-        ? Container(
-            width: _iconSize(),
-            height: ILDSTokens.borderWidth2,
-            color: _iconColor(),
-          )
-        : Icon(
-            _isChecked ? Icons.check : null,
-            size: _iconSize(),
-            color: _iconColor(),
-          );
+    final Widget indicator = Icon(
+      _isChecked ? Icons.check : null,
+      size: _iconSize(),
+      color: _iconColor(),
+    );
 
     final Widget checkbox = Container(
       padding: _isFocused ? EdgeInsets.all(ILDSTokens.borderWidth2) : EdgeInsets.zero,
@@ -161,7 +145,7 @@ class _IldsCheckboxState extends State<IldsCheckbox> {
         child: Center(
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 150),
-            child: (_isChecked || _isIndeterminate) ? indicator : const SizedBox.shrink(),
+            child: _isChecked ? indicator : const SizedBox.shrink(),
           ),
         ),
       ),
@@ -193,7 +177,6 @@ class _IldsCheckboxState extends State<IldsCheckbox> {
       child: Semantics(
         label: widget.label,
         checked: _isChecked,
-        mixed: _isIndeterminate,
         enabled: !widget.isDisabled,
         child: MouseRegion(
           onEnter: (_) => setState(() => _isHovered = true),

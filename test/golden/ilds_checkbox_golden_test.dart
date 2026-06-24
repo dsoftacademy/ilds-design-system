@@ -34,20 +34,6 @@ void main() {
       );
     });
 
-    testWidgets('indeterminate', (tester) async {
-      await tester.pumpWidget(goldenWrap(
-        IldsCheckbox(
-          label: 'Label',
-          state: IldsCheckboxState.indeterminate,
-          onChanged: (_) {},
-        ),
-      ));
-      await expectLater(
-        find.byType(IldsCheckbox),
-        matchesGoldenFile('$goldenDir/checkbox_indeterminate.png'),
-      );
-    });
-
     testWidgets('disabled', (tester) async {
       await tester.pumpWidget(goldenWrap(
         IldsCheckbox(

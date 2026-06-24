@@ -44,6 +44,7 @@ class _IldsTextAreaState extends State<IldsTextArea> {
   late FocusNode _focusNode;
   bool _isHovered = false;
   double _minHeight = ILDSTokens.spacing16;
+  double _minWidth = 280;
 
   bool get _hasError => widget.errorText != null;
   bool get _hasSuccess => widget.successText != null;
@@ -154,7 +155,10 @@ class _IldsTextAreaState extends State<IldsTextArea> {
             ],
             AnimatedContainer(
               duration: const Duration(milliseconds: 150),
-              constraints: BoxConstraints(minHeight: _minHeight),
+              constraints: BoxConstraints(
+                minHeight: _minHeight,
+                minWidth: _minWidth,
+              ),
               decoration: BoxDecoration(
                 color: _fillColor(),
                 borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
@@ -212,9 +216,14 @@ class _IldsTextAreaState extends State<IldsTextArea> {
                         setState(() {
                           _minHeight = (_minHeight + details.delta.dy)
                               .clamp(ILDSTokens.spacing16, ILDSTokens.spacing16 * ILDSTokens.borderWidth2);
+                          _minWidth = (_minWidth + details.delta.dx)
+                              .clamp(200, 640);
                         });
                       },
-                      child: const _IldsTextAreaResizeGrip(),
+                      child: const MouseRegion(
+                        cursor: SystemMouseCursors.resizeDownRight,
+                        child: _IldsTextAreaResizeGrip(),
+                      ),
                     ),
                   ),
                 ],

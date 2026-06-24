@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ilds_design_system/ilds_dropdown.dart';
 import 'helpers/golden_test_helpers.dart';
@@ -76,6 +77,25 @@ void main() {
       await expectLater(
         find.byType(IldsDropdown),
         matchesGoldenFile('$goldenDir/dropdown_disabled.png'),
+      );
+    });
+
+    testWidgets('menu-open', (tester) async {
+      await tester.pumpWidget(goldenWrap(
+        const IldsDropdown(
+          label: 'Label',
+          placeholder: 'Select an option',
+          options: _options,
+          selectedValue: '2',
+        ),
+        width: 360,
+        height: 420,
+      ));
+      await tester.tap(find.byType(IldsDropdown));
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(MaterialApp),
+        matchesGoldenFile('$goldenDir/dropdown_menu_open.png'),
       );
     });
   });
