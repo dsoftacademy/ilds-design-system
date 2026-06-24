@@ -175,6 +175,7 @@ class _IldsSwitchState extends State<IldsSwitch> {
                   Text(
                     widget.label!,
                     style: TextStyle(
+                      fontFamily: ILDSTokens.fontFamilyPrimary,
                       fontSize: _labelSize(),
                       color: _labelColor(),
                       fontWeight: ILDSTokens.fontWeightRegular,

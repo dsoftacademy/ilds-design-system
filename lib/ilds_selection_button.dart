@@ -138,6 +138,7 @@ class _IldsSelectionButtonState extends State<IldsSelectionButton> {
                     Text(
                       widget.label,
                       style: TextStyle(
+                        fontFamily: ILDSTokens.fontFamilyPrimary,
                         fontSize: _fontSize(),
                         fontWeight: ILDSTokens.fontWeightMedium,
                         color: _textColor(),

@@ -43,6 +43,7 @@ class _IldsTextAreaState extends State<IldsTextArea> {
   late TextEditingController _controller;
   late FocusNode _focusNode;
   bool _isHovered = false;
+  bool _isDragging = false;
   double _minHeight = ILDSTokens.spacing16;
   double _minWidth = 280;
 
@@ -146,128 +147,160 @@ class _IldsTextAreaState extends State<IldsTextArea> {
               Text(
                 widget.label!,
                 style: const TextStyle(
-                  fontSize: ILDSTokens.spacing3,
+                  fontFamily: ILDSTokens.fontFamilyPrimary,
+                  fontSize: ILDSTokens.fontSize12,
+                  height: ILDSTokens.lineHeight12,
                   fontWeight: ILDSTokens.fontWeightMedium,
                   color: ILDSTokens.neutral500,
                 ),
               ),
               const SizedBox(height: ILDSTokens.spacing1),
             ],
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              width: _minWidth,
-              height: _minHeight,
-              decoration: BoxDecoration(
-                color: _fillColor(),
-                borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
-                border: Border.all(color: _borderColor(), width: _borderWidth()),
-              ),
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        right: ILDSTokens.spacing4,
-                        bottom: ILDSTokens.spacing4,
-                      ),
-                      child: TextField(
-                        controller: _controller,
-                        focusNode: _focusNode,
-                        enabled: _isInteractive,
-                        readOnly: widget.isReadOnly,
-                        expands: true,
-                        maxLines: null,
-                        minLines: null,
-                        maxLength: widget.maxLength,
-                        onChanged: widget.onChanged,
-                        style: TextStyle(
-                          fontSize: ILDSTokens.spacing3 + ILDSTokens.borderWidth2,
-                          fontWeight: ILDSTokens.fontWeightRegular,
-                          color: _textColor(),
-                        ),
-                        decoration: InputDecoration(
-                          counterText: '',
-                          hintText: widget.placeholder,
-                          hintStyle: const TextStyle(
-                            fontSize: ILDSTokens.spacing3 + ILDSTokens.borderWidth2,
-                            fontWeight: ILDSTokens.fontWeightRegular,
-                            color: ILDSTokens.neutral300,
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: ILDSTokens.spacing4,
-                            vertical: ILDSTokens.spacing3,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (widget.isLoading)
-                    const Positioned(
-                      right: ILDSTokens.spacing3,
-                      top: ILDSTokens.spacing3,
-                      child: SizedBox(
-                        width: ILDSTokens.spacing5,
-                        height: ILDSTokens.spacing5,
-                        child: CircularProgressIndicator(
-                          strokeWidth: ILDSTokens.borderWidth2,
-                          color: ILDSTokens.orange500,
-                        ),
-                      ),
-                    ),
-                  Positioned(
-                    right: ILDSTokens.spacing2,
-                    bottom: ILDSTokens.spacing2,
-                    child: GestureDetector(
-                      onPanUpdate: (details) {
-                        setState(() {
-                          _minHeight = (_minHeight + details.delta.dy)
-                              .clamp(ILDSTokens.spacing16, ILDSTokens.spacing16 * ILDSTokens.borderWidth2);
-                          _minWidth = (_minWidth + details.delta.dx)
-                              .clamp(200, 640);
-                        });
-                      },
-                      child: const MouseRegion(
-                        cursor: SystemMouseCursors.resizeDownRight,
-                        child: _IldsTextAreaResizeGrip(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _buildFieldContainer(),
             if (bottomText != null || showCounter) ...[
               const SizedBox(height: ILDSTokens.spacing1),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: bottomText == null
-                        ? const SizedBox.shrink()
-                        : Text(
-                            bottomText,
-                            style: TextStyle(
-                              fontSize: ILDSTokens.spacing3,
-                              fontWeight: ILDSTokens.fontWeightRegular,
-                              color: _bottomTextColor(),
+              SizedBox(
+                width: _minWidth,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: bottomText == null
+                          ? const SizedBox.shrink()
+                          : Text(
+                              bottomText,
+                              style: TextStyle(
+                                fontFamily: ILDSTokens.fontFamilyPrimary,
+                                fontSize: ILDSTokens.fontSize12,
+                                height: ILDSTokens.lineHeight12,
+                                fontWeight: ILDSTokens.fontWeightRegular,
+                                color: _bottomTextColor(),
+                              ),
                             ),
-                          ),
-                  ),
-                  if (showCounter)
-                    Text(
-                      '${_charCount()}/${widget.maxLength}',
-                      style: const TextStyle(
-                        fontSize: ILDSTokens.spacing3,
-                        fontWeight: ILDSTokens.fontWeightRegular,
-                        color: ILDSTokens.neutral400,
-                      ),
                     ),
-                ],
+                    if (showCounter)
+                      Text(
+                        '${_charCount()}/${widget.maxLength}',
+                        style: const TextStyle(
+                          fontFamily: ILDSTokens.fontFamilyPrimary,
+                          fontSize: ILDSTokens.fontSize12,
+                          height: ILDSTokens.lineHeight12,
+                          fontWeight: ILDSTokens.fontWeightRegular,
+                          color: ILDSTokens.neutral400,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ],
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildFieldContainer() {
+    final BoxDecoration decoration = BoxDecoration(
+      color: _fillColor(),
+      borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
+      border: Border.all(color: _borderColor(), width: _borderWidth()),
+    );
+
+    final Widget fieldStack = Stack(
+      children: [
+        Positioned.fill(
+          child: Padding(
+            padding: const EdgeInsets.only(
+              right: ILDSTokens.spacing4,
+              bottom: ILDSTokens.spacing4,
+            ),
+            child: TextField(
+              controller: _controller,
+              focusNode: _focusNode,
+              enabled: _isInteractive,
+              readOnly: widget.isReadOnly,
+              expands: true,
+              maxLines: null,
+              minLines: null,
+              maxLength: widget.maxLength,
+              onChanged: widget.onChanged,
+              style: TextStyle(
+                fontFamily: ILDSTokens.fontFamilyPrimary,
+                fontSize: ILDSTokens.fontSize14,
+                height: ILDSTokens.lineHeight14,
+                fontWeight: ILDSTokens.fontWeightRegular,
+                color: _textColor(),
+              ),
+              decoration: InputDecoration(
+                counterText: '',
+                hintText: widget.placeholder,
+                hintStyle: const TextStyle(
+                  fontFamily: ILDSTokens.fontFamilyPrimary,
+                  fontSize: ILDSTokens.fontSize14,
+                  height: ILDSTokens.lineHeight14,
+                  fontWeight: ILDSTokens.fontWeightRegular,
+                  color: ILDSTokens.neutral300,
+                ),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: ILDSTokens.spacing4,
+                  vertical: ILDSTokens.spacing3,
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (widget.isLoading)
+          const Positioned(
+            right: ILDSTokens.spacing3,
+            top: ILDSTokens.spacing3,
+            child: SizedBox(
+              width: ILDSTokens.spacing5,
+              height: ILDSTokens.spacing5,
+              child: CircularProgressIndicator(
+                strokeWidth: ILDSTokens.borderWidth2,
+                color: ILDSTokens.orange500,
+              ),
+            ),
+          ),
+        Positioned(
+          right: ILDSTokens.spacing2,
+          bottom: ILDSTokens.spacing2,
+          child: GestureDetector(
+            onPanStart: (_) => setState(() => _isDragging = true),
+            onPanEnd: (_) => setState(() => _isDragging = false),
+            onPanCancel: () => setState(() => _isDragging = false),
+            onPanUpdate: (details) {
+              setState(() {
+                _minHeight = (_minHeight + details.delta.dy)
+                    .clamp(ILDSTokens.spacing16, ILDSTokens.spacing16 * ILDSTokens.borderWidth2);
+                _minWidth = (_minWidth + details.delta.dx).clamp(200, 640);
+              });
+            },
+            child: const MouseRegion(
+              cursor: SystemMouseCursors.resizeDownRight,
+              child: _IldsTextAreaResizeGrip(),
+            ),
+          ),
+        ),
+      ],
+    );
+
+    if (_isDragging) {
+      return Container(
+        width: _minWidth,
+        height: _minHeight,
+        decoration: decoration,
+        child: fieldStack,
+      );
+    }
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      width: _minWidth,
+      height: _minHeight,
+      decoration: decoration,
+      child: fieldStack,
     );
   }
 }

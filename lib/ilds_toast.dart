@@ -197,22 +197,24 @@ class IldsToast extends StatelessWidget {
                         Text(
                           title!,
                           style: const TextStyle(
-                            fontFamily: 'Mulish',
-                            fontSize: 14,
+                            fontFamily: ILDSTokens.fontFamilyPrimary,
+                            fontSize: ILDSTokens.fontSize14,
+                            height: ILDSTokens.lineHeight14,
                             fontWeight: ILDSTokens.fontWeightBold,
-                            height: 18 / 14,
-                            color: ILDSTokens.neutralCoolgray900,
+                            color: ILDSTokens.neutral600,
                           ),
                         ),
                         const SizedBox(height: ILDSTokens.spacing1),
                       ],
                       Text(
                         message,
-                        style: const TextStyle(
-                          fontFamily: 'Mulish',
-                          fontSize: 14,
-                          height: 18 / 14,
-                          fontWeight: ILDSTokens.fontWeightRegular,
+                        style: TextStyle(
+                          fontFamily: ILDSTokens.fontFamilyPrimary,
+                          fontSize: ILDSTokens.fontSize14,
+                          height: ILDSTokens.lineHeight14,
+                          fontWeight: hasTitle
+                              ? ILDSTokens.fontWeightRegular
+                              : ILDSTokens.fontWeightMedium,
                           color: ILDSTokens.neutralCoolgray800,
                         ),
                       ),

@@ -360,7 +360,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
           ],
         ),
         const SizedBox(height: 16),
-        _sectionTitle('Button — icon-only L / S'),
+        _sectionTitle('Button — icon-only L / S (Figma 13472:2810 L, 13472:3718 S — no medium icon-only node)'),
         Wrap(
           spacing: 12,
           runSpacing: 12,
@@ -448,9 +448,6 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
                   label: variant == IldsBadgeVariant.skeleton ? 'Skeleton' : variant.name,
                   variant: variant,
                   size: size,
-                  prefixIcon: variant == IldsBadgeVariant.skeleton
-                      ? null
-                      : Icons.circle_outlined,
                 ),
             ],
           ),
@@ -676,13 +673,16 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
         child: SizedBox(
           height: 160,
           width: 400,
-          child: IldsScrollbar(
-            controller: scrollbarDemoController,
-            child: ListView.builder(
+          child: PrimaryScrollController.none(
+            child: IldsScrollbar(
               controller: scrollbarDemoController,
-              physics: const ClampingScrollPhysics(),
-              itemCount: 24,
-              itemBuilder: (_, i) => ListTile(dense: true, title: Text('Row ${i + 1}')),
+              child: ListView.builder(
+                controller: scrollbarDemoController,
+                physics: const ClampingScrollPhysics(),
+                primary: false,
+                itemCount: 24,
+                itemBuilder: (_, i) => ListTile(dense: true, title: Text('Row ${i + 1}')),
+              ),
             ),
           ),
         ),

@@ -162,6 +162,7 @@ class _IldsCheckboxState extends State<IldsCheckbox> {
             child: Text(
               widget.label!,
               style: TextStyle(
+                fontFamily: ILDSTokens.fontFamilyPrimary,
                 fontSize: _fontSize(),
                 fontWeight: ILDSTokens.fontWeightRegular,
                 color: widget.isDisabled ? ILDSTokens.neutral300 : ILDSTokens.neutral600,
@@ -200,7 +201,9 @@ class _IldsCheckboxState extends State<IldsCheckbox> {
                   Text(
                     widget.errorText!,
                     style: const TextStyle(
-                      fontSize: ILDSTokens.spacing3,
+                      fontFamily: ILDSTokens.fontFamilyPrimary,
+                      fontSize: ILDSTokens.fontSize12,
+                      height: ILDSTokens.lineHeight12,
                       color: ILDSTokens.red600,
                       fontWeight: ILDSTokens.fontWeightRegular,
                     ),
