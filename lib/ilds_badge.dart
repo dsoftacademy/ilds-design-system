@@ -20,14 +20,38 @@ class IldsBadge extends StatelessWidget {
   final IconData? prefixIcon;
   final bool isLoading;
 
-  double _fontSize() {
+  /// Figma: large + medium = 12/16; small = 10/12 (10px is an off-scale outlier).
+  TextStyle _labelStyle(Color fg) {
     switch (size) {
       case IldsBadgeSize.small:
-        return ILDSTokens.spacing2 + ILDSTokens.borderWidth1 + ILDSTokens.borderWidth2;
+        return TextStyle(
+          fontFamily: ILDSTokens.fontFamilyPrimary,
+          // OUTLIER: Figma small badge = 10px; tokenize as fontSize10 in future typography pass.
+          fontSize: 10,
+          // OUTLIER: Figma 10/12 line-height for small badge.
+          height: 1.2,
+          color: fg,
+          fontWeight: ILDSTokens.fontWeightMedium,
+        );
       case IldsBadgeSize.medium:
-        return ILDSTokens.spacing3;
       case IldsBadgeSize.large:
-        return ILDSTokens.spacing3 + ILDSTokens.borderWidth1;
+        return TextStyle(
+          fontFamily: ILDSTokens.fontFamilyPrimary,
+          fontSize: ILDSTokens.fontSize12,
+          height: ILDSTokens.lineHeight12,
+          color: fg,
+          fontWeight: ILDSTokens.fontWeightMedium,
+        );
+    }
+  }
+
+  double _iconSize() {
+    switch (size) {
+      case IldsBadgeSize.small:
+        return 10;
+      case IldsBadgeSize.medium:
+      case IldsBadgeSize.large:
+        return ILDSTokens.fontSize12;
     }
   }
 
@@ -106,17 +130,12 @@ class IldsBadge extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (prefixIcon != null && !isLoading && variant != IldsBadgeVariant.skeleton) ...[
-              Icon(prefixIcon, size: _fontSize(), color: fg),
+              Icon(prefixIcon, size: _iconSize(), color: fg),
               const SizedBox(width: ILDSTokens.spacing1),
             ],
             Text(
               isLoading ? '' : label,
-              style: TextStyle(
-                fontFamily: ILDSTokens.fontFamilyPrimary,
-                fontSize: _fontSize(),
-                color: fg,
-                fontWeight: ILDSTokens.fontWeightMedium,
-              ),
+              style: _labelStyle(fg),
             ),
           ],
         ),

@@ -1,7 +1,7 @@
 # Flutter ↔ React visual sign-off gate (Phase 3c)
 
 **Date:** 13 June 2026  
-**Status:** Mechanical gate ready — awaiting Pratishek sign-off  
+**Status:** Approved — Pratishek sign-off 18 June 2026  
 **Figma file:** ILDS Master | Design (`PCUj412f0Z1zZLLxQUX22e`)
 
 ---
@@ -24,6 +24,7 @@ Open both side-by-side. Walk each row below and confirm visual parity before sig
 |-------|-------------------|-----------|------------|
 | Primary L/M/S default | Button section | Components → Button | 13472:2804 |
 | Icon-only Large (px-16) | Button section | Icon Only Large | 13472:2810 |
+| Icon-only Medium | Button section | — | Button set — Icon Only M |
 | Icon-only Small (px-8 py-6) | Button section | Icon Only Small | 13472:3718 |
 | Loading — leading visible, spinner trailing | — | Loading Both Icons Large | 13472:2877 |
 | Secondary/Tertiary pressed | Button section (press & hold) | Secondary/Tertiary stories | 13472:3024 / 3042 |
@@ -77,7 +78,7 @@ Open both side-by-side. Walk each row below and confirm visual parity before sig
 
 | Reviewer | Date | Result |
 |----------|------|--------|
-| Pratishek | | ☐ Approved ☐ Changes requested |
+| Pratishek | 18 June 2026 | ☑ Approved ☐ Changes requested |
 
 **Notes:**
 
