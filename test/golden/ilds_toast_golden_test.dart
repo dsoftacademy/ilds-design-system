@@ -10,7 +10,7 @@ void main() {
       await tester.pumpWidget(goldenWrap(
         const IldsToast(message: 'Toast message', variant: IldsToastVariant.info),
         width: 360,
-        height: 100,
+        height: 120,
       ));
       await expectLater(
         find.byType(IldsToast),
@@ -22,7 +22,7 @@ void main() {
       await tester.pumpWidget(goldenWrap(
         const IldsToast(message: 'Toast message', variant: IldsToastVariant.success),
         width: 360,
-        height: 100,
+        height: 120,
       ));
       await expectLater(
         find.byType(IldsToast),
@@ -34,7 +34,7 @@ void main() {
       await tester.pumpWidget(goldenWrap(
         const IldsToast(message: 'Toast message', variant: IldsToastVariant.warning),
         width: 360,
-        height: 100,
+        height: 120,
       ));
       await expectLater(
         find.byType(IldsToast),
@@ -46,7 +46,7 @@ void main() {
       await tester.pumpWidget(goldenWrap(
         const IldsToast(message: 'Toast message', variant: IldsToastVariant.error),
         width: 360,
-        height: 100,
+        height: 120,
       ));
       await expectLater(
         find.byType(IldsToast),
