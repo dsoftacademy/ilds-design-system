@@ -214,9 +214,39 @@ Options:
   process.exit(0);
 }
 
-const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+function resolveGithubToken() {
+  if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN;
+  if (process.env.GH_TOKEN) return process.env.GH_TOKEN;
+  try {
+    return execSync('gh auth token', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+  } catch {
+    return null;
+  }
+}
+
+function printTokenHelp() {
+  console.error(`
+Error: No GitHub token found.
+
+Option 1 — gh CLI (run in your terminal, not pasted with comments):
+  gh auth login
+  npm run propose:change -- --open-only ...
+
+Option 2 — personal access token:
+  export GITHUB_TOKEN=ghp_xxxxxxxx
+  npm run propose:change -- --open-only ...
+
+  Create at: https://github.com/settings/tokens
+  Scopes: repo (classic) OR contents + pull requests (fine-grained)
+
+Option 3 — GitHub Actions (no local token):
+  Actions → Evolution Propose PR → Run workflow (sample checked, branch main)
+`);
+}
+
+const token = resolveGithubToken();
 if (!token && !args['dry-run']) {
-  console.error('Error: set GITHUB_TOKEN or GH_TOKEN (contents:write, pull-requests:write).');
+  printTokenHelp();
   process.exit(1);
 }
 
