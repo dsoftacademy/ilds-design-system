@@ -68,22 +68,38 @@ node tool/propose_change.mjs \
 Creates `docs/samples/propose-change-sample.md`, opens a PR safe to close:
 
 ```bash
-node tool/propose_change.mjs --sample
+# Requires a GitHub token with repo + pull-request scope:
+gh auth login
+export GITHUB_TOKEN=$(gh auth token)
+
+npm run propose:change -- --sample
 ```
+
+**If push succeeded but PR open failed** (branch exists on GitHub, no PR):
+
+```bash
+npm run propose:change -- \
+  --branch feat/phase5-propose-sample-YYYY-MM-DD-... \
+  --title "chore(phase5): propose_change sample PR (safe to close)" \
+  --type infrastructure \
+  --scope "Phase 5c sample" \
+  --open-only
+```
+
+### Option B — GitHub Actions (`workflow_dispatch`)
+
+1. **Actions** → **Evolution Propose PR** → **Run workflow**
+2. Branch: **main**
+3. Leave **sample** checked → **Run workflow**
+4. A sample PR should appear — **close without merging**
+
+If the workflow fails, merge the latest workflow-fix PR and re-run.
 
 ### Dry run
 
 ```bash
-node tool/propose_change.mjs --sample --dry-run
+npm run propose:change -- --sample --dry-run
 ```
-
-## GitHub Actions (`workflow_dispatch`)
-
-1. **Actions** → **Evolution Propose PR** → **Run workflow**
-2. Leave **sample** checked for first test (creates a disposable PR)
-3. Uncheck **sample** and fill **branch** / **title** / **scope** when the branch already has commits on the runner checkout (advanced)
-
-`GITHUB_TOKEN` in Actions has sufficient permissions via `permissions:` in the workflow file.
 
 ## npm script
 

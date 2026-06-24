@@ -44,6 +44,12 @@ function gitSilent(cmd) {
   return git(cmd, { silent: true });
 }
 
+function configureGitCredentials(token, owner, repo) {
+  if (!token) return;
+  const authedUrl = `https://x-access-token:${token}@github.com/${owner}/${repo}.git`;
+  gitSilent(`remote set-url origin ${authedUrl}`);
+}
+
 function parseRemote() {
   const envRepo = process.env.GITHUB_REPOSITORY;
   if (envRepo?.includes('/')) {
@@ -223,7 +229,9 @@ let figma = args.figma;
 
 if (args.sample) {
   const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-  branch = branch || `feat/phase5-propose-sample-${stamp}`;
+  const runId = process.env.GITHUB_RUN_ID;
+  const suffix = runId ? `run-${runId}` : stamp;
+  branch = branch || `feat/phase5-propose-sample-${suffix}`;
   title = title || 'chore(phase5): propose_change sample PR (safe to close)';
   changeType = changeType || 'infrastructure';
   scope = scope || 'Phase 5c acceptance — `tool/propose_change.mjs` sample run';
@@ -315,6 +323,7 @@ if (!args['open-only']) {
       console.log('No staged changes to commit — continuing to push/open PR.');
     }
 
+    configureGitCredentials(token, owner, repo);
     git(`push -u origin ${branch}`);
   }
 } else {
