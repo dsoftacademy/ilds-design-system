@@ -85,6 +85,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
   final TextEditingController searchController = TextEditingController();
   final TextEditingController textAreaController = TextEditingController();
   final TextEditingController textFieldController = TextEditingController(text: 'Filled value');
+  final ScrollController scrollbarDemoController = ScrollController();
 
   static const List<String> _sections = [
     'Button',
@@ -112,6 +113,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
     searchController.dispose();
     textAreaController.dispose();
     textFieldController.dispose();
+    scrollbarDemoController.dispose();
     super.dispose();
   }
 
@@ -189,9 +191,16 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
           ),
           const VerticalDivider(width: 1),
           Expanded(
-            child: SingleChildScrollView(
+            child: Padding(
               padding: const EdgeInsets.all(16),
-              child: _buildSelectedPanel(selectedNav),
+              child: selectedNav == 16
+                  ? Align(
+                      alignment: Alignment.topLeft,
+                      child: _buildSelectedPanel(selectedNav),
+                    )
+                  : SingleChildScrollView(
+                      child: _buildSelectedPanel(selectedNav),
+                    ),
             ),
           ),
         ],
@@ -351,7 +360,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
           ],
         ),
         const SizedBox(height: 16),
-        _sectionTitle('Button — icon-only L / S'),
+        _sectionTitle('Button — icon-only L / S (Figma 13472:2810 L, 13472:3718 S — no medium icon-only node)'),
         Wrap(
           spacing: 12,
           runSpacing: 12,
@@ -439,9 +448,6 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
                   label: variant == IldsBadgeVariant.skeleton ? 'Skeleton' : variant.name,
                   variant: variant,
                   size: size,
-                  prefixIcon: variant == IldsBadgeVariant.skeleton
-                      ? null
-                      : Icons.circle_outlined,
                 ),
             ],
           ),
@@ -662,12 +668,22 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
 
   Widget _scrollbarPanel() {
     return _panel('Scrollbar', [
-      SizedBox(
-        height: 160,
-        child: IldsScrollbar(
-          child: ListView.builder(
-            itemCount: 24,
-            itemBuilder: (_, i) => ListTile(dense: true, title: Text('Row ${i + 1}')),
+      ClipRRect(
+        borderRadius: BorderRadius.circular(ILDSTokens.borderRadiusMd),
+        child: SizedBox(
+          height: 160,
+          width: 400,
+          child: PrimaryScrollController.none(
+            child: IldsScrollbar(
+              controller: scrollbarDemoController,
+              child: ListView.builder(
+                controller: scrollbarDemoController,
+                physics: const ClampingScrollPhysics(),
+                primary: false,
+                itemCount: 24,
+                itemBuilder: (_, i) => ListTile(dense: true, title: Text('Row ${i + 1}')),
+              ),
+            ),
           ),
         ),
       ),

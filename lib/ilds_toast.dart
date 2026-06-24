@@ -72,15 +72,18 @@ class IldsToast extends StatelessWidget {
         duration: effectiveDuration,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        content: IldsToast(
-          message: message,
-          title: title,
-          variant: variant,
-          showIcon: showIcon,
-          actionLabel: actionLabel,
-          onAction: onAction,
-          showClose: showClose,
-          showAccentBar: showAccentBar,
+        content: SizedBox(
+          width: 320,
+          child: IldsToast(
+            message: message,
+            title: title,
+            variant: variant,
+            showIcon: showIcon,
+            actionLabel: actionLabel,
+            onAction: onAction,
+            showClose: showClose,
+            showAccentBar: showAccentBar,
+          ),
         ),
       ),
     );
@@ -146,7 +149,7 @@ class IldsToast extends StatelessWidget {
             border: Border.all(color: _borderColor(), width: ILDSTokens.borderWidth1),
           ),
           child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (showAccentBar)
               Container(
