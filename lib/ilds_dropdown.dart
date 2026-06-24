@@ -67,7 +67,8 @@ class _IldsDropdownState extends State<IldsDropdown> {
   double get _triggerHeight =>
       widget.size == IldsDropdownSize.large ? ILDSTokens.spacing12 : ILDSTokens.spacing10;
 
-  double get _fontSize => widget.size == IldsDropdownSize.large ? 14 : 12;
+  double get _fontSize =>
+      widget.size == IldsDropdownSize.large ? ILDSTokens.fontSize14 : ILDSTokens.fontSize12;
 
   IldsDropdownOption? get _selectedOption {
     if (widget.selectedValue == null) return null;
@@ -191,11 +192,11 @@ class _IldsDropdownState extends State<IldsDropdown> {
                 child: Text(
                   widget.sectionLabel!,
                   style: const TextStyle(
-                    fontFamily: 'Mulish',
+                    fontFamily: ILDSTokens.fontFamilyPrimary,
                     fontSize: ILDSTokens.fontSize14,
                     fontWeight: ILDSTokens.fontWeightBold,
                     color: ILDSTokens.neutralCoolgray800,
-                    height: 18 / 14,
+                    height: ILDSTokens.lineHeight14,
                   ),
                 ),
               ),
@@ -276,11 +277,11 @@ class _IldsDropdownState extends State<IldsDropdown> {
                 child: Text(
                   option.label,
                   style: TextStyle(
-                    fontFamily: 'Mulish',
+                    fontFamily: ILDSTokens.fontFamilyPrimary,
                     fontSize: ILDSTokens.fontSize14,
                     fontWeight: isSelected ? ILDSTokens.fontWeightBold : ILDSTokens.fontWeightRegular,
                     color: textColor,
-                    height: 1.6,
+                    height: ILDSTokens.lineHeight14,
                   ),
                 ),
               ),
@@ -328,8 +329,9 @@ class _IldsDropdownState extends State<IldsDropdown> {
         Text(
           widget.label,
           style: const TextStyle(
-            fontFamily: 'Mulish',
-            fontSize: 16,
+            fontFamily: ILDSTokens.fontFamilyPrimary,
+            fontSize: ILDSTokens.fontSize16,
+            height: ILDSTokens.lineHeight16,
             fontWeight: ILDSTokens.fontWeightBold,
             color: ILDSTokens.neutral600,
           ),
@@ -374,7 +376,7 @@ class _IldsDropdownState extends State<IldsDropdown> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontFamily: 'Mulish',
+                          fontFamily: ILDSTokens.fontFamilyPrimary,
                           fontSize: _fontSize,
                           fontWeight: ILDSTokens.fontWeightRegular,
                           color: textColor,
@@ -411,8 +413,9 @@ class _IldsDropdownState extends State<IldsDropdown> {
           Text(
             bottomText,
             style: TextStyle(
-              fontFamily: 'Mulish',
-              fontSize: 12,
+              fontFamily: ILDSTokens.fontFamilyPrimary,
+              fontSize: ILDSTokens.fontSize12,
+              height: ILDSTokens.lineHeight12,
               fontWeight: ILDSTokens.fontWeightRegular,
               color: bottomTextColor,
             ),

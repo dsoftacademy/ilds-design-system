@@ -118,7 +118,9 @@ class _IldsSearchState extends State<IldsSearch> {
                   onChanged: widget.onChanged,
                   onSubmitted: widget.onSubmitted,
                   style: const TextStyle(
-                    fontSize: ILDSTokens.spacing3 + ILDSTokens.borderWidth2,
+                    fontFamily: ILDSTokens.fontFamilyPrimary,
+                    fontSize: ILDSTokens.fontSize14,
+                    height: ILDSTokens.lineHeight14,
                     fontWeight: ILDSTokens.fontWeightRegular,
                     color: ILDSTokens.neutral600,
                   ),
@@ -126,7 +128,9 @@ class _IldsSearchState extends State<IldsSearch> {
                     border: InputBorder.none,
                     hintText: widget.placeholder,
                     hintStyle: const TextStyle(
-                      fontSize: ILDSTokens.spacing3 + ILDSTokens.borderWidth2,
+                      fontFamily: ILDSTokens.fontFamilyPrimary,
+                      fontSize: ILDSTokens.fontSize14,
+                      height: ILDSTokens.lineHeight14,
                       fontWeight: ILDSTokens.fontWeightRegular,
                       color: ILDSTokens.neutral300,
                     ),

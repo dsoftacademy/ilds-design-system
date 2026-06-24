@@ -109,6 +109,7 @@ class _IldsTagState extends State<IldsTag> {
                   Text(
                     widget.label,
                     style: TextStyle(
+                      fontFamily: ILDSTokens.fontFamilyPrimary,
                       fontSize: _fontSize(),
                       color: _textColor(),
                       fontWeight: ILDSTokens.fontWeightMedium,

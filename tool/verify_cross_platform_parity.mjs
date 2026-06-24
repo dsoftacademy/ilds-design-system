@@ -200,7 +200,7 @@ const RULES = [
     figma: '13476:22317',
     platforms: {
       react: { must: ['text-16', 'font-bold', 'neutral-coolgray-900'] },
-      flutter: { must: ['fontSize: 16', 'fontWeightBold', 'neutral600'] },
+      flutter: { must: ['ILDSTokens.fontSize16', 'fontWeightBold', 'neutral600'] },
       swift: { must: ['fontSize16', 'fontWeightBold', 'neutralCoolgray900'] },
       kotlin: { must: ['fontSize16', 'fontWeightBold'] },
     },

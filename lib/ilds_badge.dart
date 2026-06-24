@@ -112,6 +112,7 @@ class IldsBadge extends StatelessWidget {
             Text(
               isLoading ? '' : label,
               style: TextStyle(
+                fontFamily: ILDSTokens.fontFamilyPrimary,
                 fontSize: _fontSize(),
                 color: fg,
                 fontWeight: ILDSTokens.fontWeightMedium,
