@@ -437,7 +437,7 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
           ],
         ),
         const SizedBox(height: 16),
-        _sectionTitle('Button — icon-only L / S (Figma 13472:2810 L, 13472:3718 S — no medium icon-only node)'),
+        _sectionTitle('Button — icon-only L / M / S (Figma 13472:2810 L, medium icon-only, 13472:3718 S)'),
         Wrap(
           spacing: 12,
           runSpacing: 12,
@@ -446,6 +446,13 @@ class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundP
               iconOnly: true,
               icon: const Icon(Icons.favorite_border),
               semanticLabel: 'Favorite large',
+              onPressed: () {},
+            ),
+            IldsButton(
+              iconOnly: true,
+              size: IldsButtonSize.medium,
+              icon: const Icon(Icons.favorite_border),
+              semanticLabel: 'Favorite medium',
               onPressed: () {},
             ),
             IldsButton(
