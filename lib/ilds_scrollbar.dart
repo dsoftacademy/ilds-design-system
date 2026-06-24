@@ -74,12 +74,17 @@ class _IldsScrollbarState extends State<IldsScrollbar> {
             mainAxisMargin: ILDSTokens.spacing1,
             interactive: true,
           ),
-          child: RawScrollbar(
-            controller: _controller,
-            thumbVisibility: widget.thumbVisibility,
-            trackVisibility: true,
-            radius: thumbRadius,
-            child: widget.child,
+          child: ScrollConfiguration(
+            behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+            child: RawScrollbar(
+              controller: _controller,
+              thumbVisibility: widget.thumbVisibility,
+              trackVisibility: true,
+              radius: thumbRadius,
+              notificationPredicate: (ScrollNotification notification) =>
+                  notification.depth == 0,
+              child: widget.child,
+            ),
           ),
         ),
       ),

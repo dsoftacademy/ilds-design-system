@@ -3,7 +3,7 @@ import figma, { html } from '@figma/code-connect/html'
 // Toast component set — Figma node: 17708:3491
 // All property names verified from componentPropertyDefinitions.
 // Properties: Appearance, Heading, Close Button, " Support text" (leading space — exact name)
-// Note: "Accent Bar" does not exist as a Figma property — it is always shown in ILDS spec.
+// Note: Figma has no accent bar — border tint + icon only (set 17708:3491).
 // IldsToast is invoked via IldsToast.show() — no widget tree instantiation.
 
 figma.connect(
@@ -31,7 +31,7 @@ IldsToast.show(
   variant: ${variant},
   title: ${showHeading} ? 'Toast title' : null,
   showClose: ${showClose},
-  showAccentBar: true,
+  showAccentBar: false,
   isPersistent: false,
 )`,
   },

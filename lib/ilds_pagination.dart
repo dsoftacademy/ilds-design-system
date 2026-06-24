@@ -51,7 +51,9 @@ class IldsPagination extends StatelessWidget {
                 Text(
                   'Back',
                   style: TextStyle(
-                    fontSize: ILDSTokens.spacing4,
+                    fontFamily: ILDSTokens.fontFamilyPrimary,
+                    fontSize: ILDSTokens.fontSize16,
+                    height: ILDSTokens.lineHeight16,
                     fontWeight: ILDSTokens.fontWeightBold,
                     color: color,
                   ),
@@ -60,7 +62,9 @@ class IldsPagination extends StatelessWidget {
                 Text(
                   'Next',
                   style: TextStyle(
-                    fontSize: ILDSTokens.spacing4,
+                    fontFamily: ILDSTokens.fontFamilyPrimary,
+                    fontSize: ILDSTokens.fontSize16,
+                    height: ILDSTokens.lineHeight16,
                     fontWeight: ILDSTokens.fontWeightBold,
                     color: color,
                   ),
@@ -94,7 +98,9 @@ class IldsPagination extends StatelessWidget {
           child: Text(
             '$page',
             style: TextStyle(
-              fontSize: ILDSTokens.spacing4,
+              fontFamily: ILDSTokens.fontFamilyPrimary,
+              fontSize: ILDSTokens.fontSize16,
+              height: ILDSTokens.lineHeight16,
               fontWeight: ILDSTokens.fontWeightBold,
               color: selected ? ILDSTokens.orange600 : ILDSTokens.neutral600,
             ),
@@ -117,7 +123,9 @@ class IldsPagination extends StatelessWidget {
             child: Text(
               '$currentPage of $totalPages pages',
               style: const TextStyle(
-                fontSize: ILDSTokens.spacing3 + ILDSTokens.borderWidth2,
+                fontFamily: ILDSTokens.fontFamilyPrimary,
+                fontSize: ILDSTokens.fontSize14,
+                height: ILDSTokens.lineHeight14,
                 color: ILDSTokens.neutral600,
                 fontWeight: ILDSTokens.fontWeightMedium,
               ),
@@ -145,7 +153,9 @@ class IldsPagination extends StatelessWidget {
                 child: Text(
                   '…',
                   style: TextStyle(
-                    fontSize: ILDSTokens.spacing4,
+                    fontFamily: ILDSTokens.fontFamilyPrimary,
+                    fontSize: ILDSTokens.fontSize16,
+                    height: ILDSTokens.lineHeight16,
                     fontWeight: ILDSTokens.fontWeightBold,
                     color: ILDSTokens.neutral600,
                   ),

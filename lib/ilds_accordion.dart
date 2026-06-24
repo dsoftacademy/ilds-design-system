@@ -91,7 +91,9 @@ class _IldsAccordionState extends State<IldsAccordion> with TickerProviderStateM
                   Text(
                     '${widget.prefixNumber}',
                     style: const TextStyle(
-                      fontSize: ILDSTokens.spacing3 + ILDSTokens.borderWidth2,
+                      fontFamily: ILDSTokens.fontFamilyPrimary,
+                      fontSize: ILDSTokens.fontSize14,
+                      height: ILDSTokens.lineHeight14,
                       fontWeight: ILDSTokens.fontWeightBold,
                       color: ILDSTokens.neutral600,
                     ),
@@ -102,7 +104,9 @@ class _IldsAccordionState extends State<IldsAccordion> with TickerProviderStateM
                   child: Text(
                     widget.title,
                     style: TextStyle(
-                      fontSize: ILDSTokens.spacing3 + ILDSTokens.borderWidth2,
+                      fontFamily: ILDSTokens.fontFamilyPrimary,
+                      fontSize: ILDSTokens.fontSize14,
+                      height: ILDSTokens.lineHeight14,
                       color: widget.isDisabled ? ILDSTokens.neutral300 : _titleColor(),
                       fontWeight: ILDSTokens.fontWeightMedium,
                     ),

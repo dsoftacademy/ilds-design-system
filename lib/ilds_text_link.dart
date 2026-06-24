@@ -111,6 +111,7 @@ class _IldsTextLinkState extends State<IldsTextLink> {
                   Text(
                     widget.label,
                     style: TextStyle(
+                      fontFamily: ILDSTokens.fontFamilyPrimary,
                       fontSize: _fontSize(),
                       color: c,
                       fontWeight: ILDSTokens.fontWeightMedium,

@@ -46,7 +46,7 @@ class IldsChip extends StatelessWidget {
     // Figma: large=24px, medium=20px — verified chip.spec.json offsetHeight
     final double height = isLarge ? 24.0 : 20.0;
     // Figma: both sizes use 12px — verified chip.spec.json shared.font-size
-    const double fontSize = 12.0;
+    const double fontSize = ILDSTokens.fontSize12;
     final double iconSize = isLarge ? 16.0 : 14.0;
 
     // Figma: large h-padding=8px, medium=4px — verified chip.spec.json shared.padding
@@ -140,10 +140,10 @@ class IldsChip extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
+                  fontFamily: ILDSTokens.fontFamilyPrimary,
                   fontSize: fontSize,
                   color: labelColor,
                   fontWeight: fontWeight,
-                  fontFamily: 'Mulish',
                 ),
               ),
               if (count != null) ...[
@@ -159,11 +159,11 @@ class IldsChip extends StatelessWidget {
                   ),
                   child: Text(
                     count.toString(),
-                    style: TextStyle(
-                      fontSize: fontSize - 2,
+                    style: const TextStyle(
+                      fontFamily: ILDSTokens.fontFamilyPrimary,
+                      fontSize: ILDSTokens.fontSize12,
                       color: ILDSTokens.white,
                       fontWeight: ILDSTokens.fontWeightBold,
-                      fontFamily: 'Mulish',
                     ),
                   ),
                 ),

@@ -63,11 +63,13 @@ class _IldsDropdownState extends State<IldsDropdown> {
   final GlobalKey _targetKey = GlobalKey();
   OverlayEntry? _overlayEntry;
   bool _isOpen = false;
+  ScrollPosition? _ancestorScrollPosition;
 
   double get _triggerHeight =>
       widget.size == IldsDropdownSize.large ? ILDSTokens.spacing12 : ILDSTokens.spacing10;
 
-  double get _fontSize => widget.size == IldsDropdownSize.large ? 14 : 12;
+  double get _fontSize =>
+      widget.size == IldsDropdownSize.large ? ILDSTokens.fontSize14 : ILDSTokens.fontSize12;
 
   IldsDropdownOption? get _selectedOption {
     if (widget.selectedValue == null) return null;
@@ -79,8 +81,24 @@ class _IldsDropdownState extends State<IldsDropdown> {
 
   @override
   void dispose() {
+    _detachScrollListener();
     _removeOverlay();
     super.dispose();
+  }
+
+  void _attachScrollListener() {
+    _detachScrollListener();
+    _ancestorScrollPosition = Scrollable.maybeOf(context)?.position;
+    _ancestorScrollPosition?.addListener(_onAncestorScroll);
+  }
+
+  void _detachScrollListener() {
+    _ancestorScrollPosition?.removeListener(_onAncestorScroll);
+    _ancestorScrollPosition = null;
+  }
+
+  void _onAncestorScroll() {
+    if (_isOpen) _removeOverlay();
   }
 
   @override
@@ -123,6 +141,7 @@ class _IldsDropdownState extends State<IldsDropdown> {
               offset: Offset(0, _triggerHeight),
               child: Material(
                 color: Colors.transparent,
+                elevation: 8,
                 child: SizedBox(
                   width: size.width,
                   child: _buildOptionsPanel(),
@@ -134,11 +153,13 @@ class _IldsDropdownState extends State<IldsDropdown> {
       },
     );
 
-    Overlay.of(context).insert(_overlayEntry!);
+    _attachScrollListener();
+    Overlay.of(context, rootOverlay: true).insert(_overlayEntry!);
     setState(() => _isOpen = true);
   }
 
   void _removeOverlay() {
+    _detachScrollListener();
     _overlayEntry?.remove();
     _overlayEntry = null;
     if (mounted && _isOpen) {
@@ -191,11 +212,11 @@ class _IldsDropdownState extends State<IldsDropdown> {
                 child: Text(
                   widget.sectionLabel!,
                   style: const TextStyle(
-                    fontFamily: 'Mulish',
+                    fontFamily: ILDSTokens.fontFamilyPrimary,
                     fontSize: ILDSTokens.fontSize14,
                     fontWeight: ILDSTokens.fontWeightBold,
                     color: ILDSTokens.neutralCoolgray800,
-                    height: 18 / 14,
+                    height: ILDSTokens.lineHeight14,
                   ),
                 ),
               ),
@@ -276,11 +297,11 @@ class _IldsDropdownState extends State<IldsDropdown> {
                 child: Text(
                   option.label,
                   style: TextStyle(
-                    fontFamily: 'Mulish',
+                    fontFamily: ILDSTokens.fontFamilyPrimary,
                     fontSize: ILDSTokens.fontSize14,
                     fontWeight: isSelected ? ILDSTokens.fontWeightBold : ILDSTokens.fontWeightRegular,
                     color: textColor,
-                    height: 1.6,
+                    height: ILDSTokens.lineHeight14,
                   ),
                 ),
               ),
@@ -328,8 +349,9 @@ class _IldsDropdownState extends State<IldsDropdown> {
         Text(
           widget.label,
           style: const TextStyle(
-            fontFamily: 'Mulish',
-            fontSize: 16,
+            fontFamily: ILDSTokens.fontFamilyPrimary,
+            fontSize: ILDSTokens.fontSize16,
+            height: ILDSTokens.lineHeight16,
             fontWeight: ILDSTokens.fontWeightBold,
             color: ILDSTokens.neutral600,
           ),
@@ -374,7 +396,7 @@ class _IldsDropdownState extends State<IldsDropdown> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontFamily: 'Mulish',
+                          fontFamily: ILDSTokens.fontFamilyPrimary,
                           fontSize: _fontSize,
                           fontWeight: ILDSTokens.fontWeightRegular,
                           color: textColor,
@@ -411,8 +433,9 @@ class _IldsDropdownState extends State<IldsDropdown> {
           Text(
             bottomText,
             style: TextStyle(
-              fontFamily: 'Mulish',
-              fontSize: 12,
+              fontFamily: ILDSTokens.fontFamilyPrimary,
+              fontSize: ILDSTokens.fontSize12,
+              height: ILDSTokens.lineHeight12,
               fontWeight: ILDSTokens.fontWeightRegular,
               color: bottomTextColor,
             ),
