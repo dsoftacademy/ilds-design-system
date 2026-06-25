@@ -121,5 +121,6 @@ npm run propose:change -- --sample
 
 ## Next
 
-- **5d-1:** Slack notify on PR open — see `docs/PHASE5_SLACK_NOTIFY.md`
-- **5e:** `docs/PHASE5_POST_MERGE.md`
+- **5d-1:** Slack notify — `docs/PHASE5_SLACK_NOTIFY.md`
+- **5d-2:** Interactive approve — `docs/PHASE5_SLACK_INTERACTIVE.md`
+- **5e:** Post-merge propagation — `docs/PHASE5_POST_MERGE.md`

@@ -1,7 +1,8 @@
 name: PR Slack Notify
 
-# Phase 5d-1 — post to #design-system-updates when a PR is ready for review.
-# Requires repo secret: SLACK_WEBHOOK_URL (incoming webhook).
+# Phase 5d — post to #design-system-updates when a PR is ready for review.
+# 5d-1: SLACK_WEBHOOK_URL (notify-only)
+# 5d-2: SLACK_BOT_TOKEN + SLACK_CHANNEL_ID (message with Approve / Request changes buttons)
 
 on:
   pull_request:
@@ -30,12 +31,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-          if [ -z "${SLACK_WEBHOOK_URL:-}" ]; then
-            echo "::warning::SLACK_WEBHOOK_URL secret is not set — skipping Slack notification."
-            echo "Add an incoming webhook secret to enable Phase 5d-1 (see docs/PHASE5_SLACK_NOTIFY.md)."
+          if [ -z "${SLACK_BOT_TOKEN:-}" ] && [ -z "${SLACK_WEBHOOK_URL:-}" ]; then
+            echo "::warning::Neither SLACK_BOT_TOKEN nor SLACK_WEBHOOK_URL is set — skipping Slack notification."
+            echo "See docs/PHASE5_SLACK_NOTIFY.md and docs/PHASE5_SLACK_INTERACTIVE.md."
             exit 0
+          fi
+          if [ -n "${SLACK_BOT_TOKEN:-}" ] && [ -z "${SLACK_CHANNEL_ID:-}" ]; then
+            echo "::error::SLACK_BOT_TOKEN is set but SLACK_CHANNEL_ID is missing."
+            exit 1
           fi
           node tool/notify_pr_slack.mjs --pr "${{ github.event.pull_request.number }}"
