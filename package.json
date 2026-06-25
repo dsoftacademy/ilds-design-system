@@ -11,6 +11,7 @@
     "verify:phase4b": "node tool/verify_phase4b.mjs",
     "verify:parity": "node tool/verify_cross_platform_parity.mjs",
     "propose:change": "node tool/propose_change.mjs",
+    "notify:pr-slack": "node tool/notify_pr_slack.mjs",
     "storybook": "npm run storybook --prefix web",
     "build:storybook": "npm run build-storybook --prefix web",
     "test:web": "npm run build-storybook --prefix web && npm run test:parity --prefix web"

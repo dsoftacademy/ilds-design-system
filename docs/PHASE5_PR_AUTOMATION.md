@@ -121,5 +121,5 @@ npm run propose:change -- --sample
 
 ## Next
 
-- **5d-1:** Slack notify on PR open (`SLACK_WEBHOOK_URL`)
+- **5d-1:** Slack notify on PR open — see `docs/PHASE5_SLACK_NOTIFY.md`
 - **5e:** `docs/PHASE5_POST_MERGE.md`

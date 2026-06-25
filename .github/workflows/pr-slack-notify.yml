@@ -1,0 +1,41 @@
+name: PR Slack Notify
+
+# Phase 5d-1 — post to #design-system-updates when a PR is ready for review.
+# Requires repo secret: SLACK_WEBHOOK_URL (incoming webhook).
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: read
+
+jobs:
+  notify:
+    name: Slack notify on PR open
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.action == 'ready_for_review' ||
+      (github.event.action == 'opened' && github.event.pull_request.draft == false)
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Post Slack notification
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SLACK_WEBHOOK_URL:-}" ]; then
+            echo "::warning::SLACK_WEBHOOK_URL secret is not set — skipping Slack notification."
+            echo "Add an incoming webhook secret to enable Phase 5d-1 (see docs/PHASE5_SLACK_NOTIFY.md)."
+            exit 0
+          fi
+          node tool/notify_pr_slack.mjs --pr "${{ github.event.pull_request.number }}"
