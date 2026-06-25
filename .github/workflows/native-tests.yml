@@ -12,6 +12,7 @@ on:
       - 'lib/**'
       - 'ilds_component_playground_app/**'
       - '.github/workflows/**'
+      - 'docs/**'
       - 'package.json'
       - 'tool/**'
       - 'dist/ILDSTokens.swift'

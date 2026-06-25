@@ -8,6 +8,7 @@ on:
       - 'web/specs/**'
       - 'dist/tokens.theme.css'
       - 'tokens/**'
+      - 'docs/**'
       - '.github/workflows/chromatic.yml'
   push:
     branches: [main]

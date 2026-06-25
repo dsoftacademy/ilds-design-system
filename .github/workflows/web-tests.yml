@@ -1,7 +1,7 @@
 name: Web Component Tests
 on:
   pull_request:
-    paths: ['web/**', 'dist/**', 'tokens/**']
+    paths: ['web/**', 'dist/**', 'tokens/**', 'docs/**', '.github/workflows/**']
   push:
     branches: [main]
     paths: ['web/**', 'dist/**', 'tokens/**']

@@ -37,7 +37,7 @@ Select these job names (exact labels from GitHub Checks tab):
 | `Native Component Tests` | `Android compile (Compose library)` |
 | `Chromatic Visual Regression` | `Chromatic snapshot test` |
 
-**Note:** Workflows are path-filtered. A PR that only touches `docs/` or `.github/` may not run all checks — that is expected. Component/token PRs must touch paths that trigger the relevant workflows.
+**Note:** Workflows are path-filtered. `docs/**` and `.github/workflows/**` are included on `pull_request` so docs-only PRs still report required checks. Component/token PRs must touch paths that trigger Chromatic when React UI changes.
 
 ## Verification
 
