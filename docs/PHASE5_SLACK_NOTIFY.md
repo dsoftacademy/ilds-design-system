@@ -1,8 +1,9 @@
 # Phase 5d-1 — Slack notify on PR open
 
-**Status:** Stage 5d-1 deliverable  
+**Status:** ✅ Complete (notify path)  
 **Workflow:** `.github/workflows/pr-slack-notify.yml`  
-**Tool:** `tool/notify_pr_slack.mjs`
+**Tool:** `tool/notify_pr_slack.mjs`  
+**Interactive (5d-2):** `docs/PHASE5_SLACK_INTERACTIVE.md`
 
 ## Purpose
 
@@ -14,7 +15,7 @@ When a pull request is opened (non-draft) or marked **ready for review**, post a
 - **Platforms** (from checked boxes in the template)
 - **Visual diff** — Chromatic check URL when available, otherwise a link to PR checks
 
-This is **notify-only**. Interactive Approve / Request Changes in Slack is **5d-2** (deferred).
+This is **notify-only** when using `SLACK_WEBHOOK_URL` alone. For **Approve / Request changes** buttons, see **5d-2:** `docs/PHASE5_SLACK_INTERACTIVE.md`.
 
 ## One-time setup (repo admin)
 
@@ -72,5 +73,5 @@ node tool/notify_pr_slack.mjs --pr 14
 
 ## Next
 
-- **5d-2:** Interactive Slack approve/reject (hosted handler + signing secret)
+- **5d-2:** Interactive approve/request-changes — `docs/PHASE5_SLACK_INTERACTIVE.md`
 - **5e:** `docs/PHASE5_POST_MERGE.md`
