@@ -18,7 +18,7 @@ date: 2026-04-11
 
 **Roadmap anchor:** Phases 3–4 = web + native platform parity; Phases 5–7 = evolution agent + AI screens. **Phase 8 (planned):** move typography into Figma Variables only — today typography is interim repo/plugin-authored until 3b + 4 are done. See `ILDS_PROJECT_MASTER.md` §5 Phase 8.
 
-**Resume here (Jun 2026):** Phase 3 ✅ · Phase 4a ✅ · Phase 4b ✅ · cross-platform Figma parity QA ✅. Read **`docs/reports/PHASE3_AND_PHASE4_COMPLETE_REPORT_2026-06-14.md`** for full decisions, file map, and commit history. Audit follow-up: **`docs/reports/QA_AUDIT_b0c50b4_DEFECTS.md`** (resolved in `ad7056b`). Run `npm run verify:parity`. **Next:** Phase 5 or manual sign-off gates.
+**Resume here (Jun 2026):** Phase 3 ✅ · Phase 4 ✅ · **Phase 5 ✅** (evolution engine — `docs/PHASE5_COMPLETE.md`). **Next:** Phase 6 thin slice — `CURSOR_PHASE6_THIN_SLICE.md`. Run `npm run verify:parity`.
 
 **Primary stack:** Dart/Flutter (`lib/`), JSON tokens (`tokens/tokens.json`), TypeScript Code Connect (`*.figma.ts`), GitHub Actions (`.github/workflows/`), Figma plugin (`ilds-plugin/`).
 

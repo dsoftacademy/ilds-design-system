@@ -87,6 +87,8 @@ CI job: `native-tests.yml` → **Flutter golden tests** on `ubuntu-latest`.
 
 ## Next (Phase 5c+)
 
-See `CURSOR_PHASE5_EVOLUTION_ENGINE.md` — PR automation (`tool/propose_change.mjs`), Slack notify + interactive approval, post-merge doc.
+## Next
+
+Phase 5 complete — **`docs/PHASE5_COMPLETE.md`**. Phase 6 thin slice: **`CURSOR_PHASE6_THIN_SLICE.md`**.
 
 **5c:** `docs/PHASE5_PR_AUTOMATION.md` · `tool/propose_change.mjs` · `.github/workflows/evolution-propose.yml`

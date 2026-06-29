@@ -81,11 +81,13 @@ Run `node tool/slack_interactivity_server.mjs` bound to `0.0.0.0` behind HTTPS t
 | Env | Required | Notes |
 |-----|----------|-------|
 | `SLACK_SIGNING_SECRET` | ✅ | From Slack app |
-| `GITHUB_TOKEN` or `GH_TOKEN` | ✅ | PAT with `repo` or `pull-requests:write` — used to submit reviews |
+| `GITHUB_TOKEN` or `GH_TOKEN` | ✅ | PAT with `repo` or `pull-requests:write` — posts reviews as **that GitHub user** |
 | `SLACK_APPROVER_USER_IDS` | Optional | Comma-separated Slack user IDs; if set, only those users can click buttons |
 | `PORT` | Optional | Default `3847` |
 
 **Do not** commit tokens. Store handler secrets in the host environment only.
+
+> **Self-PR rule:** GitHub rejects `APPROVE` and `REQUEST_CHANGES` on a PR you authored. The handler `GITHUB_TOKEN` must belong to a **reviewer** (not the PR author). For solo testing, approve on GitHub in the browser instead, or use a second GitHub account PAT.
 
 ## npm scripts
 
@@ -96,13 +98,14 @@ npm run slack:interactivity-server
 
 ## Acceptance (5d-2)
 
-- [ ] `SLACK_BOT_TOKEN` + `SLACK_CHANNEL_ID` set in GitHub Actions secrets
-- [ ] Interactivity Request URL points to a live handler (`GET /health` returns `ok`)
-- [ ] Opening a PR posts a message **with Approve / Request changes buttons**
-- [ ] Clicking **Approve** adds an approving review on GitHub (visible on PR)
-- [ ] Clicking **Request changes** adds a changes-requested review on GitHub
-- [ ] Slack message updates to show who acted; buttons are removed
-- [ ] PR is **not** auto-merged
+- [x] `SLACK_WEBHOOK_URL` posts messages **with Approve / Request changes buttons** (PR #19; bot token optional)
+- [x] `SLACK_CHANNEL_ID` set in GitHub Actions secrets
+- [x] Interactivity handler verified locally (`run_5d2_acceptance.sh` + cloudflared)
+- [x] Click reaches handler; GitHub review API called
+- [x] Self-PR blocked with clear Slack ephemeral message (GitHub rule)
+- [ ] **Production:** stable Interactivity URL on n8n/VM (`docs/n8n/SLACK_PR_INTERACTIVITY.md`)
+- [ ] **Production:** `GITHUB_TOKEN` = reviewer account (not PR author)
+- [x] PR is **not** auto-merged by Slack
 
 ## Security notes
 
@@ -119,4 +122,5 @@ npm run slack:interactivity-server
 
 ## Next
 
-- **5e:** `docs/PHASE5_POST_MERGE.md` — what fires after merge
+- **5e:** `docs/PHASE5_POST_MERGE.md` ✅
+- **Phase 6:** `CURSOR_PHASE6_THIN_SLICE.md`

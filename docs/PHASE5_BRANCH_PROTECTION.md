@@ -42,8 +42,29 @@ Select these job names (exact labels from GitHub Checks tab):
 ## Verification
 
 1. Open a test PR → template sections appear automatically.
-2. Attempt merge without approval → blocked.
-3. Merge with green checks + 1 approving review from a code owner → succeeds.
+2. Attempt merge without approval → blocked when `required_approving_review_count` ≥ 1 (see audit below).
+3. Merge with green checks + code owner review → succeeds.
+
+## Branch protection audit (2026-06-29)
+
+**Configured on `main` (via GitHub API):**
+
+| Check / rule | On `main`? |
+|--------------|------------|
+| Cross-platform parity QA | ✅ required |
+| Flutter golden tests | ✅ required |
+| Flutter analyze | ✅ required |
+| iOS compile (Swift Package) | ✅ required |
+| Android compile (Compose library) | ✅ required |
+| `parity` (web-tests job) | ❌ **not required** — recommend adding |
+| Chromatic snapshot test | ❌ **not required** — recommend adding for React UI PRs |
+| Require code owner reviews | ✅ |
+| Dismiss stale reviews | ✅ |
+| Enforce admins | ✅ |
+
+**Admin action:** Settings → Branches → `main` → add **`parity`** and **`Chromatic snapshot test`** to required checks when ready to gate all UI PRs.
+
+**Note:** `required_approving_review_count` is `0` but `require_code_owner_reviews` is on — CODEOWNERS approval still required.
 
 ## Owner action
 

@@ -2,8 +2,8 @@
 /**
  * Phase 5d — Post a Slack notification when an ILDS PR is opened for review.
  *
- * 5d-1: SLACK_WEBHOOK_URL → rich message (no buttons)
- * 5d-2: SLACK_BOT_TOKEN + SLACK_CHANNEL_ID → message with Approve / Request changes buttons
+ * 5d-1: SLACK_WEBHOOK_URL → rich message
+ * 5d-2: Approve / Request changes buttons via webhook (same Slack app) or SLACK_BOT_TOKEN + SLACK_CHANNEL_ID
  *
  * Called from .github/workflows/pr-slack-notify.yml (primary).
  * Local dry-run:
@@ -74,11 +74,14 @@ if (!token) {
 }
 
 const botToken = process.env.SLACK_BOT_TOKEN;
-const channelId = process.env.SLACK_CHANNEL_ID;
+const channelId = process.env.SLACK_CHANNEL_ID ?? 'C0AN3J0DKJN';
 const webhookUrl = process.env.SLACK_WEBHOOK_URL;
-const interactive = Boolean(botToken && channelId);
+const interactiveOff = process.env.SLACK_NOTIFY_INTERACTIVE === 'false';
+const useBot = Boolean(botToken && channelId);
+// Incoming webhooks support action blocks when the Slack app has Interactivity enabled.
+const interactive = !interactiveOff && Boolean(useBot || webhookUrl);
 
-if (!interactive && !webhookUrl && !args['dry-run']) {
+if (!useBot && !webhookUrl && !args['dry-run']) {
   console.error(
     'Error: set SLACK_BOT_TOKEN + SLACK_CHANNEL_ID (5d-2) or SLACK_WEBHOOK_URL (5d-1), or use --dry-run',
   );
@@ -107,10 +110,14 @@ if (args['dry-run']) {
   process.exit(0);
 }
 
-if (interactive) {
+if (useBot) {
   await postSlackBotMessage(botToken, channelId, payload);
-  console.log(`Slack interactive notification sent for PR #${prNumber} (bot → ${channelId})`);
+  console.log(
+    `Slack notification sent for PR #${prNumber} (bot → ${channelId}${interactive ? ', interactive' : ''})`,
+  );
 } else {
   await postSlackWebhook(webhookUrl, payload);
-  console.log(`Slack notification sent for PR #${prNumber} (webhook, no buttons)`);
+  console.log(
+    `Slack notification sent for PR #${prNumber} (webhook${interactive ? ', interactive buttons' : ''})`,
+  );
 }
