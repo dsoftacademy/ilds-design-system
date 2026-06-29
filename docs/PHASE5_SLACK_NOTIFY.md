@@ -60,18 +60,19 @@ node tool/notify_pr_slack.mjs --pr 14
 
 ## Acceptance (5d-1)
 
-- [ ] `SLACK_WEBHOOK_URL` secret configured on the repo
-- [ ] Opening a non-draft PR posts a message in `#design-system-updates`
-- [ ] Message includes working PR link and Chromatic/checks link
-- [ ] Draft → ready triggers exactly one notification
+- [x] `SLACK_WEBHOOK_URL` secret configured on the repo
+- [x] Opening a non-draft PR posts a message in `#design-system-updates`
+- [x] Message includes working PR link and Chromatic/checks link
+- [x] Draft → ready triggers exactly one notification (by design: no duplicate on push)
 
 ## What this does **not** do
 
 - Does not merge or approve PRs (human review on GitHub — branch protection)
-- Does not add Slack interactive buttons (5d-2)
+- Interactive buttons — see **5d-2:** `docs/PHASE5_SLACK_INTERACTIVE.md`
 - Does not replace token-sync Slack messages from the plugin or n8n
 
 ## Next
 
-- **5d-2:** Interactive approve/request-changes — `docs/PHASE5_SLACK_INTERACTIVE.md`
-- **5e:** `docs/PHASE5_POST_MERGE.md`
+- **5d-2:** `docs/PHASE5_SLACK_INTERACTIVE.md` ✅
+- **5e:** `docs/PHASE5_POST_MERGE.md` ✅
+- **Summary:** `docs/PHASE5_COMPLETE.md`

@@ -92,10 +92,28 @@ async function handleInteraction(rawBody) {
       ? `Approved via Slack by ${who} (Phase 5d-2).`
       : `Changes requested via Slack by ${who} (Phase 5d-2).`;
 
-  await submitPullRequestReview(githubToken, owner, repo, prNumber, {
-    event: reviewEvent,
-    body: reviewBody,
-  });
+  try {
+    await submitPullRequestReview(githubToken, owner, repo, prNumber, {
+      event: reviewEvent,
+      body: reviewBody,
+    });
+  } catch (error) {
+    const githubMsg = error.githubErrors?.join('; ') || error.message;
+    let hint = githubMsg;
+    if (/can not approve your own pull request/i.test(githubMsg)) {
+      hint =
+        'GitHub blocks approving your own PR. Use a `GITHUB_TOKEN` from a *different* GitHub user (DS reviewer), or approve on GitHub in the browser.';
+    } else if (/can not request changes on your own pull request/i.test(githubMsg)) {
+      hint =
+        'GitHub blocks requesting changes on your own PR. Use a reviewer account token, or review on GitHub in the browser.';
+    }
+    await postSlackResponseUrl(payload.response_url, {
+      response_type: 'ephemeral',
+      replace_original: false,
+      text: `Could not post GitHub review: ${hint}`,
+    });
+    return { ok: false, error: hint, owner, repo, prNumber };
+  }
 
   const statusLine = statusLineForReview(reviewEvent, user);
   const updatedBlocks = blocksAfterReview(payload.message?.blocks, statusLine);

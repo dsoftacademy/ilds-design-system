@@ -168,11 +168,15 @@ export async function githubRequest(token, method, apiPath, body) {
   }
 
   if (!response.ok) {
-    throw new Error(
-      `GitHub API ${method} ${apiPath} failed (${response.status}): ${
-        data.message || text.slice(0, 400)
-      }`,
+    const details = Array.isArray(data.errors)
+      ? data.errors.join('; ')
+      : data.message || text.slice(0, 400);
+    const err = new Error(
+      `GitHub API ${method} ${apiPath} failed (${response.status}): ${details}`,
     );
+    err.status = response.status;
+    err.githubErrors = data.errors;
+    throw err;
   }
   return data;
 }
