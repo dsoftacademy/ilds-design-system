@@ -56,13 +56,13 @@ Select these job names (exact labels from GitHub Checks tab):
 | Flutter analyze | ✅ required |
 | iOS compile (Swift Package) | ✅ required |
 | Android compile (Compose library) | ✅ required |
-| `parity` (web-tests job) | ❌ **not required** — recommend adding |
-| Chromatic snapshot test | ❌ **not required** — recommend adding for React UI PRs |
+| `parity` (web-tests job) | ✅ required (added 2026-06-29) |
+| Chromatic snapshot test | ✅ required (added 2026-06-29) |
 | Require code owner reviews | ✅ |
 | Dismiss stale reviews | ✅ |
 | Enforce admins | ✅ |
 
-**Admin action:** Settings → Branches → `main` → add **`parity`** and **`Chromatic snapshot test`** to required checks when ready to gate all UI PRs.
+**Admin action:** ~~Settings → Branches → `main` → add **`parity`** and **`Chromatic snapshot test`**~~ Done 2026-06-29 via API.
 
 **Note:** `required_approving_review_count` is `0` but `require_code_owner_reviews` is on — CODEOWNERS approval still required.
 

@@ -157,7 +157,7 @@ See **`docs/PHASE5_COMPLETE.md`** for PR map and ops notes.
 |-------|--------|
 | 5a–5e | ✅ Merged to `main` |
 | 5d-2 production host | ⏳ n8n/VM — `docs/n8n/SLACK_PR_INTERACTIVITY.md` |
-| Branch protection gaps | ⏳ Add `parity` + Chromatic to required checks |
+| Branch protection gaps | ✅ `parity` + Chromatic added to required checks (2026-06-29) |
 
 **Next:** `CURSOR_PHASE6_THIN_SLICE.md`
 
