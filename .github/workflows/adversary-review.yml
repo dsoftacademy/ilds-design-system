@@ -1,0 +1,64 @@
+name: Adversary Review
+
+# Phase 6 MVP — independent adversary CI check on component/token PRs.
+
+on:
+  pull_request:
+    paths:
+      - 'lib/**'
+      - 'web/src/**'
+      - 'tokens/**'
+      - 'tool/adversary/**'
+      - 'docs/adversary/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  adversary-review:
+    name: adversary-review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install adversary dependencies
+        run: npm install --no-save @anthropic-ai/sdk@^0.39.0
+
+      - name: Run adversary review
+        id: adversary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ILDS_ADVERSARY_MODEL: claude-opus-4-20250514
+        run: |
+          set -euo pipefail
+          node tool/adversary/run_review.mjs --pr ${{ github.event.pull_request.number }} --output /tmp/adversary-report.md
+        continue-on-error: true
+
+      - name: Post report on PR
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ ! -f /tmp/adversary-report.md ]; then
+            echo "No report generated"
+            exit 0
+          fi
+          BODY=$(cat /tmp/adversary-report.md)
+          gh pr comment ${{ github.event.pull_request.number }} --body "$BODY"
+
+      - name: Fail on block verdict
+        if: steps.adversary.outcome == 'failure'
+        run: |
+          echo "Adversary blocked this PR — see report comment."
+          exit 1
