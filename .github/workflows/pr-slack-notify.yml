@@ -1,12 +1,11 @@
 name: PR Slack Notify
 
-# Phase 5d — post to #design-system-updates when a PR is ready for review.
-# Webhook (SLACK_WEBHOOK_URL) posts interactive buttons when the Slack app has Interactivity enabled.
-# Optional: SLACK_BOT_TOKEN + SLACK_CHANNEL_ID for chat.postMessage instead of webhook.
+# Phase 5d — post to #design-system-updates when a PR needs human review (T1).
+# T0 auto-merge PRs are silent — Phase 5f router handles classification + notify.
+# Primary path: Selective Review Router workflow (T1 → Slack).
+# This workflow remains for manual re-fire / acceptance testing.
 
 on:
-  pull_request:
-    types: [opened, ready_for_review]
   workflow_dispatch:
     inputs:
       pr_number:
@@ -23,10 +22,7 @@ jobs:
   notify:
     name: Slack notify on PR open
     runs-on: ubuntu-latest
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event.action == 'ready_for_review' ||
-      (github.event.action == 'opened' && github.event.pull_request.draft == false)
+    if: github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
 
@@ -52,8 +48,5 @@ jobs:
             echo "::error::SLACK_BOT_TOKEN is set but SLACK_CHANNEL_ID is missing."
             exit 1
           fi
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            PR_NUMBER="${{ inputs.pr_number }}"
-          fi
+          PR_NUMBER="${{ inputs.pr_number }}"
           node tool/notify_pr_slack.mjs --pr "$PR_NUMBER"

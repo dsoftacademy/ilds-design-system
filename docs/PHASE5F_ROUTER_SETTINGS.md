@@ -23,21 +23,26 @@
 
 ---
 
-## 2. CODEOWNERS (Cursor PR — scoped)
+## 2. CODEOWNERS (scoped — merged in 5f implementation PR)
 
 Require review **only** on:
 
-| Path | Owner |
-|------|--------|
-| `/lib/` | `@dsoftacademy` |
-| `/web/src/` | `@dsoftacademy` |
-| `/tokens/` | `@dsoftacademy` |
-| `/dist/` | `@dsoftacademy` |
-| `/.github/workflows/` | `@dsoftacademy` |
+| Path | Owner | Tier |
+|------|--------|------|
+| `/lib/` | `@dsoftacademy` | T1 content |
+| `/web/src/` | `@dsoftacademy` | T1 content |
+| `/tokens/` | `@dsoftacademy` | T1 content |
+| `/dist/` | `@dsoftacademy` | T1 content |
+| `/.github/` | `@dsoftacademy` | T1 control plane |
+| `/agents/` | `@dsoftacademy` | T1 control plane |
+| `/tool/adversary/` | `@dsoftacademy` | T1 control plane |
+| `/docs/adversary/FAILURE_CATALOG.md` | `@dsoftacademy` | T1 control plane |
+| `/CURSOR_SELECTIVE_REVIEW_ROUTER.md` | `@dsoftacademy` | T1 control plane |
+| `/docs/PHASE5F_ROUTER_SETTINGS.md` | `@dsoftacademy` | T1 control plane |
 
-**Remove** any blanket `* @dsoftacademy` entry.
+**Removed** blanket `*` owner and narrow `/.github/workflows/` only scope.
 
-Docs (`docs/**`), root `*.md`, `test/**`, `tool/**` → **no** code owner required.
+Docs (except control-plane files above), root `*.md`, `test/**`, `tool/**` (except `tool/adversary/`) → **no** code owner required → T0 eligible.
 
 ---
 

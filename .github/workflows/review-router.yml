@@ -1,0 +1,90 @@
+name: Selective Review Router
+
+# Phase 5f — classify PRs (T0 auto-merge vs T1 human) and enable bot auto-merge for safe content.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - '**'
+  check_suite:
+    types: [completed]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: read
+
+jobs:
+  review-router:
+    name: review-router
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Classify PR tier and apply labels
+        id: classify
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node tool/review_router.mjs classify --pr ${{ github.event.pull_request.number }}
+
+      - name: Slack notify (T1 only)
+        if: steps.classify.outputs.tier == 'T1'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SLACK_BOT_TOKEN:-}" ] && [ -z "${SLACK_WEBHOOK_URL:-}" ]; then
+            echo "::warning::Slack secrets not set — skipping T1 notification."
+            exit 0
+          fi
+          node tool/notify_pr_slack.mjs --pr ${{ github.event.pull_request.number }}
+
+      - name: Enable auto-merge (T0)
+        if: steps.classify.outputs.tier == 'T0' && github.event.pull_request.draft == false
+        env:
+          ILDS_AUTO_MERGE_TOKEN: ${{ secrets.ILDS_AUTO_MERGE_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ILDS_AUTO_MERGE_TOKEN:-}" ]; then
+            echo "::warning::ILDS_AUTO_MERGE_TOKEN not set — T0 PR labeled but auto-merge not enabled."
+            exit 0
+          fi
+          node tool/review_router.mjs auto-merge --pr ${{ github.event.pull_request.number }}
+
+  auto-merge-on-checks:
+    name: auto-merge
+    if: >-
+      github.event_name == 'check_suite' &&
+      github.event.check_suite.conclusion != 'failure' &&
+      github.event.check_suite.conclusion != 'cancelled'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Retry auto-merge when checks complete
+        env:
+          ILDS_AUTO_MERGE_TOKEN: ${{ secrets.ILDS_AUTO_MERGE_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ILDS_AUTO_MERGE_TOKEN:-}" ]; then
+            echo "ILDS_AUTO_MERGE_TOKEN not set — skipping."
+            exit 0
+          fi
+          node tool/review_router.mjs auto-merge --sha "${{ github.event.check_suite.head_sha }}"
