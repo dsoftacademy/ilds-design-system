@@ -1,31 +1,66 @@
 name: Web Component Tests
 on:
   pull_request:
-    paths: ['web/**', 'dist/**', 'tokens/**', 'docs/**', '.github/workflows/**']
+    paths: ['web/**', 'dist/**', 'tokens/**', 'docs/**', 'lib/**', 'test/**', '.github/workflows/**']
   push:
     branches: [main]
     paths: ['web/**', 'dist/**', 'tokens/**']
 
 jobs:
-  parity:
+  changes:
     runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
     steps:
       - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            web:
+              - 'web/**'
+              - 'dist/**'
+              - 'tokens/**'
+              - 'docs/**'
+              - '.github/workflows/web-tests.yml'
+
+  parity:
+    name: parity
+    needs: changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip (no web paths)
+        if: needs.changes.outputs.web != 'true'
+        run: echo "No web-related paths changed — parity not required for this PR."
+
+      - uses: actions/checkout@v4
+        if: needs.changes.outputs.web == 'true'
+
       - uses: actions/setup-node@v4
+        if: needs.changes.outputs.web == 'true'
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: web/package-lock.json
-      - run: npm ci
+
+      - if: needs.changes.outputs.web == 'true'
+        run: npm ci
         working-directory: web
-      - run: npx playwright install --with-deps chromium
+
+      - if: needs.changes.outputs.web == 'true'
+        run: npx playwright install --with-deps chromium
         working-directory: web
-      - run: npm run build-storybook
+
+      - if: needs.changes.outputs.web == 'true'
+        run: npm run build-storybook
         working-directory: web
-      - run: npx playwright test
+
+      - if: needs.changes.outputs.web == 'true'
+        run: npx playwright test
         working-directory: web
+
       - uses: actions/upload-artifact@v4
-        if: failure()
+        if: failure() && needs.changes.outputs.web == 'true'
         with:
           name: playwright-report
           path: web/playwright-report

@@ -9,6 +9,8 @@ on:
       - 'dist/tokens.theme.css'
       - 'tokens/**'
       - 'docs/**'
+      - 'lib/**'
+      - 'test/**'
       - '.github/workflows/chromatic.yml'
   push:
     branches: [main]
@@ -18,22 +20,52 @@ on:
       - '.github/workflows/chromatic.yml'
 
 jobs:
-  chromatic:
-    name: Chromatic snapshot test
+  changes:
     runs-on: ubuntu-latest
+    outputs:
+      chromatic: ${{ steps.filter.outputs.chromatic }}
     steps:
       - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            chromatic:
+              - 'web/src/**'
+              - 'web/specs/**'
+              - 'dist/tokens.theme.css'
+              - 'tokens/**'
+              - 'docs/**'
+              - '.github/workflows/chromatic.yml'
+
+  chromatic:
+    name: Chromatic snapshot test
+    needs: changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip (no web/token paths)
+        if: needs.changes.outputs.chromatic != 'true'
+        run: echo "No web/token paths changed — Chromatic not required for this PR."
+
+      - uses: actions/checkout@v4
+        if: needs.changes.outputs.chromatic == 'true'
         with:
           fetch-depth: 0
+
       - uses: actions/setup-node@v4
+        if: needs.changes.outputs.chromatic == 'true'
         with:
           node-version: '22'
           cache: npm
           cache-dependency-path: web/package-lock.json
+
       - name: Install dependencies
+        if: needs.changes.outputs.chromatic == 'true'
         run: npm ci
         working-directory: web
+
       - name: Verify Chromatic secret
+        if: needs.changes.outputs.chromatic == 'true'
         env:
           CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
         run: |
@@ -51,10 +83,14 @@ jobs:
             echo "::error::CHROMATIC_PROJECT_TOKEN must match chpt_<hex>. Copy Project token from chromatic.com → Manage (not the npx command)."
             exit 1
           fi
+
       - name: Build Storybook
+        if: needs.changes.outputs.chromatic == 'true'
         run: npm run build-storybook
         working-directory: web
+
       - name: Run Chromatic
+        if: needs.changes.outputs.chromatic == 'true'
         id: chromatic
         env:
           CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
@@ -70,8 +106,9 @@ jobs:
             --diagnostics-file=chromatic-diagnostics.json \
             --log-file=chromatic-debug.log \
             2>&1 | tee chromatic-stdout.log
+
       - name: Publish Chromatic diagnostics
-        if: always()
+        if: always() && needs.changes.outputs.chromatic == 'true'
         working-directory: web
         run: |
           {
@@ -113,8 +150,9 @@ jobs:
               echo "::error::$err"
             fi
           fi
+
       - name: Upload Chromatic logs on failure
-        if: failure()
+        if: failure() && needs.changes.outputs.chromatic == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: chromatic-logs
