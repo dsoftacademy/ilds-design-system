@@ -42,7 +42,9 @@ Require review **only** on:
 
 **Removed** blanket `*` owner and narrow `/.github/workflows/` only scope.
 
-Docs (except control-plane files above), root `*.md`, `test/**`, `tool/**` (except `tool/adversary/`) → **no** code owner required → T0 eligible.
+Docs (`docs/**` except control-plane files above), root `*.md`, `test/**`, **allowlisted** `tool/` scripts only (`verify_*`, `sync_figma_tokens`, `generate_ilds_tokens`) → **no** code owner required → T0 eligible.
+
+**Not T0:** any router/PR/Slack/agent-org file under `tool/` — see `SAFE_TOOL_ALLOWLIST` in `tool/lib/review_router_classify.mjs`.
 
 ---
 

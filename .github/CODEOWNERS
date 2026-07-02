@@ -1,8 +1,8 @@
 # ILDS Design System — scoped code owners (Phase 5f)
 # https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 #
-# T0 safe paths (docs/** except control-plane files, test/**, tool/** except adversary, root *.md)
-# have NO entry here — they do not require owner review.
+# T0 safe paths: docs/** (except control-plane files), test/**, explicit tool allowlist only, root *.md.
+# tool/ is NOT blanket-safe — router/PR/Slack governance requires owner review.
 #
 # T1 paths always require @dsoftacademy review before merge.
 
@@ -16,6 +16,15 @@
 /.github/ @dsoftacademy
 /agents/ @dsoftacademy
 /tool/adversary/ @dsoftacademy
+/tool/agent-org/ @dsoftacademy
+/tool/review_router.mjs @dsoftacademy
+/tool/review_router_classify.test.mjs @dsoftacademy
+/tool/lib/review_router_classify.mjs @dsoftacademy
+/tool/lib/slack_pr.mjs @dsoftacademy
+/tool/propose_change.mjs @dsoftacademy
+/tool/notify_pr_slack.mjs @dsoftacademy
+/tool/slack_interactivity_server.mjs @dsoftacademy
+/tool/run_5d2_acceptance.sh @dsoftacademy
 /docs/adversary/FAILURE_CATALOG.md @dsoftacademy
 /CURSOR_SELECTIVE_REVIEW_ROUTER.md @dsoftacademy
 /docs/PHASE5F_ROUTER_SETTINGS.md @dsoftacademy
