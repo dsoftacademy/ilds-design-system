@@ -26,6 +26,7 @@ describe('review_router_classify', () => {
     assert.equal(classifyFiles(['.github/workflows/review-router.yml']).reason, 'control-plane');
     assert.equal(classifyFiles(['docs/adversary/FAILURE_CATALOG.md']).reason, 'control-plane');
     assert.equal(classifyFiles(['docs/PHASE5F_ROUTER_SETTINGS.md']).reason, 'control-plane');
+    assert.equal(classifyFiles(['docs/PHASE5F_T0_PROOF.md']).tier, 'T0');
   });
 
   it('T1 when safe and protected paths mix', () => {
