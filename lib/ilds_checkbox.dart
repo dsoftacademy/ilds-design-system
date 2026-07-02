@@ -57,14 +57,14 @@ class _IldsCheckboxState extends State<IldsCheckbox> {
     }
   }
 
-  double _fontSize() {
+  double _labelFontSize() {
     switch (widget.size) {
       case IldsCheckboxSize.small:
-        return ILDSTokens.spacing3;
+        return ILDSTokens.fontSize12;
       case IldsCheckboxSize.medium:
-        return ILDSTokens.spacing3 + ILDSTokens.borderWidth2;
+        return ILDSTokens.fontSize14;
       case IldsCheckboxSize.large:
-        return ILDSTokens.spacing4;
+        return ILDSTokens.fontSize16;
     }
   }
 
@@ -163,7 +163,7 @@ class _IldsCheckboxState extends State<IldsCheckbox> {
               widget.label!,
               style: TextStyle(
                 fontFamily: ILDSTokens.fontFamilyPrimary,
-                fontSize: _fontSize(),
+                fontSize: _labelFontSize(),
                 fontWeight: ILDSTokens.fontWeightRegular,
                 color: widget.isDisabled ? ILDSTokens.neutral300 : ILDSTokens.neutral600,
               ),
