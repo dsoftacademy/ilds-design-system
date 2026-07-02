@@ -45,11 +45,13 @@ Human/agent edits one Flutter component
 
 ## Acceptance
 
-- [ ] PR opened via `propose_change` (not direct push to `main`)
-- [ ] All required branch protection checks green
-- [ ] Slack message in `#design-system-updates` with PR link + buttons
-- [ ] Human merge after approval
-- [ ] No token pipeline run (component-only paths)
+- [x] PR opened via `propose_change` (not direct push to `main`) — PR #21
+- [x] All required branch protection checks green
+- [x] Slack message in `#design-system-updates` with PR link + buttons
+- [x] Human merge after approval
+- [x] No token pipeline run (component-only paths)
+
+**Stamp:** `docs/PHASE6_THIN_SLICE_COMPLETE.md`
 
 ## After slice 1
 
