@@ -1,13 +1,33 @@
 name: Web Component Tests
 on:
   pull_request:
-    paths: ['web/**', 'dist/**', 'tokens/**', 'docs/**', '.github/workflows/**']
+    paths: ['web/**', 'dist/**', 'tokens/**', 'docs/**', 'lib/**', 'test/**', '.github/workflows/**']
   push:
     branches: [main]
     paths: ['web/**', 'dist/**', 'tokens/**']
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            web:
+              - 'web/**'
+              - 'dist/**'
+              - 'tokens/**'
+              - 'docs/**'
+              - '.github/workflows/web-tests.yml'
+
   parity:
+    name: parity
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,3 +49,11 @@ jobs:
         with:
           name: playwright-report
           path: web/playwright-report
+
+  parity-skip:
+    name: parity
+    needs: changes
+    if: needs.changes.outputs.web != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "No web-related paths changed — parity check skipped."

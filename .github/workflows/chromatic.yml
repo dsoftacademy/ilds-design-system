@@ -9,6 +9,8 @@ on:
       - 'dist/tokens.theme.css'
       - 'tokens/**'
       - 'docs/**'
+      - 'lib/**'
+      - 'test/**'
       - '.github/workflows/chromatic.yml'
   push:
     branches: [main]
@@ -18,8 +20,28 @@ on:
       - '.github/workflows/chromatic.yml'
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      chromatic: ${{ steps.filter.outputs.chromatic }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            chromatic:
+              - 'web/src/**'
+              - 'web/specs/**'
+              - 'dist/tokens.theme.css'
+              - 'tokens/**'
+              - 'docs/**'
+              - '.github/workflows/chromatic.yml'
+
   chromatic:
     name: Chromatic snapshot test
+    needs: changes
+    if: needs.changes.outputs.chromatic == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -122,3 +144,11 @@ jobs:
             web/chromatic-debug.log
             web/chromatic-stdout.log
             web/chromatic-diagnostics.json
+
+  chromatic-skip:
+    name: Chromatic snapshot test
+    needs: changes
+    if: needs.changes.outputs.chromatic != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "No web/token paths changed — Chromatic skipped."
