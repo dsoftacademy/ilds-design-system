@@ -383,7 +383,27 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 
 ---
 
+### Phase 5f — Selective Review Router 🔵 PLANNED (prerequisite to Phase 6 MVP)
+
+**Goal:** Fix Phase 5a side effect — every PR required human approval and merge click, including docs and tooling. Route PRs by tier so the human is the **exception** handler (visual/component/adversary-flagged), not the default gate.
+
+| Tier | Trigger | Outcome |
+|------|---------|---------|
+| **T0 — auto** | Safe paths only (`docs/**`, `*.md`, `test/**`, `tool/**`, non-protected `.github/**`) + all checks green | Auto-merge (bot); human never sees it |
+| **T1 — human** | Any `lib/`, `web/src/components/`, `tokens/`, `dist/`; visual diff; adversary flag (once live) | Route to Pratishek |
+
+**Brief:** `CURSOR_SELECTIVE_REVIEW_ROUTER.md` · **Settings:** `docs/PHASE5F_ROUTER_SETTINGS.md` (owner applies in GitHub UI)
+
+**Phased rollout:** 5f v1 uses existing 7 checks as T0 gate; adversary wires in with Phase 6 MVP.
+
+**Status:** `- [ ]` Planned — build before agent MVP (PR #24 org plan can merge in parallel).
+
+---
+
 ### Phase 6 — DS Management Agent 🔴 NOT STARTED
+
+> **Prerequisite:** Phase 5f Selective Review Router (`CURSOR_SELECTIVE_REVIEW_ROUTER.md`) — must land before agent MVP or merge clicks drown the vetter.
+> **Planning (PR #24 open):** `CURSOR_PHASE6_AGENT_MVP.md`, `CURSOR_PHASE6_AGENT_ORG_ARCHITECTURE.md`, `docs/adversary/FAILURE_CATALOG.md`.
 
 **Goal:** An intelligent agent that is the primary owner and manager of the ILDS design system — working alongside human design and dev managers. It receives component requirements (from the AI Design Assistant or any source), validates them, builds or updates the component across all platforms, and simultaneously deploys to every touch-point. Humans approve. The agent executes everything else.
 

@@ -14,6 +14,11 @@
 | **5d-1** Slack notify | #15 | `pr-slack-notify.yml`, `SLACK_WEBHOOK_URL` |
 | **5d-2** Slack interactive | #17, #19 | Buttons + `slack_interactivity_server.mjs`, `docs/PHASE5_SLACK_INTERACTIVE.md` |
 | **5e** Post-merge | #18 | `docs/PHASE5_POST_MERGE.md` |
+| **5f** Selective Review Router | *(planned)* | `CURSOR_SELECTIVE_REVIEW_ROUTER.md`, `docs/PHASE5F_ROUTER_SETTINGS.md` — **prerequisite to Phase 6 MVP** |
+
+## Next
+
+**Phase 5f** — selective review router (T0 auto-merge for docs/tooling; T1 for components). Then **Phase 6 agent MVP**.
 
 ## Verified flows
 
@@ -32,6 +37,4 @@
 
 **Production interactivity:** host `tool/slack_interactivity_server.mjs` on n8n or VM — see `docs/n8n/SLACK_PR_INTERACTIVITY.md`.
 
-## Next
-
-**Phase 6 thin slice** — ✅ `docs/PHASE6_THIN_SLICE_COMPLETE.md` (PR #21). **Next:** Phase 6 agent MVP.
+**Phase 6 thin slice** — ✅ `docs/PHASE6_THIN_SLICE_COMPLETE.md` (PR #21). **Next:** Phase 5f router, then Phase 6 agent MVP.
