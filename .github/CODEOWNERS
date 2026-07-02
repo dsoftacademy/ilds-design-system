@@ -1,17 +1,21 @@
-# ILDS Design System — required reviewers (Phase 5a governance)
+# ILDS Design System — scoped code owners (Phase 5f)
 # https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 #
-# Update @dsoftacademy if the primary maintainer GitHub handle changes.
+# T0 safe paths (docs/** except control-plane files, test/**, tool/** except adversary, root *.md)
+# have NO entry here — they do not require owner review.
+#
+# T1 paths always require @dsoftacademy review before merge.
 
-# Flutter components + goldens
+# Content — visual / component vetting
 /lib/ @dsoftacademy
-
-# React components + Storybook
 /web/src/ @dsoftacademy
-
-# Design tokens (source + generated exports)
 /tokens/ @dsoftacademy
 /dist/ @dsoftacademy
 
-# CI / evolution workflows
-/.github/workflows/ @dsoftacademy
+# Control plane — guardrails (never auto-merge)
+/.github/ @dsoftacademy
+/agents/ @dsoftacademy
+/tool/adversary/ @dsoftacademy
+/docs/adversary/FAILURE_CATALOG.md @dsoftacademy
+/CURSOR_SELECTIVE_REVIEW_ROUTER.md @dsoftacademy
+/docs/PHASE5F_ROUTER_SETTINGS.md @dsoftacademy
