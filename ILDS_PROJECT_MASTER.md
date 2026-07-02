@@ -383,7 +383,23 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 
 ---
 
-### Phase 6 — DS Management Agent 🔴 NOT STARTED
+### Phase 6 — DS Management Agent 🔵 MVP PLANNED (Agent Org redesign)
+
+> **REDESIGN 2026-07-02 — reframed as an Agent Org (Pratishek + Claude).**
+> Objective refined: not a single agent and not humanless, but a **role-collapsed org** — the functions of a DS team (product designer, 4 platform devs, QC, doc/comms) become orchestrated agents, with **one human as the vetting authority** at a single instrumented gate.
+> - **Core principle:** proposer ≠ critic. Builders optimise to "make it work"; an independent, adversarial **Adversary** (different model/context) is a scoring opponent whose only reward is catching gamed/wrong output — seeded with this project's real failure catalog and growing with every human catch. It exists because every automated gate here has passed on broken code; only an adversarial human ever caught it.
+> - **Sequencing:** MVP first (`CURSOR_PHASE6_AGENT_MVP.md` — proposer → automated adversary → vetter, proven on radio typography with a planted dodge), THEN the full org (`CURSOR_PHASE6_AGENT_ORG_ARCHITECTURE.md`).
+> - **Autonomy is a per-task-class ratchet, never a global switch; the human gate is permanent.**
+> - **Cursor:** evaluate both docs against the current repo; flag or revert any tangent in a PR. This redesign supersedes the framing below where they conflict; the Role & Authority table below still holds (human approves, agent executes).
+>
+> **Finalized decisions (2026-07-02):**
+> - **Runtime:** build on the **Claude Agent SDK** (Option B — lead + builder + adversary as real sub-agents) first; migrate to **Managed Agents** (Option C — scheduler + rubric grading) after B is proven.
+> - **Models:** Lead + Adversary = **Opus 4.8** (adversary is the safety net — never cheaper); Builders = **Sonnet 4.6**; Release = **Haiku 4.5**. Cache the failure catalog (90% off); Batch API (50% off) for async.
+> - **Cost (verified rates):** adversary review ~$0.15/run cached; full MVP loop ~$1–2; new-component org run ~$3–15. Cost is not the constraint.
+> - **Adversary:** automated CI sub-agent, seeded with `docs/adversary/FAILURE_CATALOG.md` (12 real ILDS failure modes, append-only), scores the builder, grows with every human catch.
+> - **MVP test:** radio typography (known answer = the checkbox fix) + a **planted dodge** — pass only if the adversary independently catches the dodge.
+> - **Credential:** `ANTHROPIC_API_KEY` repo secret.
+> - **Local models:** considered and set aside — cost isn't the driver, and the adversary must stay frontier; revisit only via Bedrock/Vertex/ZDR if compliance requires it.
 
 **Goal:** An intelligent agent that is the primary owner and manager of the ILDS design system — working alongside human design and dev managers. It receives component requirements (from the AI Design Assistant or any source), validates them, builds or updates the component across all platforms, and simultaneously deploys to every touch-point. Humans approve. The agent executes everything else.
 
