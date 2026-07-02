@@ -11,6 +11,7 @@ on:
       - 'docs/**'
       - 'lib/**'
       - 'test/**'
+      - 'tool/**'
       - '.github/workflows/chromatic.yml'
   push:
     branches: [main]
