@@ -34,4 +34,4 @@
 
 ## Next
 
-**Phase 6 thin slice** — `CURSOR_PHASE6_THIN_SLICE.md`
+**Phase 6 thin slice** — ✅ `docs/PHASE6_THIN_SLICE_COMPLETE.md` (PR #21). **Next:** Phase 6 agent MVP.
