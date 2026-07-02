@@ -180,13 +180,9 @@ async function autoMergeCommand(prNumber, { reclassify = true } = {}) {
     }
   }
 
-  if (pr.auto_merge) {
-    console.log(`PR #${prNumber} already has auto-merge enabled`);
-    return { skipped: 'already-enabled' };
-  }
-
   // Satisfy branch protection when required_approving_review_count ≥ 1.
   // Safe only for T0 — reclassify above guarantees no CODEOWNERS paths.
+  // Run even when auto-merge is already enabled (stale-review dismiss on new commits).
   try {
     await submitPullRequestReview(auth, owner, repo, prNumber, {
       event: 'APPROVE',
@@ -199,6 +195,11 @@ async function autoMergeCommand(prNumber, { reclassify = true } = {}) {
     } else {
       throw error;
     }
+  }
+
+  if (pr.auto_merge) {
+    console.log(`PR #${prNumber} already has auto-merge enabled`);
+    return { skipped: 'already-enabled' };
   }
 
   execSync(`gh pr merge ${prNumber} --repo ${owner}/${repo} --auto --squash`, {
