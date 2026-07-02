@@ -99,13 +99,13 @@ Bot must **never** satisfy CODEOWNERS on `/lib/`, `/web/src/`, `/tokens/`, `/dis
 
 ---
 
-## Sequencing
+## Bootstrap (one-time — only you can do this)
 
-| Step | Who |
-|------|-----|
-| Merge 5f router PR (workflow + CODEOWNERS) | Cursor → Pratishek merge |
-| Apply settings above | **Pratishek** (this doc) |
-| Prove T0 on a docs PR | Cursor or agent |
-| Merge Phase 6 planning (#24) if not yet merged | Pratishek |
-| Build Phase 6 MVP + adversary | Cursor |
-| Add adversary as required check + wire router | Cursor + Pratishek |
+PRs **#24** and **#25** are **control-plane** (they define the automation). They need your judgment this once — the bot must not self-approve the PR that grants the bot its authority.
+
+1. **Settings → General → Pull Requests** → enable **Allow auto-merge**
+2. **Settings → Secrets → Actions** → add `ILDS_AUTO_MERGE_TOKEN` = classic PAT from `uniquedesignpratishek-maker` (`repo` scope)
+3. **Merge #25** then **#24** (yes/no on impact summary — bot can execute merge after your approval once 5f workflow exists; for this bootstrap you click merge once)
+4. After Cursor ships `review-router.yml`: apply branch protection per §3 below
+
+From then on: content T0 clears itself; you only see T1 outputs (content visual + control plane).

@@ -389,12 +389,14 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 
 | Tier | Trigger | Outcome |
 |------|---------|---------|
-| **T0 — auto** | Safe paths only (`docs/**`, `*.md`, `test/**`, `tool/**`, non-protected `.github/**`) + all checks green | Auto-merge (bot); human never sees it |
-| **T1 — human** | Any `lib/`, `web/src/components/`, `tokens/`, `dist/`; visual diff; adversary flag (once live) | Route to Pratishek |
+| **T0 — auto** | Safe **content** paths only (`docs/**`, `*.md`, `test/**`, `tool/**` — **not** control plane) + all checks green | Auto-merge (bot); human never sees it |
+| **T1 — human** | Any `lib/`, `web/src/components/`, `tokens/`, `dist/`; **any control-plane path** (see router doc); visual diff; adversary flag | Impact summary → yes/no → **bot merges** |
 
 **Brief:** `CURSOR_SELECTIVE_REVIEW_ROUTER.md` · **Settings:** `docs/PHASE5F_ROUTER_SETTINGS.md` (owner applies in GitHub UI)
 
 **Phased rollout:** 5f v1 uses existing 7 checks as T0 gate; adversary wires in with Phase 6 MVP.
+
+**Human does NO git mechanics (2026-07-03 directive):** Pratishek never branches/opens/clicks-merge again — the **bot** (`uniquedesignpratishek-maker` + PAT) executes all merges. Content auto-merges per tiers. **Control plane** (`.github/**`, `CODEOWNERS`, router, branch rules, `agents/**`, `tool/adversary/**`, `docs/adversary/FAILURE_CATALOG.md`) is **always** T1 and **never** auto-merges — it is presented to Pratishek as an impact-summary *output* for a yes/no decision the bot then executes. Rationale: a system that can merge changes to its own guardrails can disable its own supervision — the one line that never automates. **Bootstrap:** one unavoidable act — the human grants the bot merge authority + applies the ruleset once; after that, no git mechanics for the human, ever. (This is why control-plane PRs #24/#25 legitimately need Pratishek this once.)
 
 **Status:** `- [ ]` Planned — build before agent MVP (PR #24 org plan can merge in parallel).
 
