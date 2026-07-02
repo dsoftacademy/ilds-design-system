@@ -13,7 +13,7 @@ Route each PR automatically. The human sees a PR **only** when it needs visual/j
 
 | Tier | Trigger | Outcome |
 |------|---------|---------|
-| **T0 — auto** | Changed files ALL within safe **content** paths (`docs/**`, `**/*.md`, `test/**`, `tool/**`) — **excluding control plane** — **AND** all required checks green **AND** (Phase 5f v1: no visual diff signal; Phase 6+: adversary clean) | Bot auto-merge. Human never operates git. |
+| **T0 — auto** | Changed files ALL within safe **content** paths (`docs/**`, `**/*.md`, `test/**`, **allowlisted** `tool/` scripts only — see classifier) — **excluding control plane** — **AND** all required checks green **AND** (Phase 5f v1: no visual diff signal; Phase 6+: adversary clean) | Bot auto-merge. Human never operates git. |
 | **T1 — human** | ANY control-plane path; ANY `lib/`, `web/src/components/`, `tokens/`, `dist/`; visual diff; adversary flag; classifier unsure | Impact summary → yes/no decision → **bot executes merge** |
 
 **Bias:** on any ambiguity, T1. Trust falls toward the human, never away.
@@ -32,7 +32,7 @@ This lets docs/tooling PRs auto-merge **immediately** after 5f lands, without wa
 Pratishek's standing directive (2026-07-03): "I am not approving any git file. I will only check outputs and give feedback; the system decides and merges." Honored for **content**, with one permanent exception for the **control plane**.
 
 - **Content** (auto-mergeable per tiers): component source *after visual vet*, docs, tokens *after vet*, tests, tooling. The human never operates git for these.
-- **Control plane** (ALWAYS human judgment, never bot/auto-merge, regardless of green checks): `.github/**`, `CODEOWNERS`, this router, branch-protection rules, `agents/**` (agent prompts/models), `tool/adversary/**`, `docs/adversary/FAILURE_CATALOG.md`. These are the guardrails. If the system could merge changes to its own guardrails, the agent could weaken its adversary and self-approve — the worst failure mode. This class is permanently T1.
+- **Control plane** (ALWAYS human judgment, never bot/auto-merge, regardless of green checks): `.github/**`, `CODEOWNERS`, this router, branch-protection rules, `agents/**` (agent prompts/models), `tool/adversary/**`, **router/PR/Slack governance under `tool/`** (see classifier allowlist — `tool/` is NOT blanket-safe), `docs/adversary/FAILURE_CATALOG.md`. These are the guardrails. If the system could merge changes to its own guardrails, the agent could weaken its adversary and self-approve — the worst failure mode. **The router must treat its own source as control plane** — PR #28 demonstrated the hole when the classifier auto-merged a change to itself.
 
 **The human's action is a decision, not git mechanics.** For every T1 (content-visual OR control-plane), the system prepares the change + an impact summary (diff, rendered visual, what-it-changes-about-the-system) and presents it as an *output to check*. Pratishek gives yes/no; the **bot executes the merge**. Pratishek never branches, opens, or clicks-merge a PR again.
 
