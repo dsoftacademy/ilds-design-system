@@ -18,7 +18,7 @@ date: 2026-04-11
 
 **Roadmap anchor:** Phases 3–4 = web + native platform parity; Phases 5–7 = evolution agent + AI screens. **Phase 8 (planned):** move typography into Figma Variables only — today typography is interim repo/plugin-authored until 3b + 4 are done. See `ILDS_PROJECT_MASTER.md` §5 Phase 8.
 
-**Resume here (Jul 2026):** Phase 5 ✅ · Phase 6 thin slice ✅ · **Immediate:** Phase **5f** Selective Review Router (`CURSOR_SELECTIVE_REVIEW_ROUTER.md`) → then Phase 6 agent MVP (PR #24 org plan). Run `npm run verify:parity`.
+**Resume here (Jul 2026):** Phase 3 ✅ · Phase 4 ✅ · Phase 5 ✅ · Phase 6 thin slice ✅ (PR #21). **Immediate:** Phase **5f** Selective Review Router (`CURSOR_SELECTIVE_REVIEW_ROUTER.md`) → then Phase 6 agent MVP (PR #24; `CURSOR_PHASE6_AGENT_MVP.md` + `docs/adversary/FAILURE_CATALOG.md`). Provision `ANTHROPIC_API_KEY` before MVP build. Run `npm run verify:parity`.
 
 **Primary stack:** Dart/Flutter (`lib/`), JSON tokens (`tokens/tokens.json`), TypeScript Code Connect (`*.figma.ts`), GitHub Actions (`.github/workflows/`), Figma plugin (`ilds-plugin/`).
 

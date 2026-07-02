@@ -52,6 +52,6 @@ git revert b2e590c
 
 ## Next
 
-**Phase 6 agent MVP** — agent proposes diffs → `propose:change` → human gate (same pipeline as #21).
+**Phase 6 agent MVP** — `CURSOR_PHASE6_AGENT_MVP.md` (Option B: Claude Agent SDK, proposer → adversary → vetter, radio + planted dodge).
 
-**Phase 7 thin slice** — after agent can receive component-gap requests.
+**Phase 7 thin slice** — after agent MVP proves adversary catch-rate.
