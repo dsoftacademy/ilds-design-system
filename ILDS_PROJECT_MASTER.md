@@ -383,6 +383,25 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 
 ---
 
+### Phase 5f — Selective Review Router 🔵 PLANNED (prerequisite to Phase 6 MVP)
+
+**Goal:** Fix Phase 5a side effect — every PR required human approval and merge click, including docs and tooling. Route PRs by tier so the human is the **exception** handler (visual/component/adversary-flagged), not the default gate.
+
+| Tier | Trigger | Outcome |
+|------|---------|---------|
+| **T0 — auto** | Safe **content** paths only (`docs/**`, `*.md`, `test/**`, `tool/**` — **not** control plane) + all checks green | Auto-merge (bot); human never sees it |
+| **T1 — human** | Any `lib/`, `web/src/components/`, `tokens/`, `dist/`; **any control-plane path** (see router doc); visual diff; adversary flag | Impact summary → yes/no → **bot merges** |
+
+**Brief:** `CURSOR_SELECTIVE_REVIEW_ROUTER.md` · **Settings:** `docs/PHASE5F_ROUTER_SETTINGS.md` (owner applies in GitHub UI)
+
+**Phased rollout:** 5f v1 uses existing 7 checks as T0 gate; adversary wires in with Phase 6 MVP.
+
+**Human does NO git mechanics (2026-07-03 directive):** Pratishek never branches/opens/clicks-merge again — the **bot** (`uniquedesignpratishek-maker` + PAT) executes all merges. Content auto-merges per tiers. **Control plane** (`.github/**`, `CODEOWNERS`, router, branch rules, `agents/**`, `tool/adversary/**`, `docs/adversary/FAILURE_CATALOG.md`) is **always** T1 and **never** auto-merges — it is presented to Pratishek as an impact-summary *output* for a yes/no decision the bot then executes. Rationale: a system that can merge changes to its own guardrails can disable its own supervision — the one line that never automates. **Bootstrap:** one unavoidable act — the human grants the bot merge authority + applies the ruleset once; after that, no git mechanics for the human, ever. (This is why control-plane PRs #24/#25 legitimately need Pratishek this once.)
+
+**Status:** `- [ ]` Planned — build before agent MVP (PR #24 org plan can merge in parallel).
+
+---
+
 ### Phase 6 — DS Management Agent 🔵 MVP PLANNED (Agent Org redesign)
 
 > **REDESIGN 2026-07-02 — reframed as an Agent Org (Pratishek + Claude).**
@@ -400,6 +419,9 @@ AnimatedContainer(duration: 150ms)          ← all state transitions
 > - **MVP test:** radio typography (known answer = the checkbox fix) + a **planted dodge** — pass only if the adversary independently catches the dodge.
 > - **Credential:** `ANTHROPIC_API_KEY` repo secret.
 > - **Local models:** considered and set aside — cost isn't the driver, and the adversary must stay frontier; revisit only via Bedrock/Vertex/ZDR if compliance requires it.
+
+> **Prerequisite:** Phase 5f Selective Review Router (`CURSOR_SELECTIVE_REVIEW_ROUTER.md`) — must land before agent MVP or merge clicks drown the vetter.
+> **Planning (PR #24 open):** `CURSOR_PHASE6_AGENT_MVP.md`, `CURSOR_PHASE6_AGENT_ORG_ARCHITECTURE.md`, `docs/adversary/FAILURE_CATALOG.md`.
 
 **Goal:** An intelligent agent that is the primary owner and manager of the ILDS design system — working alongside human design and dev managers. It receives component requirements (from the AI Design Assistant or any source), validates them, builds or updates the component across all platforms, and simultaneously deploys to every touch-point. Humans approve. The agent executes everything else.
 
