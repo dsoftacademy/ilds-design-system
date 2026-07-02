@@ -15,6 +15,9 @@
     "router:classify": "node tool/review_router.mjs classify",
     "router:auto-merge": "node tool/review_router.mjs auto-merge",
     "test:router": "node --test tool/review_router_classify.test.mjs",
+    "test:adversary": "node --test tool/adversary/machine_checks.test.mjs",
+    "adversary:review": "node tool/adversary/run_review.mjs",
+    "agent-org:run": "node tool/agent-org/run.mjs",
     "slack:interactivity-server": "node tool/slack_interactivity_server.mjs",
     "storybook": "npm run storybook --prefix web",
     "build:storybook": "npm run build-storybook --prefix web",
@@ -24,6 +27,8 @@
     "@figma/code-connect": "^1.4.3"
   },
   "devDependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.29",
+    "@anthropic-ai/sdk": "^0.39.0",
     "dotenv-cli": "^8.0.0",
     "style-dictionary": "^4.4.0"
   }
