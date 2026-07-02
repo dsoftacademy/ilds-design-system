@@ -13,7 +13,7 @@ export const CONTROL_PLANE_PATTERNS = [
   /^tool\/adversary\//,
   /^docs\/adversary\/FAILURE_CATALOG\.md$/,
   /^CURSOR_.*ROUTER.*\.md$/i,
-  /^docs\/PHASE5F_/,
+  /^docs\/PHASE5F_ROUTER_SETTINGS\.md$/,
 ];
 
 export const PROTECTED_CONTENT_PATTERNS = [
