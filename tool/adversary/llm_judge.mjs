@@ -36,33 +36,33 @@ export async function runLlmJudge(input) {
 
   const user = `# Failure catalog\n\n${catalogForPrompt()}\n\n# PR diff\n\n\`\`\`diff\n${input.diff.slice(0, 24000)}\n\`\`\`\n\n# Changed file contents\n\n${fileSummaries}${machineSection}`;
 
-  const response = await client.messages.create({
-    model: process.env.ILDS_ADVERSARY_MODEL ?? 'claude-opus-4-20250514',
-    max_tokens: 2048,
-    system: [
-      {
-        type: 'text',
-        text: system,
-        cache_control: { type: 'ephemeral' },
-      },
-      {
-        type: 'text',
-        text: catalogForPrompt(),
-        cache_control: { type: 'ephemeral' },
-      },
-    ],
-    messages: [{ role: 'user', content: user }],
-  });
-
-  const text = response.content
-    .filter((block) => block.type === 'text')
-    .map((block) => block.text)
-    .join('\n');
-
-  const jsonMatch = text.match(/\{[\s\S]*"findings"[\s\S]*\}/);
-  if (!jsonMatch) return [];
-
   try {
+    const response = await client.messages.create({
+      model: process.env.ILDS_ADVERSARY_MODEL ?? 'claude-opus-4-20250514',
+      max_tokens: 2048,
+      system: [
+        {
+          type: 'text',
+          text: system,
+          cache_control: { type: 'ephemeral' },
+        },
+        {
+          type: 'text',
+          text: catalogForPrompt(),
+          cache_control: { type: 'ephemeral' },
+        },
+      ],
+      messages: [{ role: 'user', content: user }],
+    });
+
+    const text = response.content
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text)
+      .join('\n');
+
+    const jsonMatch = text.match(/\{[\s\S]*"findings"[\s\S]*\}/);
+    if (!jsonMatch) return [];
+
     const parsed = JSON.parse(jsonMatch[0]);
     return (parsed.findings ?? []).map((f) => ({
       id: f.id,
@@ -71,8 +71,10 @@ export async function runLlmJudge(input) {
       evidence: f.evidence ?? '',
       source: 'judge',
     }));
-  } catch {
-    console.warn('LLM judge returned non-JSON — ignoring judge layer.');
+  } catch (error) {
+    console.warn(
+      `LLM judge unavailable (${error.message ?? error}) — machine checks only.`,
+    );
     return [];
   }
 }
