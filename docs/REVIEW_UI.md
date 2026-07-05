@@ -1,7 +1,8 @@
-# ILDS Visual Review Surface
+# ILDS UI Review Portal
 
-The human's only interface. Rendered components + plain-language objectives.
-Never code, never diffs, never adversary findings, never blind buttons.
+The admin's single interface for all human reviews. Rendered components across
+**React, Flutter, iOS, and Android** + plain-language objectives. Never code,
+never diffs, never adversary findings, never blind buttons.
 
 ## For Pratishek — how to run it
 
