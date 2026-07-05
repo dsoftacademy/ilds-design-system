@@ -34,6 +34,9 @@ class _IldsRadioState extends State<IldsRadio> {
   bool _isPressed = false;
   bool _isFocused = false;
 
+  /// Figma medium radio inner dot (10px) — matches iOS/Android; no spacing token at 10.
+  static const double _mediumInnerDotSize = 10.0;
+
   bool get _isSelected => widget.value == widget.groupValue;
 
   double _outerSize() {
@@ -52,20 +55,20 @@ class _IldsRadioState extends State<IldsRadio> {
       case IldsRadioSize.small:
         return ILDSTokens.spacing2;
       case IldsRadioSize.medium:
-        return ILDSTokens.spacing5 / ILDSTokens.borderWidth2;
+        return _mediumInnerDotSize;
       case IldsRadioSize.large:
         return ILDSTokens.spacing3;
     }
   }
 
-  double _fontSize() {
+  double _labelFontSize() {
     switch (widget.size) {
       case IldsRadioSize.small:
-        return ILDSTokens.spacing3;
+        return ILDSTokens.fontSize12;
       case IldsRadioSize.medium:
-        return ILDSTokens.spacing3 + ILDSTokens.borderWidth2;
+        return ILDSTokens.fontSize14;
       case IldsRadioSize.large:
-        return ILDSTokens.spacing4;
+        return ILDSTokens.fontSize16;
     }
   }
 
@@ -168,7 +171,7 @@ class _IldsRadioState extends State<IldsRadio> {
               widget.label!,
               style: TextStyle(
                 fontFamily: ILDSTokens.fontFamilyPrimary,
-                fontSize: _fontSize(),
+                fontSize: _labelFontSize(),
                 fontWeight: ILDSTokens.fontWeightRegular,
                 color: widget.isDisabled ? ILDSTokens.neutral300 : ILDSTokens.neutral600,
               ),
