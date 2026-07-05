@@ -36,12 +36,14 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+          SLACK_NOTIFY_INTERACTIVE: 'false'
+          ILDS_REVIEW_UI_URL: 'http://localhost:4400'
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
           if [ -z "${SLACK_BOT_TOKEN:-}" ] && [ -z "${SLACK_WEBHOOK_URL:-}" ]; then
             echo "::warning::Neither SLACK_BOT_TOKEN nor SLACK_WEBHOOK_URL is set — skipping Slack notification."
-            echo "See docs/PHASE5_SLACK_NOTIFY.md and docs/PHASE5_SLACK_INTERACTIVE.md."
+            echo "See docs/PHASE5_SLACK_NOTIFY.md."
             exit 0
           fi
           if [ -n "${SLACK_BOT_TOKEN:-}" ] && [ -z "${SLACK_CHANNEL_ID:-}" ]; then

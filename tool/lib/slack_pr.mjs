@@ -65,7 +65,7 @@ export function parsePrActionValue(value) {
   return { owner: data.owner, repo: data.repo, prNumber: Number(data.pr) };
 }
 
-export function buildSlackBlocks({ pr, parsed, chromaticUrl, repo, interactive = false }) {
+export function buildSlackBlocks({ pr, parsed, chromaticUrl, repo, interactive = false, reviewUiUrl }) {
   const prUrl = pr.html_url;
   const checksUrl = `${prUrl}/checks`;
   const visualDiff = chromaticUrl
@@ -122,6 +122,14 @@ export function buildSlackBlocks({ pr, parsed, chromaticUrl, repo, interactive =
         },
       ],
     });
+  } else if (reviewUiUrl) {
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `*Review in ILDS Review UI:* <${reviewUiUrl}|Open review surface>`,
+      },
+    });
   }
 
   blocks.push({
@@ -131,7 +139,7 @@ export function buildSlackBlocks({ pr, parsed, chromaticUrl, repo, interactive =
         type: 'mrkdwn',
         text: interactive
           ? `${repo} · Approve/Request changes posts a GitHub review (does not auto-merge)`
-          : `${repo} · Merge only after DS owner approval (Phase 5)`,
+          : `${repo} · Pass/Fail or Authorize/Reject in ILDS Review UI (http://localhost:4400)`,
       },
     ],
   });

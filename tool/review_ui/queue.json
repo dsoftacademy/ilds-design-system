@@ -4,8 +4,10 @@
     "component": "selection_button",
     "title": "Selection Button — typography after #42",
     "objective": "Open the Selection Button panel. Check both states (default and selected):\n\n1. Label text size looks right at all three sizes — small noticeably smaller than medium, medium smaller than large. Nothing looks squashed or oversized.\n2. Text is crisp and vertically centered inside the button.\n3. Selected state: orange styling unchanged, text weight/size identical to before selection.\n\nContext: the way font sizes are derived changed internally. If it was done right, NOTHING should look different from before. Anything that looks off = Fail.",
-    "status": "pending",
+    "status": "passed",
     "createdAt": "2026-07-05T18:00:00.000Z",
-    "reason": "PR #42 merged without a visual check (no review surface existed)."
+    "reason": "PR #42 merged without a visual check (no review surface existed).",
+    "verdictAt": "2026-07-05T18:47:57.558Z",
+    "reviewer": "dsoftacademy"
   }
 ]

@@ -15,7 +15,9 @@ When a pull request is opened (non-draft) or marked **ready for review**, post a
 - **Platforms** (from checked boxes in the template)
 - **Visual diff** — Chromatic check URL when available, otherwise a link to PR checks
 
-This is **notify-only** when using `SLACK_WEBHOOK_URL` alone. For **Approve / Request changes** buttons, see **5d-2:** `docs/PHASE5_SLACK_INTERACTIVE.md`.
+This is **notify-only**. T1 alerts include a link to **ILDS Review UI** (`http://localhost:4400`)
+where the human Pass/Fail or Authorize/Reject. Slack Approve buttons (5d-2) are **deprecated**
+— no `ilds-slack-reviewer` PAT required. See `docs/REVIEW_UI.md`.
 
 ## One-time setup (repo admin)
 

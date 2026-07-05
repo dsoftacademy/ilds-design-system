@@ -1,0 +1,224 @@
+:root {
+  --orange: #f06321;
+  --orange-50: #fdf0e9;
+  --ink: #1f2733;
+  --gray: #64748b;
+  --line: #e2e8f0;
+  --green: #16a34a;
+  --red: #dc2626;
+  --amber: #b45309;
+  --bg: #f8fafc;
+}
+* { box-sizing: border-box; margin: 0; }
+body {
+  font: 15px/1.5 -apple-system, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  min-height: 100vh;
+}
+.app-header {
+  padding: 12px 24px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.app-header h1 { font-size: 18px; flex-shrink: 0; }
+.header-spacer { flex: 1; }
+.profile-select {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: #fff;
+  max-width: 200px;
+}
+.header-link.active { color: var(--orange); }
+.header-link {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.header-link:hover { color: var(--orange); }
+.btn-ghost {
+  font: inherit;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+.btn-ghost:hover { border-color: var(--gray); }
+main { max-width: 1200px; margin: 24px auto; padding: 0 16px 48px; display: grid; gap: 16px; }
+h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray);
+  margin-top: 8px;
+}
+.card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: grid;
+  gap: 12px;
+}
+.card .top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.badge.content { background: var(--orange-50); color: var(--orange); }
+.badge.cp { background: #ede9fe; color: #6d28d9; }
+.badge.platform { background: #e0f2fe; color: #0369a1; font-size: 10px; }
+.title { font-weight: 600; }
+.objective {
+  background: var(--bg);
+  border-left: 3px solid var(--orange);
+  padding: 10px 14px;
+  border-radius: 6px;
+  white-space: pre-wrap;
+}
+.waiting { color: var(--amber); font-size: 14px; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+button.action { font: inherit; font-weight: 600; border: 0; border-radius: 8px; padding: 8px 18px; cursor: pointer; }
+.pass { background: var(--green); color: #fff; }
+.fail { background: var(--red); color: #fff; }
+button.action:disabled { opacity: 0.45; cursor: not-allowed; }
+textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px;
+  font: inherit;
+  display: none;
+}
+.empty { color: var(--gray); text-align: center; padding: 48px 24px; font-size: 16px; }
+.done { color: var(--green); font-weight: 600; }
+.err { color: var(--red); }
+.preview-wrap { display: grid; gap: 8px; width: 100%; }
+.platform-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.platform-tab {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+.platform-tab.active { background: var(--orange-50); border-color: var(--orange); color: var(--orange); }
+.platform-panel { display: none; }
+.platform-panel.active { display: grid; gap: 8px; }
+.platform-panel.native {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+}
+.native-hint { font-size: 14px; color: var(--ink); }
+.source-path { font-size: 12px; word-break: break-all; display: block; margin: 8px 0; }
+.service-warn {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  color: #92400e;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.notify-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  background: #eff6ff;
+  border-bottom: 1px solid #bfdbfe;
+  font-size: 14px;
+}
+.log-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.preview-frame {
+  width: 100%;
+  min-height: 420px;
+  height: min(56vh, 640px);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+.preview-tab { font-size: 12px; color: var(--gray); text-decoration: none; }
+.preview-tab:hover { color: var(--orange); }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 400px;
+  width: calc(100% - 32px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+}
+.modal h3 { margin-bottom: 8px; }
+.modal p { color: var(--gray); margin-bottom: 20px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.log-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
+.log-table th, .log-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line); font-size: 14px; }
+.log-table th { background: var(--bg); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--gray); }
+.login-box {
+  max-width: 420px;
+  margin: 80px auto;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 28px;
+  display: grid;
+  gap: 16px;
+}
+.login-box label { font-weight: 600; font-size: 14px; }
+.login-box input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+}
+.login-box button[type="submit"] {
+  background: var(--orange);
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.login-hint { font-size: 13px; color: var(--gray); }
+
+@media (max-width: 720px) {
+  .app-header {
+    flex-wrap: wrap;
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  .app-header h1 { font-size: 16px; width: 100%; }
+  .header-spacer { display: none; }
+  .profile-select { max-width: none; flex: 1; min-width: 140px; }
+  main { padding: 0 12px 32px; margin-top: 16px; }
+  .preview-frame { min-height: 280px; height: 45vh; }
+  .row { flex-direction: column; align-items: stretch; }
+  button.action { width: 100%; }
+  .log-table { min-width: 640px; }
+}

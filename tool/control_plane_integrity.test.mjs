@@ -8,7 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 import { classifyFiles } from './lib/review_router_classify.mjs';
-import { isApproverAllowed } from './lib/slack_pr.mjs';
+import { isApproverAllowed, buildSlackBlocks } from './lib/slack_pr.mjs';
 import {
   assertPrAuthorAllowsHumanApproval,
   assertAuthenticatedBotLogin,
@@ -136,8 +136,29 @@ describe('L8 — bot token scope guard (documented)', () => {
   });
 });
 
-describe('L12 — Slack approval authorization', () => {
-  it('non-allowlisted Slack user cannot approve when allowlist is set', () => {
+describe('L12 — Slack notify-only (Review UI is the approval surface)', () => {
+  it('default Slack payload has no Approve buttons and links to Review UI', () => {
+    const blocks = buildSlackBlocks({
+      pr: {
+        number: 1,
+        title: 'test',
+        html_url: 'https://github.com/o/r/pull/1',
+        user: { login: 'bot' },
+      },
+      parsed: { type: '—', scope: '—', platforms: '—', chromatic: null },
+      chromaticUrl: null,
+      repo: 'o/r',
+      interactive: false,
+      reviewUiUrl: 'http://localhost:4400',
+    });
+    assert.equal(blocks.some((b) => b.type === 'actions'), false);
+    const section = blocks.find(
+      (b) => b.type === 'section' && b.text?.text?.includes('ILDS Review UI'),
+    );
+    assert.ok(section);
+  });
+
+  it('legacy interactive mode still exposes allowlist guard', () => {
     const prev = process.env.SLACK_APPROVER_USER_IDS;
     process.env.SLACK_APPROVER_USER_IDS = 'U_REAL_OWNER';
     try {

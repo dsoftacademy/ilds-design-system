@@ -175,3 +175,6 @@ ILDS_*.docx
 
 # Figma API debug output — contains raw design data, not for repo
 tool/figma_api_sample.json
+
+# Local review UI decision log (verdict history)
+tool/review_ui/decision_log.json

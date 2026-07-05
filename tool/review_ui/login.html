@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ILDS UI Review Portal — Sign in</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<header class="app-header">
+  <h1>ILDS UI Review Portal</h1>
+</header>
+<form class="login-box" id="login-form">
+  <h2>Sign in</h2>
+  <p class="login-hint">Add your fine-grained GitHub token for <strong>dsoftacademy</strong> (Pull requests + Issues). Multiple accounts can be saved and switched from the header dropdown.</p>
+  <label for="token">GitHub token</label>
+  <input id="token" name="token" type="password" autocomplete="off" placeholder="github_pat_…" required />
+  <p class="err" id="err" hidden></p>
+  <button type="submit">Sign in</button>
+</form>
+<script type="module">
+const params = new URLSearchParams(window.location.search);
+if (params.get('add') === '1') {
+  document.querySelector('.login-box h2').textContent = 'Add account';
+}
+
+document.getElementById('login-form').onsubmit = async (e) => {
+  e.preventDefault();
+  const err = document.getElementById('err');
+  err.hidden = true;
+  const token = document.getElementById('token').value.trim();
+  const r = await fetch('/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token }),
+    credentials: 'include',
+  });
+  const d = await r.json();
+  if (d.ok) {
+    window.location.href = '/';
+    return;
+  }
+  err.textContent = d.error || 'Sign in failed';
+  err.hidden = false;
+};
+
+fetch('/api/me', { credentials: 'include' }).then(async (r) => {
+  if (r.ok && !params.get('add')) window.location.href = '/';
+});
+</script>
+</body>
+</html>

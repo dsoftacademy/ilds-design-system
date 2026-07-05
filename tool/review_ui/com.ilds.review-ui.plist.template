@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.ilds.review-ui</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>REPO_ROOT/tool/review_ui/start.sh</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>ILDS_REVIEW_UI_NO_OPEN</key>
+    <string>1</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <false/>
+  <key>StandardOutPath</key>
+  <string>/tmp/ilds-review-ui.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/ilds-review-ui.err</string>
+  <key>WorkingDirectory</key>
+  <string>REPO_ROOT</string>
+</dict>
+</plist>

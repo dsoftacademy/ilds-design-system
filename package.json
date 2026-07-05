@@ -15,11 +15,12 @@
     "router:classify": "node tool/review_router.mjs classify",
     "router:auto-merge": "node tool/review_router.mjs auto-merge",
     "test:router": "node --test tool/review_router_classify.test.mjs tool/review_router.test.mjs",
+    "test:review-ui": "node --test tool/review_ui/review_ui.test.mjs",
+    "review:ui": "./tool/review_ui/start.sh",
     "test:integrity": "node --test tool/control_plane_integrity.test.mjs",
     "test:adversary": "node --test tool/adversary/machine_checks.test.mjs",
     "adversary:review": "node tool/adversary/run_review.mjs",
     "agent-org:run": "node tool/agent-org/run.mjs",
-    "slack:interactivity-server": "node tool/slack_interactivity_server.mjs",
     "storybook": "npm run storybook --prefix web",
     "build:storybook": "npm run build-storybook --prefix web",
     "test:web": "npm run build-storybook --prefix web && npm run test:parity --prefix web"
