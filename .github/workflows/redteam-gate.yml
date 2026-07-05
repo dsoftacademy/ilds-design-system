@@ -51,24 +51,20 @@ jobs:
         id: pr
         env:
           GH_TOKEN: ${{ secrets.ILDS_AUTO_MERGE_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
           ACTOR=$(gh api user --jq .login)
           echo "PR author will be: ${ACTOR}"
-          URL=$(gh pr create \
-            --head "${BRANCH}" \
-            --base main \
-            --title "chore(redteam): control-plane gate test [DO NOT MERGE]" \
-            --body "$(cat <<'EOF'
-          ## Red-team — control-plane gate verification
-
-          **Do not merge.** Throwaway PR to prove bot cannot merge T1 without human approval.
-
-          Touches `tool/adversary/` → T1 / needs-human. Router should enable auto-merge without bot approval; GitHub must hold until Code Owner approves.
-
-          Close after verification.
-          EOF
-          )")
+          BRANCH="${{ env.branch }}"
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          REPO="${GITHUB_REPOSITORY##*/}"
+          URL=$(gh api "repos/${OWNER}/${REPO}/pulls" \
+            -f title="chore(redteam): control-plane gate test [DO NOT MERGE]" \
+            -f head="${BRANCH}" \
+            -f base=main \
+            -f body="Red-team throwaway — do not merge. Verifies T1 gate." \
+            --jq .html_url)
           echo "url=${URL}" >> "$GITHUB_OUTPUT"
           NUM=$(gh pr view "${URL}" --json number --jq .number)
           echo "number=${NUM}" >> "$GITHUB_OUTPUT"

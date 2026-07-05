@@ -68,8 +68,11 @@ jobs:
             gh pr view "${EXISTING}" --json url,author,autoMergeRequest,mergeable,mergeStateStatus
             exit 0
           fi
-          gh pr create \
-            --head "${HEAD}" \
-            --base main \
-            --title "${{ steps.inputs.outputs.title }}" \
-            --body "${{ steps.inputs.outputs.body }}"
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          REPO="${GITHUB_REPOSITORY##*/}"
+          gh api "repos/${OWNER}/${REPO}/pulls" \
+            -f title="${{ steps.inputs.outputs.title }}" \
+            -f head="${HEAD}" \
+            -f base=main \
+            -f body="${{ steps.inputs.outputs.body }}" \
+            --jq '.html_url'
