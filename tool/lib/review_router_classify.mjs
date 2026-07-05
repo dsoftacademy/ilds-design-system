@@ -18,6 +18,7 @@ export const CONTROL_PLANE_PATTERNS = [
   /^tool\/agent-org\//,
   /^tool\/review_router/,
   /^tool\/lib\/review_router/,
+  /^tool\/lib\/pr_authorship\.mjs$/,
   /^tool\/lib\/slack_pr/,
   /^tool\/propose_change/,
   /^tool\/notify_pr_slack/,
@@ -29,6 +30,8 @@ export const CONTROL_PLANE_PATTERNS = [
   /^CURSOR_.*ROUTER.*\.md$/i,
   /^docs\/PHASE5F_ROUTER_SETTINGS\.md$/,
   /^docs\/PHASE5F_AUTOMERGE_ON_APPROVAL\.md$/,
+  /^docs\/CONTROL_PLANE_INTEGRITY\.md$/,
+  /^docs\/reports\/PR35_RETROACTIVE_REVIEW\.md$/,
 ];
 
 /** Operational tool scripts only — not merge/PR/review governance. */
