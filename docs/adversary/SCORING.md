@@ -18,6 +18,13 @@ Running tally: `docs/adversary/SCOREBOARD.md`.
 
 Machine findings are independent; judge may add findings but must not weaken machine blocks.
 
+## Pre-existing debt (fix-or-acknowledge)
+
+On **BLOCK**, the report includes plain-language **decision cards** per finding (`docs/adversary/PREEXISTING_DEBT_POLICY.md`). Whole touched files are in scope — not diff-only.
+
+- **Fix now:** address in the same PR; adversary re-runs clean.
+- **Acknowledge:** human-only via `node tool/adversary/acknowledge_debt.mjs` → appends to `docs/adversary/DEBT_LEDGER.md`. Acknowledged findings no longer block that PR; the adversary keeps reporting them until fixed. **The bot may never acknowledge.**
+
 ## CI check
 
 Workflow: `.github/workflows/adversary-review.yml`  

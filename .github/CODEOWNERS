@@ -26,5 +26,7 @@
 /tool/slack_interactivity_server.mjs @dsoftacademy
 /tool/run_5d2_acceptance.sh @dsoftacademy
 /docs/adversary/FAILURE_CATALOG.md @dsoftacademy
+/docs/adversary/DEBT_LEDGER.md @dsoftacademy
+/docs/adversary/PREEXISTING_DEBT_POLICY.md @dsoftacademy
 /CURSOR_SELECTIVE_REVIEW_ROUTER.md @dsoftacademy
 /docs/PHASE5F_ROUTER_SETTINGS.md @dsoftacademy

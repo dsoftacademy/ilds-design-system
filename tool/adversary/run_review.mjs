@@ -19,6 +19,8 @@ import { runMachineChecksOnPrFiles, runMachineChecks } from './machine_checks.mj
 import { runLlmJudge } from './llm_judge.mjs';
 import { scoreFindings, formatReportMarkdown } from './score.mjs';
 import { loadCatalog } from './catalog.mjs';
+import { enrichFindingsWithScope } from './diff_scope.mjs';
+import { applyAcknowledgements, loadDebtLedger } from './debt_ledger.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -64,11 +66,17 @@ function buildDiffFromFiles(files) {
 function dedupeFindings(findings) {
   const seen = new Set();
   return findings.filter((f) => {
-    const key = `${f.id}:${f.source}:${f.summary}`;
+    const key = `${f.id}:${f.source}:${f.summary}:${f.file ?? ''}:${f.anchor ?? ''}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
+}
+
+function finalizeFindings(rawFindings, prFiles) {
+  const scoped = enrichFindingsWithScope(rawFindings, prFiles);
+  const ledger = loadDebtLedger(REPO_ROOT);
+  return applyAcknowledgements(scoped, ledger);
 }
 
 async function reviewChangedDart({ diff, prFiles, readFile }) {
@@ -83,10 +91,16 @@ async function reviewChangedDart({ diff, prFiles, readFile }) {
     changedFiles: changedDart,
   });
 
-  const judgeResult = scoreFindings(judgeFindings);
-  const combined = scoreFindings(dedupeFindings([...machineFindings, ...judgeFindings]));
+  const allFindings = finalizeFindings(
+    dedupeFindings([...machineFindings, ...judgeFindings]),
+    prFiles,
+  );
+  const judgeOnly = finalizeFindings(judgeFindings, prFiles);
 
-  return { machineFindings, judgeFindings, judgeMeta, judgeResult, combined };
+  const combined = scoreFindings(allFindings);
+  const judgeResult = scoreFindings(judgeOnly);
+
+  return { machineFindings, judgeFindings: judgeOnly, judgeMeta, judgeResult, combined };
 }
 
 /**
@@ -107,7 +121,7 @@ async function runReview(opts) {
 
     const readFile = (filename) => {
       try {
-        return execSync(`git fetch origin pull/${opts.pr}/head:refs/remotes/origin/pr-${opts.pr} 2>/dev/null; git show ${pr.head.sha}:${filename}`, {
+        return execSync(`git show ${pr.head.sha}:${filename}`, {
           cwd: REPO_ROOT,
           encoding: 'utf8',
         });
@@ -136,7 +150,7 @@ async function runReview(opts) {
     const content = readLocalFile(opts.file);
     if (!content) throw new Error(`File not found: ${opts.file}`);
     const diff = `# local review ${opts.file}\n`;
-    const prFiles = [{ filename: opts.file, patch: diff }];
+    const prFiles = [{ filename: opts.file, patch: diff, status: 'modified' }];
     const readFile = () => content;
 
     const { judgeMeta, judgeResult, combined } = await reviewChangedDart({ diff, prFiles, readFile });
