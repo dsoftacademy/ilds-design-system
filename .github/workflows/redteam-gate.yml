@@ -59,27 +59,29 @@ jobs:
           BRANCH="${{ env.branch }}"
           OWNER="${GITHUB_REPOSITORY%%/*}"
           REPO="${GITHUB_REPOSITORY##*/}"
-          URL=$(gh api "repos/${OWNER}/${REPO}/pulls" \
+          PR=$(gh api "repos/${OWNER}/${REPO}/pulls" \
             -f title="chore(redteam): control-plane gate test [DO NOT MERGE]" \
             -f head="${BRANCH}" \
             -f base=main \
-            -f body="Red-team throwaway — do not merge. Verifies T1 gate." \
-            --jq .html_url)
-          echo "url=${URL}" >> "$GITHUB_OUTPUT"
-          NUM=$(gh pr view "${URL}" --json number --jq .number)
-          echo "number=${NUM}" >> "$GITHUB_OUTPUT"
+            -f body="Red-team throwaway — do not merge. Verifies T1 gate.")
+          echo "url=$(echo "${PR}" | jq -r .html_url)" >> "$GITHUB_OUTPUT"
+          echo "number=$(echo "${PR}" | jq -r .number)" >> "$GITHUB_OUTPUT"
 
       - name: Wait for review-router + auto-merge enable
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
           NUM="${{ steps.pr.outputs.number }}"
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          REPO="${GITHUB_REPOSITORY##*/}"
           echo "Waiting 90s for review-router on PR #${NUM}..."
           sleep 90
-          gh pr view "${NUM}" --json author,autoMergeRequest,mergeable,mergeStateStatus,statusCheckRollup,reviews \
+          gh api "repos/${OWNER}/${REPO}/pulls/${NUM}" \
+            --jq '{author:.user.login,autoMergeRequest:.auto_merge,mergeable:.mergeable,mergeStateStatus:.mergeable_state,reviews:.requested_reviewers}' \
             | tee /tmp/redteam-pr-status.json
-          MERGED=$(gh pr view "${NUM}" --json merged --jq .merged)
+          MERGED=$(gh api "repos/${OWNER}/${REPO}/pulls/${NUM}" --jq .merged)
           if [ "${MERGED}" = "true" ]; then
             echo "::error::GATE BROKEN — PR merged without human approval"
             exit 1

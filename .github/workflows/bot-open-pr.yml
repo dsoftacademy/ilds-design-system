@@ -62,17 +62,19 @@ jobs:
             exit 1
           fi
           HEAD="${{ steps.inputs.outputs.head }}"
-          EXISTING=$(gh pr list --head "${HEAD}" --base main --state open --json number --jq '.[0].number // empty')
-          if [ -n "${EXISTING}" ]; then
-            echo "Open PR already exists: #${EXISTING}"
-            gh pr view "${EXISTING}" --json url,author,autoMergeRequest,mergeable,mergeStateStatus
-            exit 0
-          fi
           OWNER="${GITHUB_REPOSITORY%%/*}"
           REPO="${GITHUB_REPOSITORY##*/}"
+          EXISTING=$(gh api "repos/${OWNER}/${REPO}/pulls?head=${OWNER}:${HEAD}&base=main&state=open" \
+            --jq '.[0].number // empty')
+          if [ -n "${EXISTING}" ]; then
+            echo "Open PR already exists: #${EXISTING}"
+            gh api "repos/${OWNER}/${REPO}/pulls/${EXISTING}" \
+              --jq '{url:.html_url,author:.user.login,autoMergeRequest:.auto_merge,mergeable:.mergeable,mergeStateStatus:.mergeable_state}'
+            exit 0
+          fi
           gh api "repos/${OWNER}/${REPO}/pulls" \
             -f title="${{ steps.inputs.outputs.title }}" \
             -f head="${HEAD}" \
             -f base=main \
             -f body="${{ steps.inputs.outputs.body }}" \
-            --jq '.html_url'
+            --jq '{number,html_url,author:.user.login}'
