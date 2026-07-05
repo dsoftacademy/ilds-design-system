@@ -6,7 +6,7 @@
 
 ## The incident (why this exists)
 
-PR **#35** (control-plane — it rewrites the merge router) merged with **zero human approval**. Timeline: `github-actions` labeled it `needs-human` → `uniquedesignpratishek-maker` enabled auto-merge → the same bot **merged it**. No "approved these changes" by any human. The bot bypassed the required review, and because PRs are authored by the human's own account (`dsoftacademy`), a valid human approval was impossible anyway. **The control-plane gate does not currently exist.**
+PR **#35** (control-plane — it rewrites the merge router) merged with **zero human approval**. Timeline: `github-actions` labeled it `needs-human` → `uniquedesignpratishek-maker` enabled auto-merge → the same bot **merged it**. No "approved these changes" by any human. **Root cause:** branch protection did not require human approval at merge time (settings gap). **Closed 2026-07-05** via #39 + red-team proof + branch protection hardening.
 
 ## The invariant (the whole point, in one line)
 
@@ -54,7 +54,25 @@ Document the exact applied settings in `docs/PHASE5F_ROUTER_SETTINGS.md`.
 1. **PR authorship → bot.** All agent/CI PR creation (`tool/propose_change.mjs`, the agent-org runner, adversary flows) opens PRs as `uniquedesignpratishek-maker`, never the human. Add a check/test. — **landed in `tool/lib/pr_authorship.mjs` + `propose_change.mjs`**
 2. **CODEOWNERS catch-all:** add `* @dsoftacademy` as the final line (humans own everything by default); keep the explicit control-plane entries above it. Confirm the bot is not an owner anywhere. — **landed**
 3. **Classifier:** add `tool/review_router.mjs`, `tool/lib/review_router_classify*`, and this doc to CONTROL_PLANE patterns (extend #29's set); keep default-deny + the self-modification test. — **landed**
-4. **Retroactive review of #35:** #35 merged unreviewed — re-open its diff for human review (or a follow-up PR that re-applies it under review) and confirm nothing unintended landed. — **`docs/reports/PR35_RETROACTIVE_REVIEW.md`**
+4. **Retroactive review of #35:** — **Signed off** 2026-07-05 in `docs/reports/PR35_RETROACTIVE_REVIEW.md` (code clean; breach was settings gap).
+
+---
+
+## Applied settings audit (2026-07-05)
+
+Branch protection on `main` (GitHub API):
+
+| Setting | Value |
+|---------|--------|
+| Required approving reviews | **1** |
+| Require code owner reviews | **true** |
+| Dismiss stale reviews | **true** |
+| Enforce for admins | **true** |
+| Required checks | parity QA, Flutter goldens/analyze, iOS/Android compile, `parity`, Chromatic, `review-router`, **`adversary-review`** |
+
+Bot `uniquedesignpratishek-maker`: **Collaborator (Write)** on personal repo — not admin, not in CODEOWNERS.
+
+**L8 PAT audit (owner action):** verify bot classic PAT at github.com/settings/tokens — scopes should be **`contents` + `pull_requests` only** (no `administration`). Current secret uses classic `repo` scope per §4 below — migrate to fine-grained when convenient.
 
 ---
 
@@ -80,23 +98,22 @@ Goal: Pratishek approves/rejects from Slack (incl. phone); GitHub stays the enfo
 
 ## Verification — prove each loophole is closed (red-team the gate)
 
-Do these on a throwaway control-plane PR:
-- [ ] With **only the bot / zero human approval**, the PR **cannot** merge (auto-merge stays pending). — closes L1, L2, L12.
-- [ ] The **bot cannot submit an approving review** that satisfies the gate (bot approval present → still blocked). — L4.
-- [ ] The **human author cannot self-approve** (PR authored by bot, so this can't arise; verify authorship). — L3.
-- [ ] Pushing a **new commit after approval** re-requires approval. — L9.
-- [ ] A PR that **edits the classifier / a workflow / CODEOWNERS** is T1 and needs human review. — L5, L6, L7.
-- [ ] The bot's token **cannot change branch protection** (API call fails). — L8.
-- [ ] Slack **Approve by a non-Pratishek user** does nothing; Slack Approve by Pratishek records **his** GitHub approval. — L12.
+Verified 2026-07-05 unless noted.
 
-If any box can't be checked, the gate is still open — stop and fix before proceeding.
+- [x] With **only the bot / zero human approval**, the PR **cannot** merge (auto-merge stays pending). — **Proven:** red-team PR #38 (`redteam-gate` workflow); re-confirmed on #39 gate. Closes L1, L2.
+- [x] The **bot cannot submit an approving review** that satisfies the gate (bot approval present → still blocked). — **Proven:** #38/#39 stayed `REVIEW_REQUIRED` with bot auto-merge armed; `test:integrity` L4. Closes L4.
+- [x] The **human author cannot self-approve** (PR authored by bot, so this can't arise; verify authorship). — **Proven:** #36 closed (human-authored); #39+#41+#42 bot-authored. Closes L3.
+- [x] Pushing a **new commit after approval** re-requires approval. — **Configured:** `dismiss_stale_reviews: true` on `main` (API audit 2026-07-05). Closes L9.
+- [x] A PR that **edits the classifier / a workflow / CODEOWNERS** is T1 and needs human review. — **Proven:** classifier tests L6/L7; #39 labeled `needs-human`. Closes L5, L6, L7.
+- [ ] The bot's token **cannot change branch protection** (API call fails). — **L8:** classic `repo` PAT in use (broader than ideal). Owner: confirm at github.com/settings/tokens — must **not** include `administration`; prefer fine-grained `contents` + `pull_requests` only.
+- [ ] Slack **Approve by a non-Pratishek user** does nothing; Slack Approve by Pratishek records **his** GitHub approval. — **L12 open:** interactivity handler not deployed (n8n webhook 404). GitHub approve path works.
 
 ## Ordering
-1. Pratishek applies the branch-protection + bot-permission settings (closes the live hole immediately).
-2. Cursor lands PR-authorship→bot + CODEOWNERS catch-all + classifier extension + #35 retroactive review.
-3. Run the red-team verification above.
-4. Only then: build Slack approval as its own reviewed control-plane PR.
-5. Only then: resume Phase 6 org work.
+1. ~~Pratishek applies branch-protection + bot-permission settings~~ ✅ 2026-07-05
+2. ~~Cursor lands PR-authorship→bot + CODEOWNERS catch-all + classifier + #35 retro~~ ✅ #39 merged
+3. ~~Run red-team verification~~ ✅ #38/#39
+4. **Next:** Slack approval as its own control-plane PR (L12 open).
+5. **In progress:** Phase 6 debt sweep (#41 recalibrate, #42 selection-button, …).
 
 ## DO NOT
 - Do not give the bot admin, or add it to any bypass list, or make it a code owner.
