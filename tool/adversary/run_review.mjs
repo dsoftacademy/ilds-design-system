@@ -15,7 +15,7 @@ import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { githubRequest } from '../lib/slack_pr.mjs';
-import { runMachineChecksOnPrFiles, runMachineChecks } from './machine_checks.mjs';
+import { runMachineChecksOnPrFiles } from './machine_checks.mjs';
 import { runLlmJudge } from './llm_judge.mjs';
 import { scoreFindings, formatReportMarkdown } from './score.mjs';
 import { loadCatalog } from './catalog.mjs';
@@ -121,10 +121,10 @@ async function runReview(opts) {
 
     const readFile = (filename) => {
       try {
-        return execSync(`git show ${pr.head.sha}:${filename}`, {
-          cwd: REPO_ROOT,
-          encoding: 'utf8',
-        });
+        return execSync(
+          `git fetch origin pull/${opts.pr}/head:refs/remotes/origin/pr-${opts.pr} 2>/dev/null; git show ${pr.head.sha}:${filename}`,
+          { cwd: REPO_ROOT, encoding: 'utf8' },
+        );
       } catch {
         return readLocalFile(filename);
       }

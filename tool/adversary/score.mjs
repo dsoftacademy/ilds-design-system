@@ -47,7 +47,8 @@ function formatFindingsTable(findings) {
   lines.push('');
   lines.push('<details><summary>Evidence</summary>', '');
   for (const f of findings) {
-    const scope = f.introduced === false ? ' _(pre-existing)_' : f.introduced ? ' _(introduced)_' : '';
+    const scope =
+      f.introduced === false ? ' _(pre-existing)_' : f.introduced ? ' _(introduced)_' : '';
     lines.push(`**${f.id} (${f.source})${scope}:** ${f.evidence}`, '');
   }
   lines.push('</details>');
@@ -59,10 +60,11 @@ function formatFindingsTable(findings) {
  * @param {{ prNumber?: string; headSha?: string; repo?: string }} meta
  */
 export function formatReportMarkdown(result, meta = {}) {
-  const blocking = result.blockingFindings ?? result.findings.filter(
-    (f) => BLOCK_SEVERITIES.has(f.severity) && !f.acknowledged,
-  );
-  const acknowledged = result.acknowledgedFindings ?? result.findings.filter((f) => f.acknowledged);
+  const blocking =
+    result.blockingFindings ??
+    result.findings.filter((f) => BLOCK_SEVERITIES.has(f.severity) && !f.acknowledged);
+  const acknowledged =
+    result.acknowledgedFindings ?? result.findings.filter((f) => f.acknowledged);
 
   const lines = [
     '## Adversary review report',
@@ -84,11 +86,7 @@ export function formatReportMarkdown(result, meta = {}) {
     lines.push(formatAcknowledgedSection(acknowledged), '');
   }
 
-  lines.push(
-    '### All findings (machine + Opus judge)',
-    '',
-    formatFindingsTable(result.findings),
-  );
+  lines.push('### All findings (machine + Opus judge)', '', formatFindingsTable(result.findings));
 
   if (result.judgeResult) {
     lines.push(
