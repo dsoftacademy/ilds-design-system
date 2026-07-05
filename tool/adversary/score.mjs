@@ -24,8 +24,28 @@ export function scoreFindings(findings) {
   };
 }
 
+function formatFindingsTable(findings) {
+  if (findings.length === 0) {
+    return '_No catalog hits._';
+  }
+  const lines = [
+    '| ID | Severity | Source | Summary |',
+    '|----|----------|--------|---------|',
+  ];
+  for (const f of findings) {
+    lines.push(`| ${f.id} | ${f.severity} | ${f.source} | ${f.summary.replace(/\|/g, '\\|')} |`);
+  }
+  lines.push('');
+  lines.push('<details><summary>Evidence</summary>', '');
+  for (const f of findings) {
+    lines.push(`**${f.id} (${f.source}):** ${f.evidence}`, '');
+  }
+  lines.push('</details>');
+  return lines.join('\n');
+}
+
 /**
- * @param {{ verdict: string; findings: Finding[]; score: { builder: number; adversary: number } }} result
+ * @param {{ verdict: string; findings: Finding[]; score: { builder: number; adversary: number }; judgeResult?: object; judgeMeta?: object }} result
  * @param {{ prNumber?: string; headSha?: string; repo?: string }} meta
  */
 export function formatReportMarkdown(result, meta = {}) {
@@ -36,25 +56,34 @@ export function formatReportMarkdown(result, meta = {}) {
       ? `**Repo:** ${meta.repo} · **PR:** #${meta.prNumber}${meta.headSha ? ` · **SHA:** \`${meta.headSha.slice(0, 7)}\`` : ''}`
       : '',
     '',
-    `**Verdict:** \`${result.verdict.toUpperCase()}\``,
+    `**Combined verdict:** \`${result.verdict.toUpperCase()}\``,
     `**Score:** builder ${result.score.builder} — adversary ${result.score.adversary}`,
     '',
+    '### All findings (machine + Opus judge)',
+    '',
+    formatFindingsTable(result.findings),
   ].filter(Boolean);
 
-  if (result.findings.length === 0) {
-    lines.push('_No catalog hits. Machine + judge found nothing._');
-  } else {
-    lines.push('| ID | Severity | Source | Summary |');
-    lines.push('|----|----------|--------|---------|');
-    for (const f of result.findings) {
-      lines.push(`| ${f.id} | ${f.severity} | ${f.source} | ${f.summary.replace(/\|/g, '\\|')} |`);
+  if (result.judgeResult) {
+    lines.push(
+      '',
+      '### Opus judge only',
+      '',
+      `**Model:** \`${result.judgeMeta?.model ?? 'claude-opus-4-8'}\``,
+      result.judgeMeta?.skipped
+        ? `_Judge skipped: ${result.judgeMeta.reason ?? 'unknown'}_`
+        : `**Judge verdict:** \`${result.judgeResult.verdict.toUpperCase()}\``,
+    );
+    if (!result.judgeMeta?.skipped) {
+      lines.push('', formatFindingsTable(result.judgeResult.findings));
+      if (result.judgeMeta?.usage) {
+        const u = result.judgeMeta.usage;
+        lines.push(
+          '',
+          `_Tokens: in ${u.input_tokens} · out ${u.output_tokens} · cache read ${u.cache_read_input_tokens} · cache write ${u.cache_creation_input_tokens}_`,
+        );
+      }
     }
-    lines.push('');
-    lines.push('<details><summary>Evidence</summary>', '');
-    for (const f of result.findings) {
-      lines.push(`**${f.id}:** ${f.evidence}`, '');
-    }
-    lines.push('</details>');
   }
 
   lines.push('', '---', '_Seeded from `docs/adversary/FAILURE_CATALOG.md` · append-only ratchet_');

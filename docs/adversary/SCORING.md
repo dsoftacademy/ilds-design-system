@@ -14,7 +14,7 @@ Running tally: `docs/adversary/SCOREBOARD.md`.
 ## Layers
 
 1. **Machine** (`tool/adversary/machine_checks.mjs`) — deterministic scans for F-001, F-002, F-003, F-008 on changed `lib/**/*.dart`. Always runs in CI.
-2. **Judge** (`tool/adversary/llm_judge.mjs`) — Opus adversarial pass, catalog cached. Runs when `ANTHROPIC_API_KEY` is set.
+2. **Judge** (`tool/adversary/llm_judge.mjs`) — Opus 4.8 adversarial pass; stable prefix (system + catalog) cached via single `cache_control` block. Runs when `ANTHROPIC_API_KEY` is set; required in CI (`ILDS_ADVERSARY_REQUIRE_JUDGE=true`).
 
 Machine findings are independent; judge may add findings but must not weaken machine blocks.
 
