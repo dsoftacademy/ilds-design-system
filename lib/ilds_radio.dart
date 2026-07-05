@@ -34,6 +34,9 @@ class _IldsRadioState extends State<IldsRadio> {
   bool _isPressed = false;
   bool _isFocused = false;
 
+  /// Figma medium radio inner dot (10px) — matches iOS/Android; no spacing token at 10.
+  static const double _mediumInnerDotSize = 10.0;
+
   bool get _isSelected => widget.value == widget.groupValue;
 
   double _outerSize() {
@@ -52,7 +55,7 @@ class _IldsRadioState extends State<IldsRadio> {
       case IldsRadioSize.small:
         return ILDSTokens.spacing2;
       case IldsRadioSize.medium:
-        return ILDSTokens.spacing5 / ILDSTokens.borderWidth2;
+        return _mediumInnerDotSize;
       case IldsRadioSize.large:
         return ILDSTokens.spacing3;
     }
