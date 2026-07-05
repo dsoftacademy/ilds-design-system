@@ -8,8 +8,10 @@
  * Env:
  *   GITHUB_TOKEN or GH_TOKEN — classify/label uses GITHUB_TOKEN; auto-merge uses ILDS_AUTO_MERGE_TOKEN
  *   GITHUB_REPOSITORY — owner/repo
- *   ILDS_AUTO_MERGE_TOKEN — bot PAT for T0 auto-merge only
+ *   ILDS_AUTO_MERGE_TOKEN — bot PAT to enable GitHub auto-merge (T0 + T1)
  *   ILDS_HUMAN_REVIEWER — GitHub login to request on T1 (default: dsoftacademy)
+ *
+ * @see docs/PHASE5F_AUTOMERGE_ON_APPROVAL.md
  */
 
 import { execSync } from 'node:child_process';
@@ -21,8 +23,55 @@ import { classifyFiles } from './lib/review_router_classify.mjs';
 import { githubRequest, submitPullRequestReview } from './lib/slack_pr.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const LABEL_AUTO = 'auto-merge';
-const LABEL_HUMAN = 'needs-human';
+export const LABEL_AUTO = 'auto-merge';
+export const LABEL_HUMAN = 'needs-human';
+
+/** Bot logins that may never satisfy T1 human approval. */
+export const BOT_REVIEWER_LOGINS = new Set([
+  'uniquedesignpratishek-maker',
+  'github-actions[bot]',
+  'dependabot[bot]',
+]);
+
+/**
+ * @param {'T0' | 'T1'} tier
+ * @returns {{ botApproves: boolean; enableAutoMerge: boolean }}
+ */
+export function autoMergePlanForTier(tier) {
+  if (tier === 'T0') {
+    return { botApproves: true, enableAutoMerge: true };
+  }
+  if (tier === 'T1') {
+    return { botApproves: false, enableAutoMerge: true };
+  }
+  throw new Error(`Unknown tier: ${tier}`);
+}
+
+/**
+ * @param {Iterable<string>} labels
+ * @returns {'T0' | 'T1' | null}
+ */
+export function tierFromLabels(labels) {
+  const set = labels instanceof Set ? labels : new Set(labels);
+  if (set.has(LABEL_HUMAN)) return 'T1';
+  if (set.has(LABEL_AUTO)) return 'T0';
+  return null;
+}
+
+/**
+ * Whether a non-bot human has submitted an approving review.
+ * GitHub branch protection uses this — bot-enabled auto-merge on T1 stays pending without it.
+ *
+ * @param {Array<{ state?: string; user?: { login?: string } }>} reviews
+ * @param {Set<string>} [botLogins]
+ */
+export function hasHumanApproval(reviews, botLogins = BOT_REVIEWER_LOGINS) {
+  return reviews.some((review) => {
+    if (review.state !== 'APPROVED') return false;
+    const login = review.user?.login?.toLowerCase() ?? '';
+    return login && !botLogins.has(login);
+  });
+}
 
 function parseRemote() {
   const envRepo = process.env.GITHUB_REPOSITORY;
@@ -141,6 +190,19 @@ async function findPullRequestForSha(auth, owner, repo, sha) {
   return pulls.find((pr) => pr.state === 'open') ?? pulls[0];
 }
 
+/**
+ * @param {string} auth
+ * @param {string} owner
+ * @param {string} repo
+ * @param {string|number} prNumber
+ */
+async function enableSquashAutoMerge(auth, owner, repo, prNumber) {
+  execSync(`gh pr merge ${prNumber} --repo ${owner}/${repo} --auto --squash`, {
+    env: { ...process.env, GH_TOKEN: auth, GITHUB_TOKEN: auth },
+    stdio: 'inherit',
+  });
+}
+
 async function autoMergeCommand(prNumber, { reclassify = true } = {}) {
   const auth = autoMergeToken();
   if (!auth) throw new Error('ILDS_AUTO_MERGE_TOKEN or GITHUB_TOKEN is required for auto-merge');
@@ -149,108 +211,109 @@ async function autoMergeCommand(prNumber, { reclassify = true } = {}) {
   const pr = await githubRequest(auth, 'GET', `/repos/${owner}/${repo}/pulls/${prNumber}`);
 
   if (pr.draft) {
-    console.log(`PR #${prNumber} is draft — skipping auto-merge`);
+    console.log(`PR #${prNumber} is draft — skipping auto-merge enable`);
     return { skipped: 'draft' };
   }
 
   if (pr.merged || pr.state !== 'open') {
-    console.log(`PR #${prNumber} is not open — skipping auto-merge`);
+    console.log(`PR #${prNumber} is not open — skipping auto-merge enable`);
     return { skipped: 'not-open' };
   }
 
   const labels = new Set((pr.labels ?? []).map((label) => label.name));
-  if (!labels.has(LABEL_AUTO)) {
-    console.log(`PR #${prNumber} lacks label ${LABEL_AUTO} — skipping auto-merge`);
-    return { skipped: 'no-auto-merge-label' };
-  }
-
-  if (labels.has(LABEL_HUMAN)) {
-    console.log(`PR #${prNumber} has ${LABEL_HUMAN} — bot must not auto-merge`);
-    return { skipped: 'needs-human-label' };
-  }
+  let tier = reclassify ? null : tierFromLabels(labels);
+  let classifyResult = null;
 
   if (reclassify) {
     const files = await fetchPrFiles(auth, owner, repo, prNumber);
-    const result = classifyFiles(files);
-    if (result.tier !== 'T0') {
-      console.log(`PR #${prNumber} reclassified as ${result.tier} — bot must not auto-merge`);
-      await setRouterLabels(auth, owner, repo, prNumber, result.tier);
-      if (result.tier === 'T1') await requestHumanReviewer(auth, owner, repo, prNumber);
-      return { skipped: 'reclassified-t1', result };
-    }
+    classifyResult = classifyFiles(files);
+    tier = classifyResult.tier;
+    await setRouterLabels(auth, owner, repo, prNumber, tier);
+    if (tier === 'T1') await requestHumanReviewer(auth, owner, repo, prNumber);
   }
+
+  if (!tier) {
+    console.log(`PR #${prNumber} is unclassified — skipping auto-merge enable`);
+    return { skipped: 'unclassified' };
+  }
+
+  const plan = autoMergePlanForTier(tier);
 
   if (pr.auto_merge) {
-    console.log(`PR #${prNumber} already has auto-merge enabled`);
-    return { skipped: 'already-enabled' };
+    console.log(`PR #${prNumber} already has auto-merge enabled (${tier})`);
+    return { skipped: 'already-enabled', tier };
   }
 
-  // Satisfy branch protection when required_approving_review_count ≥ 1.
-  // Safe only for T0 — reclassify above guarantees no CODEOWNERS paths.
-  try {
-    await submitPullRequestReview(auth, owner, repo, prNumber, {
-      event: 'APPROVE',
-      body: 'Phase 5f router: T0 auto-merge (safe content paths only).',
-    });
-    console.log(`Bot approved PR #${prNumber} (T0)`);
-  } catch (error) {
-    if (error.status === 422) {
-      console.log(`PR #${prNumber} already approved or review not required — continuing`);
-    } else {
-      throw error;
+  if (plan.botApproves) {
+    try {
+      await submitPullRequestReview(auth, owner, repo, prNumber, {
+        event: 'APPROVE',
+        body: 'Phase 5f router: T0 auto-merge (safe content paths only).',
+      });
+      console.log(`Bot approved PR #${prNumber} (T0)`);
+    } catch (error) {
+      if (error.status === 422) {
+        console.log(`PR #${prNumber} already approved or review not required — continuing`);
+      } else {
+        throw error;
+      }
     }
+  } else {
+    console.log(
+      `PR #${prNumber} is T1 — enabling auto-merge without bot approval (GitHub holds until human review + checks)`,
+    );
   }
 
-  execSync(`gh pr merge ${prNumber} --repo ${owner}/${repo} --auto --squash`, {
-    env: { ...process.env, GH_TOKEN: auth, GITHUB_TOKEN: auth },
-    stdio: 'inherit',
-  });
-
-  console.log(`Enabled auto-merge (squash) for PR #${prNumber}`);
-  return { enabled: true };
+  await enableSquashAutoMerge(auth, owner, repo, prNumber);
+  console.log(`Enabled auto-merge (squash) for PR #${prNumber} (${tier})`);
+  return { enabled: true, tier, classifyResult };
 }
 
-const { values: args, positionals } = parseArgs({
-  allowPositionals: true,
-  options: {
-    pr: { type: 'string' },
-    sha: { type: 'string' },
-    help: { type: 'boolean', short: 'h', default: false },
-  },
-});
+const isMain = process.argv[1] === fileURLToPath(import.meta.url);
 
-if (args.help || positionals.length === 0) {
-  console.log(`Usage:
+if (isMain) {
+  const { values: args, positionals } = parseArgs({
+    allowPositionals: true,
+    options: {
+      pr: { type: 'string' },
+      sha: { type: 'string' },
+      help: { type: 'boolean', short: 'h', default: false },
+    },
+  });
+
+  if (args.help || positionals.length === 0) {
+    console.log(`Usage:
   node tool/review_router.mjs classify --pr <number>
   node tool/review_router.mjs auto-merge --pr <number>
   node tool/review_router.mjs auto-merge --sha <commit>`);
-  process.exit(args.help ? 0 : 1);
-}
-
-const command = positionals[0];
-
-try {
-  if (command === 'classify') {
-    if (!args.pr) throw new Error('--pr is required for classify');
-    await classifyCommand(args.pr);
-  } else if (command === 'auto-merge') {
-    const auth = autoMergeToken();
-    const { owner, repo } = parseRemote();
-    let prNumber = args.pr;
-    if (!prNumber && args.sha) {
-      const match = await findPullRequestForSha(auth, owner, repo, args.sha);
-      if (!match) {
-        console.log(`No open PR for sha ${args.sha}`);
-        process.exit(0);
-      }
-      prNumber = String(match.number);
-    }
-    if (!prNumber) throw new Error('--pr or --sha is required for auto-merge');
-    await autoMergeCommand(prNumber);
-  } else {
-    throw new Error(`Unknown command: ${command}`);
+    process.exit(args.help ? 0 : 1);
   }
-} catch (error) {
-  console.error(error.message ?? error);
-  process.exit(1);
+
+  const command = positionals[0];
+
+  try {
+    if (command === 'classify') {
+      if (!args.pr) throw new Error('--pr is required for classify');
+      await classifyCommand(args.pr);
+    } else if (command === 'auto-merge') {
+      const auth = autoMergeToken();
+      const { owner, repo } = parseRemote();
+      let prNumber = args.pr;
+      if (!prNumber && args.sha) {
+        const match = await findPullRequestForSha(auth, owner, repo, args.sha);
+        if (!match) {
+          console.log(`No open PR for sha ${args.sha}`);
+          process.exit(0);
+        }
+        prNumber = String(match.number);
+      }
+      if (!prNumber) throw new Error('--pr or --sha is required for auto-merge');
+      await autoMergeCommand(prNumber);
+    } else {
+      throw new Error(`Unknown command: ${command}`);
+    }
+  } catch (error) {
+    console.error(error.message ?? error);
+    process.exit(1);
+  }
 }

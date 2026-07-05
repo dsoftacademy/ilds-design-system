@@ -18,6 +18,7 @@
 /tool/adversary/ @dsoftacademy
 /tool/agent-org/ @dsoftacademy
 /tool/review_router.mjs @dsoftacademy
+/tool/review_router.test.mjs @dsoftacademy
 /tool/review_router_classify.test.mjs @dsoftacademy
 /tool/lib/review_router_classify.mjs @dsoftacademy
 /tool/lib/slack_pr.mjs @dsoftacademy
@@ -30,3 +31,4 @@
 /docs/adversary/PREEXISTING_DEBT_POLICY.md @dsoftacademy
 /CURSOR_SELECTIVE_REVIEW_ROUTER.md @dsoftacademy
 /docs/PHASE5F_ROUTER_SETTINGS.md @dsoftacademy
+/docs/PHASE5F_AUTOMERGE_ON_APPROVAL.md @dsoftacademy
