@@ -1,0 +1,94 @@
+name: Red-team control-plane gate
+
+# Throwaway control-plane PR authored by bot; verifies T1 cannot merge without human approval.
+# workflow_dispatch only.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  redteam:
+    name: redteam-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Create throwaway branch and commit
+        env:
+          GH_TOKEN: ${{ secrets.ILDS_AUTO_MERGE_TOKEN }}
+        run: |
+          set -euo pipefail
+          BRANCH="redteam/gate-$(date +%Y%m%d-%H%M%S)"
+          echo "branch=${BRANCH}" >> "$GITHUB_ENV"
+          git config user.name "uniquedesignpratishek-maker"
+          git config user.email "uniquedesignpratishek-maker@users.noreply.github.com"
+          git checkout -b "${BRANCH}"
+          mkdir -p tool/adversary
+          cat >> tool/adversary/REDTEAM_THROWAWAY.md <<EOF
+          # Red-team throwaway — delete after gate verification
+
+          Created: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          Purpose: prove T1 control-plane PR cannot merge without human Code Owner approval.
+          EOF
+          git add tool/adversary/REDTEAM_THROWAWAY.md
+          git commit -m "chore(redteam): throwaway control-plane gate test [do not merge]"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push -u origin "${BRANCH}"
+
+      - name: Open PR as bot
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.ILDS_AUTO_MERGE_TOKEN }}
+        run: |
+          set -euo pipefail
+          ACTOR=$(gh api user --jq .login)
+          echo "PR author will be: ${ACTOR}"
+          URL=$(gh pr create \
+            --head "${BRANCH}" \
+            --base main \
+            --title "chore(redteam): control-plane gate test [DO NOT MERGE]" \
+            --body "$(cat <<'EOF'
+          ## Red-team — control-plane gate verification
+
+          **Do not merge.** Throwaway PR to prove bot cannot merge T1 without human approval.
+
+          Touches `tool/adversary/` → T1 / needs-human. Router should enable auto-merge without bot approval; GitHub must hold until Code Owner approves.
+
+          Close after verification.
+          EOF
+          )")
+          echo "url=${URL}" >> "$GITHUB_OUTPUT"
+          NUM=$(gh pr view "${URL}" --json number --jq .number)
+          echo "number=${NUM}" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for review-router + auto-merge enable
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          NUM="${{ steps.pr.outputs.number }}"
+          echo "Waiting 90s for review-router on PR #${NUM}..."
+          sleep 90
+          gh pr view "${NUM}" --json author,autoMergeRequest,mergeable,mergeStateStatus,statusCheckRollup,reviews \
+            | tee /tmp/redteam-pr-status.json
+          MERGED=$(gh pr view "${NUM}" --json merged --jq .merged)
+          if [ "${MERGED}" = "true" ]; then
+            echo "::error::GATE BROKEN — PR merged without human approval"
+            exit 1
+          fi
+          echo "GATE OK — PR not merged (pending human approval expected)"
+
+      - name: Summary
+        run: |
+          echo "## Red-team result" >> "$GITHUB_STEP_SUMMARY"
+          echo "PR: ${{ steps.pr.outputs.url }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/redteam-pr-status.json >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

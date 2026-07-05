@@ -1,0 +1,55 @@
+name: Bot open PR
+
+# Opens a PR on an existing remote branch using ILDS_AUTO_MERGE_TOKEN (bot authorship — L3).
+# workflow_dispatch only; not part of normal CI.
+
+on:
+  workflow_dispatch:
+    inputs:
+      head:
+        description: Existing branch name (must be pushed)
+        required: true
+      title:
+        description: PR title
+        required: true
+      body:
+        description: PR body (markdown)
+        required: false
+        default: ''
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  open:
+    name: bot-open-pr
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open PR as bot
+        env:
+          GH_TOKEN: ${{ secrets.ILDS_AUTO_MERGE_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "::error::ILDS_AUTO_MERGE_TOKEN not configured"
+            exit 1
+          fi
+          ACTOR=$(gh api user --jq .login)
+          echo "Authenticated as: ${ACTOR}"
+          if [ "${ACTOR}" != "uniquedesignpratishek-maker" ]; then
+            echo "::error::Expected bot login uniquedesignpratishek-maker, got ${ACTOR}"
+            exit 1
+          fi
+          EXISTING=$(gh pr list --head "${{ inputs.head }}" --base main --state open --json number --jq '.[0].number // empty')
+          if [ -n "${EXISTING}" ]; then
+            echo "Open PR already exists: #${EXISTING}"
+            gh pr view "${EXISTING}" --json url,author,autoMergeRequest,mergeable,mergeStateStatus
+            exit 0
+          fi
+          gh pr create \
+            --head "${{ inputs.head }}" \
+            --base main \
+            --title "${{ inputs.title }}" \
+            --body "${{ inputs.body }}"
