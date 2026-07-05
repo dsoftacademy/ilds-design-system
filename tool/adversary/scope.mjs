@@ -40,11 +40,14 @@ export function prTouchesControlPlane(prFiles) {
 
 /**
  * @param {Array<{ filename?: string }>} prFiles
- * @returns {'component' | 'control-plane' | 'skip'}
+ * @returns {'component' | 'control-plane' | 'both' | 'skip'}
  */
 export function routePrGate(prFiles) {
-  if (prTouchesComponentAdversary(prFiles)) return 'component';
-  if (prTouchesControlPlane(prFiles)) return 'control-plane';
+  const component = prTouchesComponentAdversary(prFiles);
+  const controlPlane = prTouchesControlPlane(prFiles);
+  if (component && controlPlane) return 'both';
+  if (component) return 'component';
+  if (controlPlane) return 'control-plane';
   return 'skip';
 }
 

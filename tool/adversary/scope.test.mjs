@@ -27,12 +27,12 @@ describe('pr gate routing', () => {
     assert.equal(routePrGate(files), 'component');
   });
 
-  it('mixed lib + control-plane → component adversary (fidelity first)', () => {
+  it('mixed lib + control-plane → both gates', () => {
     const files = [
       { filename: 'lib/ilds_radio.dart' },
       { filename: 'tool/review_router.mjs' },
     ];
-    assert.equal(routePrGate(files), 'component');
+    assert.equal(routePrGate(files), 'both');
   });
 
   it('docs-only safe T0 → skip', () => {

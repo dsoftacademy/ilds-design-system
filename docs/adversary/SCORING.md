@@ -35,7 +35,8 @@ Job name: **`adversary-review`** (add as 9th required check after MVP proven on 
 | PR touches | Gate | What runs |
 |------------|------|-----------|
 | `lib/`, `web/src/`, `tokens/`, `tool/adversary/`, `docs/adversary/` | Component fidelity | Machine checks + Opus judge (`run_review.mjs`) |
-| Control-plane paths (`.github/`, router, `pr_authorship`, etc.) — no component paths | Control-plane integrity | `npm run test:integrity` (L1–L8 / L12) |
+| Control-plane paths — no component paths | Control-plane integrity | `npm run test:integrity` (L1–L8 / L12) |
+| Both component and control-plane paths | Both gates | Adversary review **and** integrity tests |
 | Safe T0 content only (docs, allowlisted tool scripts) | Skip | Job succeeds with explicit N/A report (same pattern as Chromatic skip) |
 
 Control-plane PRs are **not** rubber-stamped: they must pass integrity tests. Human Code Owner review remains required for T1.

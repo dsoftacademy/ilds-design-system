@@ -92,9 +92,20 @@ async function main(opts) {
 
   console.log(`PR gate mode: ${mode} (${prFiles.length} files)`);
 
-  if (mode === 'component') {
-    const code = runComponentReview(opts.pr, opts.output);
-    process.exit(code);
+  if (mode === 'component' || mode === 'both') {
+    const componentOutput =
+      mode === 'both' ? '/tmp/component-adversary-report.md' : opts.output;
+    const code = runComponentReview(opts.pr, componentOutput);
+    if (code !== 0) process.exit(code);
+
+    if (mode === 'both') {
+      const { passed, output } = runControlPlaneIntegrity();
+      const cpReport = controlPlaneGateReportMarkdown(prFiles, meta, { passed, output });
+      const componentReport = fs.readFileSync(componentOutput, 'utf8');
+      writeReport(`${componentReport}\n\n---\n\n${cpReport}`, opts.output);
+      process.exit(passed ? 0 : 1);
+    }
+    process.exit(0);
   }
 
   if (mode === 'control-plane') {
