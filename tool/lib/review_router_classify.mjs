@@ -24,6 +24,8 @@ export const CONTROL_PLANE_PATTERNS = [
   /^tool\/slack_interactivity/,
   /^tool\/run_5d2/,
   /^docs\/adversary\/FAILURE_CATALOG\.md$/,
+  /^docs\/adversary\/DEBT_LEDGER\.md$/,
+  /^docs\/adversary\/PREEXISTING_DEBT_POLICY\.md$/,
   /^CURSOR_.*ROUTER.*\.md$/i,
   /^docs\/PHASE5F_ROUTER_SETTINGS\.md$/,
 ];
