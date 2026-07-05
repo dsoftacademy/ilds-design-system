@@ -1,19 +1,16 @@
 #!/usr/bin/env node
 /**
- * ILDS Visual Review Surface — the human's ONLY interface.
+ * ILDS UI Review Portal — the admin's single interface for all human reviews.
  *
- * Sign in at /login with a fine-grained GitHub token (stored locally in
- * ~/.ilds/review-ui/session.json, mode 0600). No startup token required.
- *
- * Run:  node tool/review_ui/server.mjs
- *       ./tool/review_ui/start.sh
+ * Sign in at /login with a fine-grained GitHub token (profiles in ~/.ilds/review-ui/).
+ * Run:  node tool/review_ui/server.mjs  |  npm run review:ui
  */
 
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { githubRequest, submitPullRequestReview } from '../lib/slack_pr.mjs';
+import { githubRequest, submitPullRequestReview, findChromaticDetailsUrl } from '../lib/slack_pr.mjs';
 import { classifyFiles } from '../lib/review_router_classify.mjs';
 import { ILDS_BOT_LOGIN, isBotReviewer } from '../lib/pr_authorship.mjs';
 import {
@@ -21,17 +18,28 @@ import {
   createSession,
   destroySession,
   getSession,
+  listProfilesPublic,
   restorePersistedSession,
   setSessionCookie,
+  switchProfile,
+  upsertProfile,
 } from './session.mjs';
-import { appendDecision, listDecisions } from './decision_log.mjs';
+import { appendDecision, listDecisions, seedDecisionLogIfEmpty } from './decision_log.mjs';
+import {
+  buildPlatformPreviews,
+  componentSlugFromFiles,
+  platformsFromFiles,
+} from './platforms.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const QUEUE_PATH = path.join(DIR, 'queue.json');
 const PORT = Number(process.env.ILDS_REVIEW_UI_PORT || 4400);
 const REPO = process.env.GITHUB_REPOSITORY || 'dsoftacademy/ilds-design-system';
 const [OWNER, NAME] = REPO.split('/');
-const PLAYGROUND_URL = process.env.ILDS_PLAYGROUND_URL || 'http://localhost:8080';
+const FLUTTER_URL = process.env.ILDS_PLAYGROUND_URL || 'http://localhost:8080';
+const STORYBOOK_URL = process.env.ILDS_STORYBOOK_URL || 'http://localhost:6006';
+
+export { componentSlugFromFiles as panelSlugForFiles };
 
 /**
  * @param {string} token
@@ -49,11 +57,6 @@ export async function verifyTokenIdentity(token) {
   return { token, login: user.login, readOnly: false, reason: null };
 }
 
-/**
- * Extract a markdown section body by heading (## Heading), case-insensitive.
- * @param {string} body
- * @param {string} heading
- */
 export function extractSection(body, heading) {
   if (!body) return null;
   const lines = body.split(/\r?\n/);
@@ -73,33 +76,16 @@ export function extractSection(body, heading) {
   return text.length > 0 ? text : null;
 }
 
-/** Map a changed lib file to a playground panel slug. */
-export function panelSlugForFiles(files) {
-  const map = {
-    ilds_button: 'button',
-    ilds_radio: 'radio',
-    ilds_checkbox: 'checkbox',
-    ilds_switch: 'switch',
-    ilds_text_field: 'textfield',
-    ilds_text_area: 'text_area',
-    ilds_dropdown: 'dropdown',
-    ilds_tabs: 'tab',
-    ilds_pagination: 'pagination',
-    ilds_selection_button: 'selection_button',
-    ilds_badge: 'badge',
-    ilds_chip: 'chip',
-    ilds_tag: 'tag',
-    ilds_accordion: 'accordion',
-    ilds_text_link: 'text_link',
-    ilds_search: 'search',
-    ilds_scrollbar: 'scrollbar',
-    ilds_toast: 'toast',
-  };
-  for (const f of files) {
-    const m = f.match(/^lib\/(ilds_[a-z_]+)\.dart$/);
-    if (m && map[m[1]]) return map[m[1]];
+async function serviceHealth(url) {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 1500);
+    const r = await fetch(url, { signal: ctrl.signal, method: 'HEAD' });
+    clearTimeout(t);
+    return r.ok || r.status === 405;
+  } catch {
+    return false;
   }
-  return null;
 }
 
 async function fetchPendingPrs(token) {
@@ -121,6 +107,8 @@ async function fetchPendingPrs(token) {
     const fileNames = files.map((f) => f.filename);
     const classification = classifyFiles(fileNames);
     const type = classification.reason === 'control-plane' ? 'control-plane' : 'content';
+    const slug = componentSlugFromFiles(fileNames);
+    const platforms = platformsFromFiles(fileNames);
 
     const checkRuns = await githubRequest(
       token,
@@ -147,12 +135,16 @@ async function fetchPendingPrs(token) {
     const impact = extractSection(pr.body, 'Impact Summary');
     const section = type === 'content' ? objective : impact;
     const ready = checksGreen && !!section && !alreadyApproved;
+    const chromaticUrl = await findChromaticDetailsUrl(token, OWNER, NAME, pr.head.sha).catch(
+      () => null,
+    );
 
     cards.push({
       number: pr.number,
       title: pr.title,
       type,
-      component: panelSlugForFiles(fileNames),
+      component: slug,
+      platforms: [...platforms],
       section,
       ready,
       alreadyApproved,
@@ -164,13 +156,17 @@ async function fetchPendingPrs(token) {
           : !section
             ? `agents must supply a ${type === 'content' ? 'Visual Objective' : 'Impact Summary'}`
             : null,
-      playgroundUrl: null,
+      platformPreviews:
+        type === 'content' && slug
+          ? buildPlatformPreviews({
+              slug,
+              platforms,
+              storybookUrl: STORYBOOK_URL,
+              flutterUrl: FLUTTER_URL,
+              chromaticUrl,
+            })
+          : [],
     });
-  }
-  for (const c of cards) {
-    if (c.type === 'content' && c.component) {
-      c.playgroundUrl = `${PLAYGROUND_URL}/?panel=${c.component}`;
-    }
   }
   return cards;
 }
@@ -188,11 +184,7 @@ function writeQueue(queue) {
 }
 
 function reviewerFromSession(session) {
-  return {
-    login: session.login,
-    readOnly: session.readOnly,
-    reason: session.reason,
-  };
+  return { login: session.login, readOnly: session.readOnly, reason: session.reason };
 }
 
 async function submitVerdict(session, { number, verdict, note }) {
@@ -208,8 +200,8 @@ async function submitVerdict(session, { number, verdict, note }) {
   const event = verdict === 'pass' ? 'APPROVE' : 'REQUEST_CHANGES';
   const body =
     verdict === 'pass'
-      ? `Visual review: PASS (via ILDS review surface, reviewer ${reviewer.login})`
-      : `VISUAL_FAIL: ${note}\n\n(Recorded via ILDS review surface — agents own the fix.)`;
+      ? `Visual review: PASS (via ILDS UI Review Portal, reviewer ${reviewer.login})`
+      : `VISUAL_FAIL: ${note}\n\n(Recorded via ILDS UI Review Portal — agents own the fix.)`;
   await submitPullRequestReview(session.token, OWNER, NAME, number, { event, body });
 
   appendDecision({
@@ -249,11 +241,30 @@ async function submitQueueVerdict(session, { id, verdict, note }) {
   if (verdict === 'fail') {
     await githubRequest(session.token, 'POST', `/repos/${OWNER}/${NAME}/issues`, {
       title: `VISUAL_FAIL: ${item.component} — ${item.title}`,
-      body: `${note}\n\nObjective that failed:\n\n${item.objective}\n\n(Post-merge visual check ${item.id}; recorded via ILDS review surface. Agents own the fix.)`,
+      body: `${note}\n\nObjective that failed:\n\n${item.objective}\n\n(Post-merge visual check ${item.id}; recorded via ILDS UI Review Portal. Agents own the fix.)`,
       labels: ['visual-fail'],
     });
   }
   return { ok: true };
+}
+
+function enrichQueueItem(q) {
+  const slug = q.component;
+  const platforms = new Set(['react', 'flutter', 'ios', 'android']);
+  return {
+    ...q,
+    component: slug,
+    platforms: [...platforms],
+    platformPreviews: slug
+      ? buildPlatformPreviews({
+          slug,
+          platforms,
+          storybookUrl: STORYBOOK_URL,
+          flutterUrl: FLUTTER_URL,
+          chromaticUrl: null,
+        })
+      : [],
+  };
 }
 
 function json(res, code, data) {
@@ -266,14 +277,9 @@ function redirect(res, location, code = 302) {
   res.end();
 }
 
-function html(res, file) {
-  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+function staticFile(res, file, contentType) {
+  res.writeHead(200, { 'Content-Type': contentType });
   res.end(fs.readFileSync(path.join(DIR, file), 'utf8'));
-}
-
-function css(res) {
-  res.writeHead(200, { 'Content-Type': 'text/css; charset=utf-8' });
-  res.end(fs.readFileSync(path.join(DIR, 'common.css'), 'utf8'));
 }
 
 async function readBody(req) {
@@ -296,15 +302,19 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && pathname === '/styles.css') {
-      css(res);
+      staticFile(res, 'common.css', 'text/css; charset=utf-8');
+      return;
+    }
+    if (req.method === 'GET' && pathname === '/portal.js') {
+      staticFile(res, 'portal.js', 'text/javascript; charset=utf-8');
       return;
     }
     if (req.method === 'GET' && pathname === '/login') {
-      if (getSession(req)) {
+      if (getSession(req) && !new URL(req.url, 'http://x').searchParams.get('add')) {
         redirect(res, '/');
         return;
       }
-      html(res, 'login.html');
+      staticFile(res, 'login.html', 'text/html; charset=utf-8');
       return;
     }
     if (req.method === 'GET' && pathname === '/') {
@@ -312,7 +322,7 @@ const server = http.createServer(async (req, res) => {
         redirect(res, '/login');
         return;
       }
-      html(res, 'index.html');
+      staticFile(res, 'index.html', 'text/html; charset=utf-8');
       return;
     }
     if (req.method === 'GET' && pathname === '/log') {
@@ -320,7 +330,7 @@ const server = http.createServer(async (req, res) => {
         redirect(res, '/login');
         return;
       }
-      html(res, 'log.html');
+      staticFile(res, 'log.html', 'text/html; charset=utf-8');
       return;
     }
     if (req.method === 'POST' && pathname === '/api/login') {
@@ -344,6 +354,27 @@ const server = http.createServer(async (req, res) => {
       json(res, 200, { ok: true });
       return;
     }
+    if (req.method === 'GET' && pathname === '/api/profiles') {
+      const session = requireSession(req, res);
+      if (!session) return;
+      json(res, 200, {
+        active: session.login,
+        profiles: listProfilesPublic(),
+      });
+      return;
+    }
+    if (req.method === 'POST' && pathname === '/api/switch-profile') {
+      const session = requireSession(req, res);
+      if (!session) return;
+      const { login } = await readBody(req);
+      try {
+        switchProfile(req, res, login);
+        json(res, 200, { ok: true, login });
+      } catch (err) {
+        json(res, 400, { error: err.message });
+      }
+      return;
+    }
     if (req.method === 'GET' && pathname === '/api/me') {
       const session = getSession(req);
       if (!session) {
@@ -363,20 +394,21 @@ const server = http.createServer(async (req, res) => {
       const session = requireSession(req, res);
       if (!session) return;
       const reviewer = reviewerFromSession(session);
-      const [prs, queue] = await Promise.all([
+      const [prs, queue, flutterUp, storybookUp] = await Promise.all([
         fetchPendingPrs(session.token),
         Promise.resolve(readQueue()),
+        serviceHealth(FLUTTER_URL),
+        serviceHealth(STORYBOOK_URL),
       ]);
       json(res, 200, {
         reviewer: reviewer.login,
         readOnly: reviewer.readOnly,
         readOnlyReason: reviewer.reason,
-        playgroundUrl: PLAYGROUND_URL,
+        flutterUrl: FLUTTER_URL,
+        storybookUrl: STORYBOOK_URL,
+        services: { flutter: flutterUp, storybook: storybookUp },
         prs,
-        queue: queue.map((q) => ({
-          ...q,
-          playgroundUrl: `${PLAYGROUND_URL}/?panel=${q.component}`,
-        })),
+        queue: queue.map(enrichQueueItem),
       });
       return;
     }
@@ -400,22 +432,16 @@ const server = http.createServer(async (req, res) => {
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
+  seedDecisionLogIfEmpty();
   const restoredSid = restorePersistedSession();
   server.listen(PORT, () => {
-    console.log(`ILDS review surface: http://localhost:${PORT}`);
+    console.log(`ILDS UI Review Portal: http://localhost:${PORT}`);
     console.log(`Sign in: http://localhost:${PORT}/login`);
     if (restoredSid) {
-      try {
-        const raw = JSON.parse(
-          fs.readFileSync(path.join(process.env.HOME, '.ilds', 'review-ui', 'session.json'), 'utf8'),
-        );
-        console.log(`Restored session for ${raw.login}`);
-      } catch {
-        console.log('Restored previous session');
-      }
+      const profiles = listProfilesPublic();
+      console.log(`Restored profile(s): ${profiles.map((p) => p.login).join(', ') || 'unknown'}`);
     }
-    console.log(
-      `Playground expected at: ${PLAYGROUND_URL} (flutter run -d web-server --web-port 8080 in ilds_component_playground_app/)`,
-    );
+    console.log(`Flutter preview: ${FLUTTER_URL}`);
+    console.log(`Storybook preview: ${STORYBOOK_URL}`);
   });
 }

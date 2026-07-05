@@ -3,41 +3,32 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ILDS Review</title>
+<title>ILDS UI Review Portal</title>
 <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-<header class="app-header">
-  <h1>ILDS Review</h1>
-  <div class="header-spacer"></div>
-  <a class="header-link" href="/log">Check log</a>
-  <span class="header-user" id="who"></span>
-  <button type="button" class="btn-ghost" id="logout-btn">Logout</button>
-</header>
+<div id="header-root"></div>
 <main id="main"><div class="empty">Loading…</div></main>
-<div class="modal-backdrop" id="logout-modal">
-  <div class="modal" role="dialog" aria-labelledby="logout-title">
-    <h3 id="logout-title">Log out?</h3>
-    <p>You will need to sign in again with your GitHub token.</p>
-    <div class="modal-actions">
-      <button type="button" class="btn-ghost" id="logout-cancel">Cancel</button>
-      <button type="button" class="action fail" id="logout-confirm">Logout</button>
-    </div>
-  </div>
-</div>
-<script>
+<script type="module">
+import {
+  headerHtml,
+  initPortal,
+  notifyIfNewItems,
+  platformPreviewHtml,
+  bindPlatformTabs,
+  escHtml,
+} from '/portal.js';
+
 const $ = (s) => document.querySelector(s);
 let state = null;
 
-function escAttr(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-}
+document.getElementById('header-root').innerHTML = headerHtml({ activePage: 'review' });
 
-function previewBlock(url) {
-  return `<div class="preview-wrap">
-    <iframe class="preview-frame" src="${escAttr(url)}" title="Component preview"></iframe>
-    <a class="preview-tab" target="_blank" rel="noopener" href="${escAttr(url)}">Open full playground ↗</a>
-  </div>`;
+function platformBadges(platforms) {
+  if (!platforms?.length) return '';
+  return platforms
+    .map((p) => `<span class="badge platform">${escHtml(p.toUpperCase())}</span>`)
+    .join('');
 }
 
 function card(item, kind) {
@@ -45,47 +36,70 @@ function card(item, kind) {
   el.className = 'card';
   const isCp = item.type === 'control-plane';
   const label = kind === 'pr' ? `PR #${item.number}` : 'Post-merge check';
-  const badge = isCp ? '<span class="badge cp">CONTROL-PLANE</span>' : '<span class="badge content">COMPONENT</span>';
+  const badge = isCp
+    ? '<span class="badge cp">CONTROL-PLANE</span>'
+    : '<span class="badge content">COMPONENT</span>';
   const section = item.section || item.objective || '';
-  const hasPreview = !isCp && item.playgroundUrl;
-  const preview = hasPreview ? previewBlock(item.playgroundUrl) : '';
+  const platformTags = !isCp ? platformBadges(item.platforms) : '';
+  const preview =
+    !isCp && item.platformPreviews?.length
+      ? platformPreviewHtml(item.platformPreviews)
+      : '';
   const heading = isCp ? 'What changes, why, and the risk:' : 'What to check:';
 
-  if (kind === 'pr' && !item.ready) {
-    el.innerHTML = `<div class="top">${badge}<span class="title">${label} — ${item.title}</span></div>
-      <div class="waiting">⏳ ${item.waitingReason}</div>`;
+  if (kind === 'pr' && !item.ready && !item.alreadyApproved) {
+    el.innerHTML = `<div class="top">${badge}${platformTags}<span class="title">${label} — ${escHtml(item.title)}</span></div>
+      <div class="waiting">⏳ ${escHtml(item.waitingReason)}</div>`;
     return el;
   }
-  if (kind === 'queue' && item.status !== 'pending') {
-    el.innerHTML = `<div class="top">${badge}<span class="title">${item.title}</span></div>
-      <div class="done">Verdict recorded: ${item.status}</div>`;
+  if ((kind === 'pr' && item.alreadyApproved) || (kind === 'queue' && item.status !== 'pending')) {
+    const status =
+      kind === 'pr'
+        ? item.waitingReason || 'approved'
+        : `Verdict recorded: ${item.status}`;
+    el.innerHTML = `<div class="top">${badge}${platformTags}<span class="title">${kind === 'pr' ? `${label} — ${escHtml(item.title)}` : escHtml(item.title)}</span></div>
+      <div class="done">${escHtml(status)}</div>`;
     return el;
   }
   el.innerHTML = `
-    <div class="top">${badge}<span class="title">${label} — ${item.title}</span></div>
+    <div class="top">${badge}${platformTags}<span class="title">${label} — ${escHtml(item.title)}</span></div>
     <div><strong>${heading}</strong></div>
     <div class="objective"></div>
     <div class="row">
-      <button class="action pass">${isCp ? 'Authorize' : 'Pass'}</button>
-      <button class="action fail">${isCp ? 'Reject' : 'Fail'}</button>
+      <button type="button" class="action pass">${isCp ? 'Authorize' : 'Pass'}</button>
+      <button type="button" class="action fail">${isCp ? 'Reject' : 'Fail'}</button>
     </div>
     ${preview}
     <textarea rows="3" placeholder="What looked wrong? Plain language — agents own the fix."></textarea>
     <div class="err"></div>`;
   el.querySelector('.objective').textContent = section;
+  bindPlatformTabs(el);
   const ta = el.querySelector('textarea');
   const err = el.querySelector('.err');
   const send = async (verdict) => {
-    if (verdict === 'fail' && !ta.value.trim()) { ta.style.display = 'block'; ta.focus(); return; }
+    if (verdict === 'fail' && !ta.value.trim()) {
+      ta.style.display = 'block';
+      ta.focus();
+      return;
+    }
     for (const b of el.querySelectorAll('button.action')) b.disabled = true;
     const url = kind === 'pr' ? '/api/verdict' : '/api/queue-verdict';
-    const payload = kind === 'pr'
-      ? { number: item.number, verdict, note: ta.value.trim() }
-      : { id: item.id, verdict, note: ta.value.trim() };
-    const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), credentials: 'include' });
+    const payload =
+      kind === 'pr'
+        ? { number: item.number, verdict, note: ta.value.trim() }
+        : { id: item.id, verdict, note: ta.value.trim() };
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      credentials: 'include',
+    });
     const d = await r.json();
     if (d.ok) load();
-    else { err.textContent = d.error; for (const b of el.querySelectorAll('button.action')) b.disabled = false; }
+    else {
+      err.textContent = d.error;
+      for (const b of el.querySelectorAll('button.action')) b.disabled = false;
+    }
   };
   el.querySelector('.pass').onclick = () => send('pass');
   el.querySelector('.fail').onclick = () => send('fail');
@@ -93,13 +107,30 @@ function card(item, kind) {
   return el;
 }
 
+function serviceBanner(services) {
+  const parts = [];
+  if (!services.flutter) parts.push('Flutter playground offline (port 8080)');
+  if (!services.storybook) parts.push('Storybook offline (port 6006)');
+  if (!parts.length) return null;
+  const el = document.createElement('div');
+  el.className = 'service-warn';
+  el.textContent = `${parts.join(' · ')} — native tabs still available.`;
+  return el;
+}
+
 async function load() {
   const r = await fetch('/api/state', { credentials: 'include' });
-  if (r.status === 401) { window.location.href = '/login'; return; }
+  if (r.status === 401) {
+    window.location.href = '/login';
+    return;
+  }
   state = await r.json();
-  $('#who').textContent = state.reviewer ? `Signed in as ${state.reviewer}` : '';
+  notifyIfNewItems(state);
   const main = $('#main');
   main.innerHTML = '';
+  const warn = serviceBanner(state.services);
+  if (warn) main.appendChild(warn);
+
   const pendingQueue = state.queue.filter((q) => q.status === 'pending');
   const waitingCards = [
     ...state.prs.filter((p) => p.ready).map((p) => card(p, 'pr')),
@@ -117,8 +148,14 @@ async function load() {
     for (const c of waitingCards) main.appendChild(c);
   }
   const secondary = [
-    ['With the agents', state.prs.filter((p) => !p.ready).map((p) => card(p, 'pr'))],
-    ['Recently decided', state.queue.filter((q) => q.status !== 'pending').map((q) => card(q, 'queue'))],
+    ['With the agents', state.prs.filter((p) => !p.ready && !p.alreadyApproved).map((p) => card(p, 'pr'))],
+    [
+      'Recently decided',
+      [
+        ...state.prs.filter((p) => p.alreadyApproved).map((p) => card(p, 'pr')),
+        ...state.queue.filter((q) => q.status !== 'pending').map((q) => card(q, 'queue')),
+      ],
+    ],
   ];
   for (const [title, cards] of secondary) {
     if (!cards.length) continue;
@@ -129,15 +166,9 @@ async function load() {
   }
 }
 
-$('#logout-btn').onclick = () => $('#logout-modal').classList.add('open');
-$('#logout-cancel').onclick = () => $('#logout-modal').classList.remove('open');
-$('#logout-confirm').onclick = async () => {
-  await fetch('/api/logout', { method: 'POST', credentials: 'include' });
-  window.location.href = '/login';
-};
-
+await initPortal({ activePage: 'review', onProfileChange: load });
 load();
-setInterval(load, 60_000);
+setInterval(load, 20_000);
 </script>
 </body>
 </html>

@@ -34,7 +34,7 @@ for _ in $(seq 1 40); do
   sleep 0.15
 done
 
-echo "Review UI ready at ${URL}/login (pid ${SERVER_PID})"
+echo "ILDS UI Review Portal ready at ${URL}/login (pid ${SERVER_PID})"
 if [[ -z "${ILDS_REVIEW_UI_NO_OPEN:-}" ]] && command -v open >/dev/null 2>&1; then
   open "${URL}/login"
 elif [[ -z "${ILDS_REVIEW_UI_NO_OPEN:-}" ]]; then
