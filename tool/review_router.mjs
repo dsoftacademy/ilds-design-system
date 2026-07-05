@@ -21,17 +21,16 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { classifyFiles } from './lib/review_router_classify.mjs';
 import { githubRequest, submitPullRequestReview } from './lib/slack_pr.mjs';
+import {
+  BOT_REVIEWER_LOGINS,
+  assertPrAuthorAllowsHumanApproval,
+} from './lib/pr_authorship.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const LABEL_AUTO = 'auto-merge';
 export const LABEL_HUMAN = 'needs-human';
 
-/** Bot logins that may never satisfy T1 human approval. */
-export const BOT_REVIEWER_LOGINS = new Set([
-  'uniquedesignpratishek-maker',
-  'github-actions[bot]',
-  'dependabot[bot]',
-]);
+export { BOT_REVIEWER_LOGINS } from './lib/pr_authorship.mjs';
 
 /**
  * @param {'T0' | 'T1'} tier
@@ -235,6 +234,15 @@ async function autoMergeCommand(prNumber, { reclassify = true } = {}) {
   if (!tier) {
     console.log(`PR #${prNumber} is unclassified — skipping auto-merge enable`);
     return { skipped: 'unclassified' };
+  }
+
+  if (tier === 'T1') {
+    try {
+      assertPrAuthorAllowsHumanApproval(pr.user?.login);
+    } catch (error) {
+      console.error(`PR #${prNumber}: ${error.message}`);
+      return { skipped: 'human-authored-pr' };
+    }
   }
 
   const plan = autoMergePlanForTier(tier);

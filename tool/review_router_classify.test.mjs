@@ -28,6 +28,8 @@ describe('review_router_classify', () => {
     assert.equal(classifyFiles(['docs/adversary/FAILURE_CATALOG.md']).reason, 'control-plane');
     assert.equal(classifyFiles(['docs/PHASE5F_ROUTER_SETTINGS.md']).reason, 'control-plane');
     assert.equal(classifyFiles(['docs/PHASE5F_AUTOMERGE_ON_APPROVAL.md']).reason, 'control-plane');
+    assert.equal(classifyFiles(['docs/CONTROL_PLANE_INTEGRITY.md']).reason, 'control-plane');
+    assert.equal(classifyFiles(['docs/reports/PR35_RETROACTIVE_REVIEW.md']).reason, 'control-plane');
     assert.equal(classifyFiles(['docs/PHASE5F_T0_PROOF.md']).tier, 'T0');
   });
 

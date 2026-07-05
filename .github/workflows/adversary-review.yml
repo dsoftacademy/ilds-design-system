@@ -1,6 +1,9 @@
 name: Adversary Review
 
-# Phase 6 MVP — independent adversary CI check on component/token PRs.
+# Required check on every merge — routes by path (see tool/adversary/pr_gate.mjs):
+#   component paths → catalog + Opus judge
+#   control-plane paths → test:integrity (L1–L8)
+#   safe T0 only → explicit skip (Chromatic pattern)
 
 on:
   pull_request:
@@ -8,8 +11,11 @@ on:
       - 'lib/**'
       - 'web/src/**'
       - 'tokens/**'
-      - 'tool/adversary/**'
-      - 'docs/adversary/**'
+      - 'tool/**'
+      - 'docs/**'
+      - '.github/**'
+      - 'agents/**'
+      - 'package.json'
 
 permissions:
   contents: read
@@ -31,7 +37,7 @@ jobs:
       - name: Install adversary dependencies
         run: npm install --no-save @anthropic-ai/sdk@^0.39.0
 
-      - name: Run adversary review
+      - name: Run PR gate (component adversary or control-plane integrity)
         id: adversary
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -41,13 +47,13 @@ jobs:
           ILDS_ADVERSARY_REQUIRE_JUDGE: 'true'
         run: |
           set -euo pipefail
-          node tool/adversary/run_review.mjs --pr ${{ github.event.pull_request.number }} --output /tmp/adversary-report.md
+          node tool/adversary/pr_gate.mjs --pr ${{ github.event.pull_request.number }} --output /tmp/adversary-report.md
         continue-on-error: true
 
       - name: Post report on PR
         if: always()
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
@@ -55,11 +61,14 @@ jobs:
             echo "No report generated"
             exit 0
           fi
-          BODY=$(cat /tmp/adversary-report.md)
-          gh pr comment ${{ github.event.pull_request.number }} --body "$BODY"
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          REPO="${GITHUB_REPOSITORY##*/}"
+          PR="${{ github.event.pull_request.number }}"
+          gh api "repos/${OWNER}/${REPO}/issues/${PR}/comments" \
+            -f body="$(cat /tmp/adversary-report.md)"
 
       - name: Fail on block verdict
         if: steps.adversary.outcome == 'failure'
         run: |
-          echo "Adversary blocked this PR — see report comment."
+          echo "PR gate blocked — see report comment."
           exit 1
