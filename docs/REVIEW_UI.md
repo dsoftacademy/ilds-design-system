@@ -15,12 +15,11 @@ cd ilds_component_playground_app && flutter run -d web-server --web-port 8080
 ILDS_REVIEWER_TOKEN=<your token> node tool/review_ui/server.mjs
 ```
 
-Open http://localhost:4400. Everything under **"Waiting for your eyes"**
-needs a verdict. Cards link straight to the right playground panel.
+Open http://localhost:4400. Component cards show the **playground panel inline** (iframe)
+next to the objective and verdict buttons — no tab-switching. Control-plane cards
+still show Impact Summary text only.
 
-- **Component card** → open the preview, check it against "What to check", press
-  **Pass** or **Fail**. A fail asks one question: what looked wrong, in plain
-  language. That's it — agents own the fix.
+- **Component card** → rendered preview + "What to check" + **Pass** / **Fail**
 - **Control-plane card** → no visual exists. You get a plain-language impact
   summary (what changes, why, risk). **Authorize** or **Reject** from that.
 

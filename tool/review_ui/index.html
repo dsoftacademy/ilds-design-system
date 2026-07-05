@@ -15,10 +15,18 @@
            display: flex; align-items: baseline; gap: 12px; }
   header h1 { font-size: 18px; } header .who { color: var(--gray); font-size: 13px; }
   .ro { color: var(--red); font-size: 13px; font-weight: 600; }
-  main { max-width: 860px; margin: 24px auto; padding: 0 16px; display: grid; gap: 16px; }
+  main { max-width: 1100px; margin: 24px auto; padding: 0 16px; display: grid; gap: 16px; }
   h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--gray); margin-top: 8px; }
   .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; display: grid; gap: 10px; }
   .card .top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .review-body { display: grid; gap: 16px; }
+  @media (min-width: 720px) {
+    .review-body.has-preview { grid-template-columns: 1fr min(440px, 46%); align-items: start; }
+  }
+  .preview-wrap { display: grid; gap: 6px; }
+  .preview-frame { width: 100%; height: 360px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+  .preview-tab { font-size: 12px; color: var(--gray); text-decoration: none; }
+  .preview-tab:hover { color: var(--orange); }
   .badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
   .badge.content { background: var(--orange-50); color: var(--orange); }
   .badge.cp { background: #ede9fe; color: #6d28d9; }
@@ -30,7 +38,6 @@
   button { font: inherit; font-weight: 600; border: 0; border-radius: 8px; padding: 8px 18px; cursor: pointer; }
   .pass { background: var(--green); color: #fff; } .fail { background: var(--red); color: #fff; }
   button:disabled { opacity: .45; cursor: not-allowed; }
-  a.preview { color: var(--orange); font-weight: 600; text-decoration: none; }
   textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px; font: inherit; display: none; }
   .empty { color: var(--gray); text-align: center; padding: 24px; }
   .done { color: var(--green); font-weight: 600; }
@@ -48,6 +55,18 @@
 const $ = (s) => document.querySelector(s);
 let state = null;
 
+function escAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function previewBlock(url) {
+  if (!url) return '';
+  return `<div class="preview-wrap">
+    <iframe class="preview-frame" src="${escAttr(url)}" title="Component preview"></iframe>
+    <a class="preview-tab" target="_blank" rel="noopener" href="${escAttr(url)}">Open full playground ↗</a>
+  </div>`;
+}
+
 function card(item, kind) {
   const el = document.createElement('div');
   el.className = 'card';
@@ -55,8 +74,8 @@ function card(item, kind) {
   const label = kind === 'pr' ? `PR #${item.number}` : 'Post-merge check';
   const badge = isCp ? '<span class="badge cp">CONTROL-PLANE</span>' : '<span class="badge content">COMPONENT</span>';
   const section = item.section || item.objective || '';
-  const preview = !isCp && item.playgroundUrl
-    ? `<a class="preview" target="_blank" href="${item.playgroundUrl}">Open preview ↗</a>` : '';
+  const hasPreview = !isCp && item.playgroundUrl;
+  const preview = hasPreview ? previewBlock(item.playgroundUrl) : '';
   const heading = isCp ? 'What changes, why, and the risk:' : 'What to check:';
 
   if (kind === 'pr' && !item.ready) {
@@ -71,11 +90,16 @@ function card(item, kind) {
   }
   el.innerHTML = `
     <div class="top">${badge}<span class="title">${label} — ${item.title}</span></div>
-    <div><strong>${heading}</strong></div>
-    <div class="objective"></div>
-    <div class="row">${preview}
-      <button class="pass">${isCp ? 'Authorize' : 'Pass'}</button>
-      <button class="fail">${isCp ? 'Reject' : 'Fail'}</button>
+    <div class="review-body${hasPreview ? ' has-preview' : ''}">
+      <div class="review-copy">
+        <div><strong>${heading}</strong></div>
+        <div class="objective"></div>
+        <div class="row">
+          <button class="pass">${isCp ? 'Authorize' : 'Pass'}</button>
+          <button class="fail">${isCp ? 'Reject' : 'Fail'}</button>
+        </div>
+      </div>
+      ${preview}
     </div>
     <textarea rows="3" placeholder="What looked wrong? Plain language — agents own the fix."></textarea>
     <div class="err"></div>`;
