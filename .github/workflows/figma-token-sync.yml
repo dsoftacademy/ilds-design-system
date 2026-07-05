@@ -68,8 +68,12 @@ jobs:
       - name: Open pull request
         if: steps.diff.outputs.changed == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.ILDS_AUTO_MERGE_TOKEN }}
         run: |
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "::error::ILDS_AUTO_MERGE_TOKEN required for bot-authored PRs (L3)."
+            exit 1
+          fi
           gh pr create \
             --base main \
             --head "$BRANCH" \

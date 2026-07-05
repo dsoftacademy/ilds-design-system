@@ -5,7 +5,8 @@
  *   node tool/agent-org/run.mjs --task radio-round1
  *   node tool/agent-org/run.mjs --task radio-round2-dodge --dry-run
  *
- * Requires ANTHROPIC_API_KEY. Control-plane — routes to human review before merge.
+ * Requires ANTHROPIC_API_KEY. PRs opened by the agent org must use ILDS_AUTO_MERGE_TOKEN
+ * (bot authorship — see docs/CONTROL_PLANE_INTEGRITY.md).
  */
 
 import fs from 'node:fs';

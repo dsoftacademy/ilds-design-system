@@ -19,8 +19,10 @@
 /tool/agent-org/ @dsoftacademy
 /tool/review_router.mjs @dsoftacademy
 /tool/review_router.test.mjs @dsoftacademy
+/tool/control_plane_integrity.test.mjs @dsoftacademy
 /tool/review_router_classify.test.mjs @dsoftacademy
 /tool/lib/review_router_classify.mjs @dsoftacademy
+/tool/lib/pr_authorship.mjs @dsoftacademy
 /tool/lib/slack_pr.mjs @dsoftacademy
 /tool/propose_change.mjs @dsoftacademy
 /tool/notify_pr_slack.mjs @dsoftacademy
@@ -32,3 +34,8 @@
 /CURSOR_SELECTIVE_REVIEW_ROUTER.md @dsoftacademy
 /docs/PHASE5F_ROUTER_SETTINGS.md @dsoftacademy
 /docs/PHASE5F_AUTOMERGE_ON_APPROVAL.md @dsoftacademy
+/docs/CONTROL_PLANE_INTEGRITY.md @dsoftacademy
+/docs/reports/PR35_RETROACTIVE_REVIEW.md @dsoftacademy
+
+# Catch-all — every path has a human owner (L5). T0 auto-merge is router policy, not absent ownership.
+* @dsoftacademy
