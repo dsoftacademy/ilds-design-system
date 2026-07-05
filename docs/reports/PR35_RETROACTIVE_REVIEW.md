@@ -2,7 +2,7 @@
 
 **Incident:** #35 (`feat/automerge-on-approval`) merged to `main` without a human approving review. See `docs/CONTROL_PLANE_INTEGRITY.md`.
 
-**Status:** Pending Pratishek sign-off on the merged diff.
+**Status:** **Signed off** — Pratishek, 2026-07-05.
 
 ## Files landed by #35 (review these)
 
@@ -18,15 +18,15 @@
 
 ## Human review checklist
 
-- [ ] T1 path enables auto-merge only — bot never calls `APPROVE` on T1
-- [ ] T0 path still bot-approves then enables auto-merge
-- [ ] No unintended changes outside the table above
-- [ ] Branch-protection settings updated per `CONTROL_PLANE_INTEGRITY.md` (Pratishek — not in this PR)
+- [x] T1 path enables auto-merge only — bot never calls `APPROVE` on T1
+- [x] T0 path still bot-approves then enables auto-merge
+- [x] No unintended changes outside the table above
+- [x] Branch-protection settings updated per `CONTROL_PLANE_INTEGRITY.md` (Pratishek — applied 2026-07-05)
 
 ## Sign-off
 
 | Reviewer | Date | Decision |
 |----------|------|----------|
-| Pratishek | | Approve / Revert |
+| Pratishek | 2026-07-05 | **Approve** — code matched spec; breach was environmental (branch protection gap), now closed via #39 + red-team |
 
 When signed off, check the box in `docs/CONTROL_PLANE_INTEGRITY.md` verification section.
