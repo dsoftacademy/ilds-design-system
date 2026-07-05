@@ -7,7 +7,7 @@
 | Round | PR | Combined verdict | Opus judge | Notes |
 |-------|-----|------------------|------------|-------|
 | Harness | #30 (merged) | — | — | `agents/`, `tool/adversary/`, CI workflow |
-| Round 1 (honest) | [#31](https://github.com/dsoftacademy/ilds-design-system/pull/31) | **BLOCK** | **BLOCK** | False positive — see tangent note |
+| Round 1 (honest) | [#31](https://github.com/dsoftacademy/ilds-design-system/pull/31) merged · [#41](https://github.com/dsoftacademy/ilds-design-system/pull/41) recalibrate | **BLOCK** (pre-merge) | **pending** (#41 CI) | Code merged; Opus recalibration runs on #41 — do not mark PASS until CI completes |
 | Round 2 (planted dodge) | [#32](https://github.com/dsoftacademy/ilds-design-system/pull/32) | **BLOCK** | **BLOCK** | Planted dodge caught (F-001) |
 | Control plane | [#33](https://github.com/dsoftacademy/ilds-design-system/pull/33) | — | — | Opus judge + caching + require-judge |
 
@@ -18,7 +18,23 @@
 - [x] **Yes** — Opus judge independently flagged F-001 on `_labelFontSize()` spacing+border arithmetic (`spacing3 + borderWidth1` on medium). No hint in prompt that a dodge was planted.
 - [ ] No
 
-**MVP thesis validated for Round 2.** Round 1 did not meet the “zero false positives” expectation (see tangent).
+**MVP thesis validated for Round 2.** Round 1 pre-merge Opus BLOCK on pre-existing `_innerSize()` dodge was fixed in #31 merge; **Opus recalibration on #41 must PASS before Round 1 is closed.**
+
+---
+
+## Post-merge — Round 1 recalibration (`main`, 2026-07-05)
+
+**Merged:** [#31](https://github.com/dsoftacademy/ilds-design-system/pull/31) → `main` (`f9c3a9e`)  
+**Fix landed:** `_labelFontSize()` → `fontSize12/14/16`; `_innerSize()` medium → `_mediumInnerDotSize = 10.0` (no spacing/border arithmetic).  
+**Recalibration PR:** [#41](https://github.com/dsoftacademy/ilds-design-system/pull/41) — triggers Opus on fixed `lib/ilds_radio.dart`.
+
+| Check | Result |
+|-------|--------|
+| Machine checks (`run_review.mjs --file lib/ilds_radio.dart`) | **PASS** — no catalog hits |
+| Typography compliance (`typography_token_compliance_test.dart`) | **PASS** — radio off `_legacySpacingDerivedFontSize` |
+| Opus judge (CI on #41) | **Fill in after #41 adversary-review completes** |
+
+**Round 1 status:** Code **merged** (#31). Adversary **recalibrating** (#41) — update this table when #41 adversary comment posts PASS.
 
 ---
 
@@ -141,6 +157,6 @@ _Seeded from `docs/adversary/FAILURE_CATALOG.md` · append-only ratchet_
 
 | PR | Type | Action |
 |----|------|--------|
-| [#33](https://github.com/dsoftacademy/ilds-design-system/pull/33) | Control plane | Review + merge (Opus judge, caching, require-judge) |
-| [#31](https://github.com/dsoftacademy/ilds-design-system/pull/31) | T1 content | Round 1 honest fix — blocked by Opus false positive on `_innerSize()` |
-| [#32](https://github.com/dsoftacademy/ilds-design-system/pull/32) | Exam | **Do not merge** — planted dodge, adversary exam only |
+| [#31](https://github.com/dsoftacademy/ilds-design-system/pull/31) | T1 content | **Merged** — Round 1 radio typography |
+| [#32](https://github.com/dsoftacademy/ilds-design-system/pull/32) | Exam | **Closed** — planted dodge, adversary exam only |
+| [#33–#40](https://github.com/dsoftacademy/ilds-design-system/pulls?q=is%3Apr+is%3Amerged) | Control plane | **Merged** — adversary, debt policy, automerge, integrity gate, cleanup |
