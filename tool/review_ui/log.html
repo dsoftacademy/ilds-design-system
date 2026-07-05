@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ILDS Review — Decision log</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<header class="app-header">
+  <h1>ILDS Review</h1>
+  <div class="header-spacer"></div>
+  <a class="header-link" href="/">← Back to review</a>
+  <span class="header-user" id="who"></span>
+  <button type="button" class="btn-ghost" id="logout-btn">Logout</button>
+</header>
+<main>
+  <h2>Decision log</h2>
+  <table class="log-table" id="log-table">
+    <thead>
+      <tr><th>#</th><th>Time</th><th>Item</th><th>Verdict</th><th>State</th><th>Reviewer</th></tr>
+    </thead>
+    <tbody id="log-body"></tbody>
+  </table>
+  <div class="empty" id="empty" hidden>No decisions recorded yet.</div>
+</main>
+<div class="modal-backdrop" id="logout-modal">
+  <div class="modal" role="dialog" aria-labelledby="logout-title">
+    <h3 id="logout-title">Log out?</h3>
+    <p>You will need to sign in again with your GitHub token.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn-ghost" id="logout-cancel">Cancel</button>
+      <button type="button" class="action fail" id="logout-confirm">Logout</button>
+    </div>
+  </div>
+</div>
+<script>
+const $ = (s) => document.querySelector(s);
+
+async function loadLog() {
+  const r = await fetch('/api/log', { credentials: 'include' });
+  if (r.status === 401) { window.location.href = '/login'; return; }
+  const d = await r.json();
+  $('#who').textContent = d.reviewer ? `Signed in as ${d.reviewer}` : '';
+  const body = $('#log-body');
+  body.innerHTML = '';
+  if (!d.entries?.length) {
+    $('#empty').hidden = false;
+    $('#log-table').hidden = true;
+    return;
+  }
+  $('#empty').hidden = true;
+  $('#log-table').hidden = false;
+  for (const e of d.entries) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${e.serial}</td><td>${new Date(e.at).toLocaleString()}</td><td>${e.label}</td><td>${e.verdict}</td><td>${e.state}</td><td>${e.reviewer}</td>`;
+    body.appendChild(tr);
+  }
+}
+
+$('#logout-btn').onclick = () => $('#logout-modal').classList.add('open');
+$('#logout-cancel').onclick = () => $('#logout-modal').classList.remove('open');
+$('#logout-confirm').onclick = async () => {
+  await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+  window.location.href = '/login';
+};
+
+loadLog();
+</script>
+</body>
+</html>

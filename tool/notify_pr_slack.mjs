@@ -2,19 +2,19 @@
 /**
  * Phase 5d — Post a Slack notification when an ILDS PR is opened for review.
  *
- * 5d-1: SLACK_WEBHOOK_URL → rich message
- * 5d-2: Approve / Request changes buttons via webhook (same Slack app) or SLACK_BOT_TOKEN + SLACK_CHANNEL_ID
+ * Notify-only: links to ILDS Review UI for Pass/Fail or Authorize/Reject.
+ * Interactive Approve buttons (5d-2) are deprecated — set SLACK_NOTIFY_INTERACTIVE=true to re-enable.
  *
- * Called from .github/workflows/pr-slack-notify.yml (primary).
+ * Called from .github/workflows/review-router.yml (T1 notify).
  * Local dry-run:
  *   GITHUB_TOKEN=$(gh auth token) node tool/notify_pr_slack.mjs --pr 14 --dry-run
  *
  * Env:
- *   SLACK_WEBHOOK_URL — incoming webhook (5d-1 fallback)
- *   SLACK_BOT_TOKEN — bot token with chat:write (5d-2 interactive buttons)
- *   SLACK_CHANNEL_ID — channel ID e.g. C0AN3J0DKJN (required with bot token)
+ *   SLACK_WEBHOOK_URL — incoming webhook (preferred)
+ *   SLACK_BOT_TOKEN + SLACK_CHANNEL_ID — optional bot post (notify-only)
+ *   ILDS_REVIEW_UI_URL — link in message (default http://localhost:4400)
+ *   SLACK_NOTIFY_INTERACTIVE — "true" to restore Approve buttons (legacy)
  *   GITHUB_TOKEN or GH_TOKEN — repo read
- *   GITHUB_REPOSITORY — owner/repo (auto-detected from git remote if omitted)
  */
 
 import { execSync } from 'node:child_process';
@@ -57,7 +57,7 @@ if (args.help) {
 
 Posts a rich Slack message for an open PR (Phase 5d).
 
-Env: SLACK_BOT_TOKEN + SLACK_CHANNEL_ID (interactive) or SLACK_WEBHOOK_URL (notify-only)`);
+Env: SLACK_WEBHOOK_URL or SLACK_BOT_TOKEN + SLACK_CHANNEL_ID (notify-only; links to ILDS Review UI)`);
   process.exit(0);
 }
 
@@ -76,10 +76,9 @@ if (!token) {
 const botToken = process.env.SLACK_BOT_TOKEN;
 const channelId = process.env.SLACK_CHANNEL_ID ?? 'C0AN3J0DKJN';
 const webhookUrl = process.env.SLACK_WEBHOOK_URL;
-const interactiveOff = process.env.SLACK_NOTIFY_INTERACTIVE === 'false';
+const reviewUiUrl = process.env.ILDS_REVIEW_UI_URL || 'http://localhost:4400';
+const interactive = process.env.SLACK_NOTIFY_INTERACTIVE === 'true';
 const useBot = Boolean(botToken && channelId);
-// Incoming webhooks support action blocks when the Slack app has Interactivity enabled.
-const interactive = !interactiveOff && Boolean(useBot || webhookUrl);
 
 if (!useBot && !webhookUrl && !args['dry-run']) {
   console.error(
@@ -102,7 +101,8 @@ const payload = buildSlackPayload({
   parsed,
   chromaticUrl,
   repo: repoSlug,
-  interactive: interactive,
+  interactive,
+  reviewUiUrl,
 });
 
 if (args['dry-run']) {

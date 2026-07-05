@@ -31,7 +31,7 @@ Everything below exists to make that invariant true and keep it true.
 | L9 | Stale approval: human approves, agent pushes a new commit, auto-merge fires on the old approval | **"Dismiss stale pull request approvals when new commits are pushed"** = ON. Re-approval required after any new commit. |
 | L10 | An "emergency override" / admin-merge escape hatch becomes the routine bypass | **No override path.** If a real emergency needs a bypass, it is a deliberate, logged, human-only settings change — never a standing feature. |
 | L11 | Squash/rebase merge lets the bot merge as itself without review gate | Merge method doesn't change the review requirement — L1/L2 cover it. Bot merging is fine *only after* GitHub confirms the human review + checks (which L1/L2 enforce). |
-| L12 | Approval moves to Slack and the Slack bridge approves as the bot / an unverified user | See the Slack section — the bridge submits the review **as the human's GitHub identity**, verifies the Slack signing secret, and verifies the clicking user is the authorized human. Slack is a trigger for a real human approval, never a substitute. |
+| L12 | Approval moves to Slack and the Slack bridge approves as the bot / an unverified user | **Closed (2026-07-06):** Slack is notify-only; human verdicts go through **ILDS Review UI** (`tool/review_ui/`). No Slack Approve buttons; no reviewer PAT required. |
 
 ---
 
@@ -76,23 +76,15 @@ Bot `uniquedesignpratishek-maker`: **Collaborator (Write)** on personal repo —
 
 ---
 
-## Slack approval (Pratishek's mobile ask) — done safely
+## Slack notify (awareness only)
 
-Goal: Pratishek approves/rejects from Slack (incl. phone); GitHub stays the enforcement point.
+Slack posts T1 PR alerts to `#design-system-updates` with a link to **ILDS Review UI**
+(`http://localhost:4400`). The human Pass/Fail or Authorize/Reject there — not in Slack.
 
-**Design (non-negotiable properties):**
-- Slack is a **trigger**, not the source of truth. The gate remains GitHub's required human review.
-- On a T1 PR, the bot posts the **plain-language decision card** (from `PREEXISTING_DEBT_POLICY.md`) to Slack with **Approve / Reject** buttons and a deep link.
-- On tap, the interactivity endpoint MUST:
-  1. **Verify the Slack signing secret** (request authenticity).
-  2. **Verify the clicking Slack user is Pratishek** (authorization — a fixed allowlist of Slack user IDs; nobody else's tap counts).
-  3. Submit the GitHub review **as Pratishek's own GitHub identity** (his OAuth token, obtained via a one-time "Sign in with GitHub" for the Slack app; stored encrypted). This makes GitHub record a **real human Code-Owner approval** — not a bot approval (which L4 would reject anyway).
-  4. **Log** the action (who, which PR, decision, time) to `docs/adversary/DEBT_LEDGER.md` or an audit log.
-- **The bot's own token must never be used to approve.** If Pratishek's identity/token is unavailable, the action fails closed (no approval) — never falls back to a bot approval.
-- Reject → posts "changes requested" as Pratishek; auto-merge cannot fire.
-- This is its **own** control-plane build (`tool/slack_*`), reviewed by Pratishek, and it depends on the GitHub gate above already being fixed — Slack must sit *on top of* a working gate, never replace it.
-
-**Why acting-as-human, not a GitHub App:** a GitHub App review counts as a bot review, which (by L4) does not satisfy Code-Owner approval. Only Pratishek's user identity produces the human approval GitHub enforces. Hence per-user OAuth.
+- No Approve / Request changes buttons (removed 2026-07-06; superseded by Review UI).
+- No `ilds-slack-reviewer` PAT or interactivity handler required.
+- Legacy interactive path (`tool/slack_interactivity_server.mjs`) remains in repo but is
+  **not deployed or required**; set `SLACK_NOTIFY_INTERACTIVE=true` only for rollback testing.
 
 ---
 
@@ -106,17 +98,17 @@ Verified 2026-07-05 unless noted.
 - [x] Pushing a **new commit after approval** re-requires approval. — **Configured:** `dismiss_stale_reviews: true` on `main` (API audit 2026-07-05). Closes L9.
 - [x] A PR that **edits the classifier / a workflow / CODEOWNERS** is T1 and needs human review. — **Proven:** classifier tests L6/L7; #39 labeled `needs-human`. Closes L5, L6, L7.
 - [ ] The bot's token **cannot change branch protection** (API call fails). — **L8:** classic `repo` PAT in use (broader than ideal). Owner: confirm at github.com/settings/tokens — must **not** include `administration`; prefer fine-grained `contents` + `pull_requests` only.
-- [ ] Slack **Approve by a non-Pratishek user** does nothing; Slack Approve by Pratishek records **his** GitHub approval. — **L12 open:** interactivity handler not deployed (n8n webhook 404). GitHub approve path works.
+- [x] Slack **does not** offer Approve buttons — T1 alerts link to ILDS Review UI instead. — **Closed 2026-07-06** (L12 superseded by `tool/review_ui/`).
 
 ## Ordering
 1. ~~Pratishek applies branch-protection + bot-permission settings~~ ✅ 2026-07-05
 2. ~~Cursor lands PR-authorship→bot + CODEOWNERS catch-all + classifier + #35 retro~~ ✅ #39 merged
 3. ~~Run red-team verification~~ ✅ #38/#39
-4. **Next:** Slack approval as its own control-plane PR (L12 open).
+4. ~~Slack approval as control-plane PR~~ **Superseded:** ILDS Review UI (#44 + polish).
 5. **In progress:** Phase 6 debt sweep (#41 recalibrate, #42 selection-button, …).
 
 ## DO NOT
 - Do not give the bot admin, or add it to any bypass list, or make it a code owner.
-- Do not let any Slack/automation path approve as the bot or an unverified user.
+- Do not let any Slack/automation path approve as the bot or an unverified user. (Slack Approve buttons removed — Review UI only.)
 - Do not add an admin-override escape hatch.
 - Do not resume agent-org work until the red-team checklist passes.

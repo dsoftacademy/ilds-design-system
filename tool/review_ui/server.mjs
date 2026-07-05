@@ -2,19 +2,11 @@
 /**
  * ILDS Visual Review Surface — the human's ONLY interface.
  *
- * Invariants (docs/CONTROL_PLANE_INTEGRITY.md, §0 operating model):
- *  - The human sees rendered components + plain-language objectives. NEVER code,
- *    diffs, or adversary findings.
- *  - A verdict button only renders when there is something to inspect:
- *    content PR → Visual Objective; control-plane PR → Impact Summary.
- *    No section → "waiting on agents", no buttons. No blind approvals, ever.
- *  - Verdicts are submitted with ILDS_REVIEWER_TOKEN — the human's own token.
- *    Bot tokens are detected at startup and demoted to read-only.
+ * Sign in at /login with a fine-grained GitHub token (stored locally in
+ * ~/.ilds/review-ui/session.json, mode 0600). No startup token required.
  *
- * Run:  ILDS_REVIEWER_TOKEN=... node tool/review_ui/server.mjs
- * Env:  GITHUB_REPOSITORY (default dsoftacademy/ilds-design-system)
- *       ILDS_REVIEW_UI_PORT (default 4400)
- *       ILDS_PLAYGROUND_URL (default http://localhost:8080)
+ * Run:  node tool/review_ui/server.mjs
+ *       ./tool/review_ui/start.sh
  */
 
 import http from 'node:http';
@@ -24,6 +16,15 @@ import { fileURLToPath } from 'node:url';
 import { githubRequest, submitPullRequestReview } from '../lib/slack_pr.mjs';
 import { classifyFiles } from '../lib/review_router_classify.mjs';
 import { ILDS_BOT_LOGIN, isBotReviewer } from '../lib/pr_authorship.mjs';
+import {
+  COOKIE_NAME,
+  createSession,
+  destroySession,
+  getSession,
+  restorePersistedSession,
+  setSessionCookie,
+} from './session.mjs';
+import { appendDecision, listDecisions } from './decision_log.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const QUEUE_PATH = path.join(DIR, 'queue.json');
@@ -31,35 +32,25 @@ const PORT = Number(process.env.ILDS_REVIEW_UI_PORT || 4400);
 const REPO = process.env.GITHUB_REPOSITORY || 'dsoftacademy/ilds-design-system';
 const [OWNER, NAME] = REPO.split('/');
 const PLAYGROUND_URL = process.env.ILDS_PLAYGROUND_URL || 'http://localhost:8080';
-const TOKEN = process.env.ILDS_REVIEWER_TOKEN || '';
 
-if (!TOKEN) {
-  console.error('ILDS_REVIEWER_TOKEN is required (your token — never the bot PAT).');
-  process.exit(1);
-}
-
-/** Set at startup after identity check. */
-let reviewer = { login: null, readOnly: true, reason: 'identity not verified yet' };
-
-async function verifyIdentity() {
-  const user = await githubRequest(TOKEN, 'GET', '/user');
+/**
+ * @param {string} token
+ */
+export async function verifyTokenIdentity(token) {
+  const user = await githubRequest(token, 'GET', '/user');
   if (isBotReviewer(user.login)) {
-    reviewer = {
+    return {
+      token,
       login: user.login,
       readOnly: true,
       reason: 'bot token detected — verdicts disabled; use your own token',
     };
-  } else {
-    reviewer = { login: user.login, readOnly: false, reason: null };
   }
-  console.log(
-    `Reviewer identity: ${reviewer.login}${reviewer.readOnly ? ' (READ-ONLY: ' + reviewer.reason + ')' : ''}`,
-  );
+  return { token, login: user.login, readOnly: false, reason: null };
 }
 
 /**
  * Extract a markdown section body by heading (## Heading), case-insensitive.
- * Returns null when missing or empty — null means NOT READY, no buttons.
  * @param {string} body
  * @param {string} heading
  */
@@ -111,19 +102,19 @@ export function panelSlugForFiles(files) {
   return null;
 }
 
-async function fetchPendingPrs() {
+async function fetchPendingPrs(token) {
   const prs = await githubRequest(
-    TOKEN,
+    token,
     'GET',
     `/repos/${OWNER}/${NAME}/pulls?state=open&per_page=50`,
   );
   const cards = [];
   for (const pr of prs) {
     if (pr.draft) continue;
-    if (pr.user?.login !== ILDS_BOT_LOGIN) continue; // agent PRs only
+    if (pr.user?.login !== ILDS_BOT_LOGIN) continue;
 
     const files = await githubRequest(
-      TOKEN,
+      token,
       'GET',
       `/repos/${OWNER}/${NAME}/pulls/${pr.number}/files?per_page=100`,
     );
@@ -132,7 +123,7 @@ async function fetchPendingPrs() {
     const type = classification.reason === 'control-plane' ? 'control-plane' : 'content';
 
     const checkRuns = await githubRequest(
-      TOKEN,
+      token,
       'GET',
       `/repos/${OWNER}/${NAME}/commits/${pr.head.sha}/check-runs?per_page=50`,
     );
@@ -144,7 +135,7 @@ async function fetchPendingPrs() {
     const checksGreen = runs.length > 0 && failing.length === 0 && pendingChecks.length === 0;
 
     const reviews = await githubRequest(
-      TOKEN,
+      token,
       'GET',
       `/repos/${OWNER}/${NAME}/pulls/${pr.number}/reviews?per_page=50`,
     );
@@ -173,7 +164,7 @@ async function fetchPendingPrs() {
           : !section
             ? `agents must supply a ${type === 'content' ? 'Visual Objective' : 'Impact Summary'}`
             : null,
-      playgroundUrl: null, // set below for content
+      playgroundUrl: null,
     });
   }
   for (const c of cards) {
@@ -196,20 +187,45 @@ function writeQueue(queue) {
   fs.writeFileSync(QUEUE_PATH, JSON.stringify(queue, null, 2) + '\n');
 }
 
-async function submitVerdict({ number, verdict, note }) {
+function reviewerFromSession(session) {
+  return {
+    login: session.login,
+    readOnly: session.readOnly,
+    reason: session.reason,
+  };
+}
+
+async function submitVerdict(session, { number, verdict, note }) {
+  const reviewer = reviewerFromSession(session);
   if (reviewer.readOnly) throw new Error(`read-only: ${reviewer.reason}`);
   if (!['pass', 'fail'].includes(verdict)) throw new Error('verdict must be pass|fail');
   if (verdict === 'fail' && !note) throw new Error('a fail needs a plain-language note');
+
+  const prs = await fetchPendingPrs(session.token);
+  const pr = prs.find((p) => p.number === number);
+  const label = pr ? `PR #${number} — ${pr.title}` : `PR #${number}`;
+
   const event = verdict === 'pass' ? 'APPROVE' : 'REQUEST_CHANGES';
   const body =
     verdict === 'pass'
       ? `Visual review: PASS (via ILDS review surface, reviewer ${reviewer.login})`
       : `VISUAL_FAIL: ${note}\n\n(Recorded via ILDS review surface — agents own the fix.)`;
-  await submitPullRequestReview(TOKEN, OWNER, NAME, number, { event, body });
+  await submitPullRequestReview(session.token, OWNER, NAME, number, { event, body });
+
+  appendDecision({
+    label,
+    verdict: verdict === 'pass' ? 'pass' : 'fail',
+    state: verdict === 'pass' ? 'approved' : 'changes requested',
+    reviewer: reviewer.login,
+    kind: 'pr',
+    ref: String(number),
+  });
+
   return { ok: true };
 }
 
-async function submitQueueVerdict({ id, verdict, note }) {
+async function submitQueueVerdict(session, { id, verdict, note }) {
+  const reviewer = reviewerFromSession(session);
   if (reviewer.readOnly) throw new Error(`read-only: ${reviewer.reason}`);
   if (verdict === 'fail' && !note) throw new Error('a fail needs a plain-language note');
   const queue = readQueue();
@@ -220,8 +236,18 @@ async function submitQueueVerdict({ id, verdict, note }) {
   item.reviewer = reviewer.login;
   if (note) item.note = note;
   writeQueue(queue);
+
+  appendDecision({
+    label: item.title,
+    verdict: verdict === 'pass' ? 'pass' : 'fail',
+    state: item.status,
+    reviewer: reviewer.login,
+    kind: 'queue',
+    ref: id,
+  });
+
   if (verdict === 'fail') {
-    await githubRequest(TOKEN, 'POST', `/repos/${OWNER}/${NAME}/issues`, {
+    await githubRequest(session.token, 'POST', `/repos/${OWNER}/${NAME}/issues`, {
       title: `VISUAL_FAIL: ${item.component} — ${item.title}`,
       body: `${note}\n\nObjective that failed:\n\n${item.objective}\n\n(Post-merge visual check ${item.id}; recorded via ILDS review surface. Agents own the fix.)`,
       labels: ['visual-fail'],
@@ -235,21 +261,112 @@ function json(res, code, data) {
   res.end(JSON.stringify(data));
 }
 
+function redirect(res, location, code = 302) {
+  res.writeHead(code, { Location: location });
+  res.end();
+}
+
+function html(res, file) {
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end(fs.readFileSync(path.join(DIR, file), 'utf8'));
+}
+
+function css(res) {
+  res.writeHead(200, { 'Content-Type': 'text/css; charset=utf-8' });
+  res.end(fs.readFileSync(path.join(DIR, 'common.css'), 'utf8'));
+}
+
 async function readBody(req) {
   let raw = '';
   for await (const chunk of req) raw += chunk;
   return raw ? JSON.parse(raw) : {};
 }
 
+function requireSession(req, res) {
+  const session = getSession(req);
+  if (!session) {
+    json(res, 401, { error: 'not signed in' });
+    return null;
+  }
+  return session;
+}
+
 const server = http.createServer(async (req, res) => {
+  const pathname = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`).pathname;
+
   try {
-    if (req.method === 'GET' && req.url === '/') {
-      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end(fs.readFileSync(path.join(DIR, 'index.html'), 'utf8'));
+    if (req.method === 'GET' && pathname === '/styles.css') {
+      css(res);
       return;
     }
-    if (req.method === 'GET' && req.url === '/api/state') {
-      const [prs, queue] = await Promise.all([fetchPendingPrs(), Promise.resolve(readQueue())]);
+    if (req.method === 'GET' && pathname === '/login') {
+      if (getSession(req)) {
+        redirect(res, '/');
+        return;
+      }
+      html(res, 'login.html');
+      return;
+    }
+    if (req.method === 'GET' && pathname === '/') {
+      if (!getSession(req)) {
+        redirect(res, '/login');
+        return;
+      }
+      html(res, 'index.html');
+      return;
+    }
+    if (req.method === 'GET' && pathname === '/log') {
+      if (!getSession(req)) {
+        redirect(res, '/login');
+        return;
+      }
+      html(res, 'log.html');
+      return;
+    }
+    if (req.method === 'POST' && pathname === '/api/login') {
+      const { token } = await readBody(req);
+      if (!token?.trim()) {
+        json(res, 400, { error: 'GitHub token is required' });
+        return;
+      }
+      try {
+        const identity = await verifyTokenIdentity(token.trim());
+        const sid = createSession(identity);
+        setSessionCookie(res, sid);
+        json(res, 200, { ok: true, login: identity.login, readOnly: identity.readOnly });
+      } catch (err) {
+        json(res, 401, { error: err.message || 'Invalid token' });
+      }
+      return;
+    }
+    if (req.method === 'POST' && pathname === '/api/logout') {
+      destroySession(req, res);
+      json(res, 200, { ok: true });
+      return;
+    }
+    if (req.method === 'GET' && pathname === '/api/me') {
+      const session = getSession(req);
+      if (!session) {
+        json(res, 401, { error: 'not signed in' });
+        return;
+      }
+      json(res, 200, { login: session.login, readOnly: session.readOnly });
+      return;
+    }
+    if (req.method === 'GET' && pathname === '/api/log') {
+      const session = requireSession(req, res);
+      if (!session) return;
+      json(res, 200, { reviewer: session.login, entries: listDecisions() });
+      return;
+    }
+    if (req.method === 'GET' && pathname === '/api/state') {
+      const session = requireSession(req, res);
+      if (!session) return;
+      const reviewer = reviewerFromSession(session);
+      const [prs, queue] = await Promise.all([
+        fetchPendingPrs(session.token),
+        Promise.resolve(readQueue()),
+      ]);
       json(res, 200, {
         reviewer: reviewer.login,
         readOnly: reviewer.readOnly,
@@ -263,12 +380,16 @@ const server = http.createServer(async (req, res) => {
       });
       return;
     }
-    if (req.method === 'POST' && req.url === '/api/verdict') {
-      json(res, 200, await submitVerdict(await readBody(req)));
+    if (req.method === 'POST' && pathname === '/api/verdict') {
+      const session = requireSession(req, res);
+      if (!session) return;
+      json(res, 200, await submitVerdict(session, await readBody(req)));
       return;
     }
-    if (req.method === 'POST' && req.url === '/api/queue-verdict') {
-      json(res, 200, await submitQueueVerdict(await readBody(req)));
+    if (req.method === 'POST' && pathname === '/api/queue-verdict') {
+      const session = requireSession(req, res);
+      if (!session) return;
+      json(res, 200, await submitQueueVerdict(session, await readBody(req)));
       return;
     }
     json(res, 404, { error: 'not found' });
@@ -279,9 +400,22 @@ const server = http.createServer(async (req, res) => {
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
-  await verifyIdentity();
+  const restoredSid = restorePersistedSession();
   server.listen(PORT, () => {
     console.log(`ILDS review surface: http://localhost:${PORT}`);
-    console.log(`Playground expected at: ${PLAYGROUND_URL} (flutter run -d web-server --web-port 8080 in ilds_component_playground_app/)`);
+    console.log(`Sign in: http://localhost:${PORT}/login`);
+    if (restoredSid) {
+      try {
+        const raw = JSON.parse(
+          fs.readFileSync(path.join(process.env.HOME, '.ilds', 'review-ui', 'session.json'), 'utf8'),
+        );
+        console.log(`Restored session for ${raw.login}`);
+      } catch {
+        console.log('Restored previous session');
+      }
+    }
+    console.log(
+      `Playground expected at: ${PLAYGROUND_URL} (flutter run -d web-server --web-port 8080 in ilds_component_playground_app/)`,
+    );
   });
 }
