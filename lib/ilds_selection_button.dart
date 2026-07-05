@@ -55,14 +55,14 @@ class _IldsSelectionButtonState extends State<IldsSelectionButton> {
     }
   }
 
-  double _fontSize() {
+  double _labelFontSize() {
     switch (widget.size) {
       case IldsSelectionButtonSize.small:
-        return ILDSTokens.spacing3;
+        return ILDSTokens.fontSize12;
       case IldsSelectionButtonSize.medium:
-        return ILDSTokens.spacing3 + ILDSTokens.borderWidth2;
+        return ILDSTokens.fontSize14;
       case IldsSelectionButtonSize.large:
-        return ILDSTokens.spacing4;
+        return ILDSTokens.fontSize16;
     }
   }
 
@@ -139,7 +139,7 @@ class _IldsSelectionButtonState extends State<IldsSelectionButton> {
                       widget.label,
                       style: TextStyle(
                         fontFamily: ILDSTokens.fontFamilyPrimary,
-                        fontSize: _fontSize(),
+                        fontSize: _labelFontSize(),
                         fontWeight: ILDSTokens.fontWeightMedium,
                         color: _textColor(),
                       ),
@@ -147,12 +147,12 @@ class _IldsSelectionButtonState extends State<IldsSelectionButton> {
                   if (widget.variant == IldsSelectionButtonVariant.labelWithSuffix &&
                       widget.suffixIcon != null) ...[
                     const SizedBox(width: ILDSTokens.spacing1),
-                    Icon(widget.suffixIcon, size: _fontSize(), color: _textColor()),
+                    Icon(widget.suffixIcon, size: _labelFontSize(), color: _textColor()),
                   ],
                   if (iconOnly)
                     Icon(
                       widget.suffixIcon ?? Icons.check,
-                      size: _fontSize(),
+                      size: _labelFontSize(),
                       color: _textColor(),
                     ),
                 ],

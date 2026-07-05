@@ -12,7 +12,6 @@ const Map<String, List<String>> _typographyOutliers = {
 /// Components that still derive `_fontSize()` from spacing/border tokens.
 /// Tracked for a future typography pass — new components must not use this pattern.
 const Set<String> _legacySpacingDerivedFontSize = {
-  'lib/ilds_selection_button.dart',
   'lib/ilds_tag.dart',
   'lib/ilds_text_link.dart',
 };
