@@ -5,6 +5,11 @@ name: Red-team control-plane gate
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feat/control-plane-integrity
+    paths:
+      - '.github/workflows/redteam-gate.yml'
 
 permissions:
   contents: write

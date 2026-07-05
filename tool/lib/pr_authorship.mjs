@@ -5,6 +5,7 @@
  * @see docs/CONTROL_PLANE_INTEGRITY.md
  */
 
+/** Bot login for agent/CI PR authorship (L3). Display: PB0903_reviewer */
 export const ILDS_BOT_LOGIN = 'uniquedesignpratishek-maker';
 
 /** Human logins that must never author agent/CI PRs (cannot self-approve). */

@@ -16,6 +16,12 @@ on:
         description: PR body (markdown)
         required: false
         default: ''
+  push:
+    branches:
+      - feat/control-plane-integrity
+    paths:
+      - '.github/workflows/bot-open-pr.yml'
+      - 'tool/lib/pr_authorship.mjs'
 
 permissions:
   pull-requests: write
@@ -26,6 +32,19 @@ jobs:
     name: bot-open-pr
     runs-on: ubuntu-latest
     steps:
+      - name: Resolve inputs
+        id: inputs
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "head=feat/control-plane-integrity" >> "$GITHUB_OUTPUT"
+            echo "title=fix(control-plane): integrity gate — bot authorship + CODEOWNERS catch-all" >> "$GITHUB_OUTPUT"
+            echo "body=Bot-authored PR (L3). Human #36 closed. Implements docs/CONTROL_PLANE_INTEGRITY.md." >> "$GITHUB_OUTPUT"
+          else
+            echo "head=${{ inputs.head }}" >> "$GITHUB_OUTPUT"
+            echo "title=${{ inputs.title }}" >> "$GITHUB_OUTPUT"
+            echo "body=${{ inputs.body }}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Open PR as bot
         env:
           GH_TOKEN: ${{ secrets.ILDS_AUTO_MERGE_TOKEN }}
@@ -42,14 +61,15 @@ jobs:
             echo "::error::Expected bot login uniquedesignpratishek-maker, got ${ACTOR}"
             exit 1
           fi
-          EXISTING=$(gh pr list --head "${{ inputs.head }}" --base main --state open --json number --jq '.[0].number // empty')
+          HEAD="${{ steps.inputs.outputs.head }}"
+          EXISTING=$(gh pr list --head "${HEAD}" --base main --state open --json number --jq '.[0].number // empty')
           if [ -n "${EXISTING}" ]; then
             echo "Open PR already exists: #${EXISTING}"
             gh pr view "${EXISTING}" --json url,author,autoMergeRequest,mergeable,mergeStateStatus
             exit 0
           fi
           gh pr create \
-            --head "${{ inputs.head }}" \
+            --head "${HEAD}" \
             --base main \
-            --title "${{ inputs.title }}" \
-            --body "${{ inputs.body }}"
+            --title "${{ steps.inputs.outputs.title }}" \
+            --body "${{ steps.inputs.outputs.body }}"
