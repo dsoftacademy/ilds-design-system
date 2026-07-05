@@ -58,12 +58,12 @@ class _IldsRadioState extends State<IldsRadio> {
     }
   }
 
-  double _fontSize() {
+  double _labelFontSize() {
     switch (widget.size) {
       case IldsRadioSize.small:
         return ILDSTokens.spacing3;
       case IldsRadioSize.medium:
-        return ILDSTokens.spacing3 + ILDSTokens.borderWidth2;
+        return ILDSTokens.spacing3 + ILDSTokens.borderWidth1;
       case IldsRadioSize.large:
         return ILDSTokens.spacing4;
     }
@@ -168,7 +168,7 @@ class _IldsRadioState extends State<IldsRadio> {
               widget.label!,
               style: TextStyle(
                 fontFamily: ILDSTokens.fontFamilyPrimary,
-                fontSize: _fontSize(),
+                fontSize: _labelFontSize(),
                 fontWeight: ILDSTokens.fontWeightRegular,
                 color: widget.isDisabled ? ILDSTokens.neutral300 : ILDSTokens.neutral600,
               ),
