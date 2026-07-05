@@ -42,7 +42,14 @@ jobs:
           else
             echo "head=${{ inputs.head }}" >> "$GITHUB_OUTPUT"
             echo "title=${{ inputs.title }}" >> "$GITHUB_OUTPUT"
-            echo "body=${{ inputs.body }}" >> "$GITHUB_OUTPUT"
+            # Heredoc form — inputs.body may be multiline (e.g. Impact Summary).
+            {
+              echo "body<<ILDS_BODY_EOF"
+              cat <<'ILDS_INPUT_EOF'
+          ${{ inputs.body }}
+          ILDS_INPUT_EOF
+              echo "ILDS_BODY_EOF"
+            } >> "$GITHUB_OUTPUT"
           fi
 
       - name: Open PR as bot
