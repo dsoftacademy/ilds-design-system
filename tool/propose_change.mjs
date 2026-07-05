@@ -19,7 +19,8 @@
  *   node tool/propose_change.mjs --sample
  *
  * Env:
- *   GITHUB_TOKEN or GH_TOKEN — repo scope: contents:write, pull-requests:write
+ *   ILDS_AUTO_MERGE_TOKEN — bot PAT for PR creation (required in CI; authorship → bot)
+ *   GITHUB_TOKEN or GH_TOKEN — local fallback only if authenticated as bot
  *   GITHUB_REPOSITORY — optional owner/repo (auto-detected from git remote)
  */
 
@@ -28,6 +29,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
+import { resolveAgentPrToken } from './lib/pr_authorship.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -214,37 +216,29 @@ Options:
   process.exit(0);
 }
 
-function resolveGithubToken() {
-  if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN;
-  if (process.env.GH_TOKEN) return process.env.GH_TOKEN;
-  try {
-    return execSync('gh auth token', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
-  } catch {
-    return null;
-  }
-}
-
 function printTokenHelp() {
   console.error(`
 Error: No GitHub token found.
 
-Option 1 — gh CLI (run in your terminal, not pasted with comments):
+Agent/CI PRs must be authored by the bot (uniquedesignpratishek-maker).
+
+Option 1 — bot PAT (required in CI):
+  export ILDS_AUTO_MERGE_TOKEN=ghp_xxxxxxxx
+  npm run propose:change -- --open-only ...
+
+Option 2 — gh CLI authenticated as bot (local only):
   gh auth login
   npm run propose:change -- --open-only ...
 
-Option 2 — personal access token:
-  export GITHUB_TOKEN=ghp_xxxxxxxx
-  npm run propose:change -- --open-only ...
-
-  Create at: https://github.com/settings/tokens
-  Scopes: repo (classic) OR contents + pull requests (fine-grained)
-
-Option 3 — GitHub Actions (no local token):
-  Actions → Evolution Propose PR → Run workflow (sample checked, branch main)
+Option 3 — GitHub Actions:
+  Set ILDS_AUTO_MERGE_TOKEN in repo secrets; workflow uses it automatically.
 `);
 }
 
-const token = resolveGithubToken();
+const { token } = await resolveAgentPrToken({
+  githubRequestFn: githubRequest,
+  allowDryRun: args['dry-run'],
+});
 if (!token && !args['dry-run']) {
   printTokenHelp();
   process.exit(1);

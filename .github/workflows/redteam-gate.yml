@@ -1,0 +1,97 @@
+name: Red-team control-plane gate
+
+# Throwaway control-plane PR authored by bot; verifies T1 cannot merge without human approval.
+# workflow_dispatch only.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/control-plane-integrity
+    paths:
+      - '.github/workflows/redteam-gate.yml'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  redteam:
+    name: redteam-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Create throwaway branch and commit
+        env:
+          GH_TOKEN: ${{ secrets.ILDS_AUTO_MERGE_TOKEN }}
+        run: |
+          set -euo pipefail
+          BRANCH="redteam/gate-$(date +%Y%m%d-%H%M%S)"
+          echo "branch=${BRANCH}" >> "$GITHUB_ENV"
+          git config user.name "uniquedesignpratishek-maker"
+          git config user.email "uniquedesignpratishek-maker@users.noreply.github.com"
+          git checkout -b "${BRANCH}"
+          mkdir -p tool/adversary
+          cat >> tool/adversary/REDTEAM_THROWAWAY.md <<EOF
+          # Red-team throwaway — delete after gate verification
+
+          Created: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          Purpose: prove T1 control-plane PR cannot merge without human Code Owner approval.
+          EOF
+          git add tool/adversary/REDTEAM_THROWAWAY.md
+          git commit -m "chore(redteam): throwaway control-plane gate test [do not merge]"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push -u origin "${BRANCH}"
+
+      - name: Open PR as bot
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.ILDS_AUTO_MERGE_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          ACTOR=$(gh api user --jq .login)
+          echo "PR author will be: ${ACTOR}"
+          BRANCH="${{ env.branch }}"
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          REPO="${GITHUB_REPOSITORY##*/}"
+          PR=$(gh api "repos/${OWNER}/${REPO}/pulls" \
+            -f title="chore(redteam): control-plane gate test [DO NOT MERGE]" \
+            -f head="${BRANCH}" \
+            -f base=main \
+            -f body="Red-team throwaway — do not merge. Verifies T1 gate.")
+          echo "url=$(echo "${PR}" | jq -r .html_url)" >> "$GITHUB_OUTPUT"
+          echo "number=$(echo "${PR}" | jq -r .number)" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for review-router + auto-merge enable
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          NUM="${{ steps.pr.outputs.number }}"
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          REPO="${GITHUB_REPOSITORY##*/}"
+          echo "Waiting 90s for review-router on PR #${NUM}..."
+          sleep 90
+          gh api "repos/${OWNER}/${REPO}/pulls/${NUM}" \
+            --jq '{author:.user.login,autoMergeRequest:.auto_merge,mergeable:.mergeable,mergeStateStatus:.mergeable_state,reviews:.requested_reviewers}' \
+            | tee /tmp/redteam-pr-status.json
+          MERGED=$(gh api "repos/${OWNER}/${REPO}/pulls/${NUM}" --jq .merged)
+          if [ "${MERGED}" = "true" ]; then
+            echo "::error::GATE BROKEN — PR merged without human approval"
+            exit 1
+          fi
+          echo "GATE OK — PR not merged (pending human approval expected)"
+
+      - name: Summary
+        run: |
+          echo "## Red-team result" >> "$GITHUB_STEP_SUMMARY"
+          echo "PR: ${{ steps.pr.outputs.url }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/redteam-pr-status.json >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

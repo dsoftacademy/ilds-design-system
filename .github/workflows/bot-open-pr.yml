@@ -1,0 +1,80 @@
+name: Bot open PR
+
+# Opens a PR on an existing remote branch using ILDS_AUTO_MERGE_TOKEN (bot authorship — L3).
+# workflow_dispatch only; not part of normal CI.
+
+on:
+  workflow_dispatch:
+    inputs:
+      head:
+        description: Existing branch name (must be pushed)
+        required: true
+      title:
+        description: PR title
+        required: true
+      body:
+        description: PR body (markdown)
+        required: false
+        default: ''
+  push:
+    branches:
+      - feat/control-plane-integrity
+    paths:
+      - '.github/workflows/bot-open-pr.yml'
+      - 'tool/lib/pr_authorship.mjs'
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  open:
+    name: bot-open-pr
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve inputs
+        id: inputs
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "head=feat/control-plane-integrity" >> "$GITHUB_OUTPUT"
+            echo "title=fix(control-plane): integrity gate — bot authorship + CODEOWNERS catch-all" >> "$GITHUB_OUTPUT"
+            echo "body=Bot-authored PR (L3). Human #36 closed. Implements docs/CONTROL_PLANE_INTEGRITY.md." >> "$GITHUB_OUTPUT"
+          else
+            echo "head=${{ inputs.head }}" >> "$GITHUB_OUTPUT"
+            echo "title=${{ inputs.title }}" >> "$GITHUB_OUTPUT"
+            echo "body=${{ inputs.body }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open PR as bot
+        env:
+          GH_TOKEN: ${{ secrets.ILDS_AUTO_MERGE_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "::error::ILDS_AUTO_MERGE_TOKEN not configured"
+            exit 1
+          fi
+          ACTOR=$(gh api user --jq .login)
+          echo "Authenticated as: ${ACTOR}"
+          if [ "${ACTOR}" != "uniquedesignpratishek-maker" ]; then
+            echo "::error::Expected bot login uniquedesignpratishek-maker, got ${ACTOR}"
+            exit 1
+          fi
+          HEAD="${{ steps.inputs.outputs.head }}"
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          REPO="${GITHUB_REPOSITORY##*/}"
+          EXISTING=$(gh api "repos/${OWNER}/${REPO}/pulls?head=${OWNER}:${HEAD}&base=main&state=open" \
+            --jq '.[0].number // empty')
+          if [ -n "${EXISTING}" ]; then
+            echo "Open PR already exists: #${EXISTING}"
+            gh api "repos/${OWNER}/${REPO}/pulls/${EXISTING}" \
+              --jq '{url:.html_url,author:.user.login,autoMergeRequest:.auto_merge,mergeable:.mergeable,mergeStateStatus:.mergeable_state}'
+            exit 0
+          fi
+          gh api "repos/${OWNER}/${REPO}/pulls" \
+            -f title="${{ steps.inputs.outputs.title }}" \
+            -f head="${HEAD}" \
+            -f base=main \
+            -f body="${{ steps.inputs.outputs.body }}" \
+            --jq '{number,html_url,author:.user.login}'

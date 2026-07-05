@@ -63,7 +63,7 @@ jobs:
 
       - name: Run propose_change.mjs
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ILDS_AUTO_MERGE_TOKEN: ${{ secrets.ILDS_AUTO_MERGE_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
