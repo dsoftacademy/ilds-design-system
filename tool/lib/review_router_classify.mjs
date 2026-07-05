@@ -17,6 +17,7 @@ export const CONTROL_PLANE_PATTERNS = [
   /^tool\/adversary\//,
   /^tool\/agent-org\//,
   /^tool\/review_router/,
+  /^tool\/review_ui\//,
   /^tool\/lib\/review_router/,
   /^tool\/lib\/pr_authorship\.mjs$/,
   /^tool\/lib\/slack_pr/,

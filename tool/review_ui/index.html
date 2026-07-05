@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ILDS Review</title>
+<style>
+  :root {
+    --orange: #f06321; --orange-50: #fdf0e9; --ink: #1f2733; --gray: #64748b;
+    --line: #e2e8f0; --green: #16a34a; --red: #dc2626; --amber: #b45309; --bg: #f8fafc;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: var(--bg); }
+  header { padding: 16px 24px; background: #fff; border-bottom: 1px solid var(--line);
+           display: flex; align-items: baseline; gap: 12px; }
+  header h1 { font-size: 18px; } header .who { color: var(--gray); font-size: 13px; }
+  .ro { color: var(--red); font-size: 13px; font-weight: 600; }
+  main { max-width: 860px; margin: 24px auto; padding: 0 16px; display: grid; gap: 16px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--gray); margin-top: 8px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; display: grid; gap: 10px; }
+  .card .top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+  .badge.content { background: var(--orange-50); color: var(--orange); }
+  .badge.cp { background: #ede9fe; color: #6d28d9; }
+  .title { font-weight: 600; }
+  .objective { background: var(--bg); border-left: 3px solid var(--orange); padding: 10px 14px;
+               border-radius: 6px; white-space: pre-wrap; }
+  .waiting { color: var(--amber); font-size: 14px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  button { font: inherit; font-weight: 600; border: 0; border-radius: 8px; padding: 8px 18px; cursor: pointer; }
+  .pass { background: var(--green); color: #fff; } .fail { background: var(--red); color: #fff; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  a.preview { color: var(--orange); font-weight: 600; text-decoration: none; }
+  textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px; font: inherit; display: none; }
+  .empty { color: var(--gray); text-align: center; padding: 24px; }
+  .done { color: var(--green); font-weight: 600; }
+  .err { color: var(--red); }
+</style>
+</head>
+<body>
+<header>
+  <h1>ILDS Review</h1>
+  <span class="who" id="who">…</span>
+  <span class="ro" id="ro"></span>
+</header>
+<main id="main"><div class="empty">Loading…</div></main>
+<script>
+const $ = (s) => document.querySelector(s);
+let state = null;
+
+function card(item, kind) {
+  const el = document.createElement('div');
+  el.className = 'card';
+  const isCp = item.type === 'control-plane';
+  const label = kind === 'pr' ? `PR #${item.number}` : 'Post-merge check';
+  const badge = isCp ? '<span class="badge cp">CONTROL-PLANE</span>' : '<span class="badge content">COMPONENT</span>';
+  const section = item.section || item.objective || '';
+  const preview = !isCp && item.playgroundUrl
+    ? `<a class="preview" target="_blank" href="${item.playgroundUrl}">Open preview ↗</a>` : '';
+  const heading = isCp ? 'What changes, why, and the risk:' : 'What to check:';
+
+  if (kind === 'pr' && !item.ready) {
+    el.innerHTML = `<div class="top">${badge}<span class="title">${label} — ${item.title}</span></div>
+      <div class="waiting">⏳ ${item.waitingReason}</div>`;
+    return el;
+  }
+  if (kind === 'queue' && item.status !== 'pending') {
+    el.innerHTML = `<div class="top">${badge}<span class="title">${item.title}</span></div>
+      <div class="done">Verdict recorded: ${item.status}</div>`;
+    return el;
+  }
+  el.innerHTML = `
+    <div class="top">${badge}<span class="title">${label} — ${item.title}</span></div>
+    <div><strong>${heading}</strong></div>
+    <div class="objective"></div>
+    <div class="row">${preview}
+      <button class="pass">${isCp ? 'Authorize' : 'Pass'}</button>
+      <button class="fail">${isCp ? 'Reject' : 'Fail'}</button>
+    </div>
+    <textarea rows="3" placeholder="What looked wrong? Plain language — agents own the fix."></textarea>
+    <div class="err"></div>`;
+  el.querySelector('.objective').textContent = section;
+  const ta = el.querySelector('textarea');
+  const err = el.querySelector('.err');
+  const send = async (verdict) => {
+    if (verdict === 'fail' && !ta.value.trim()) { ta.style.display = 'block'; ta.focus(); return; }
+    for (const b of el.querySelectorAll('button')) b.disabled = true;
+    const url = kind === 'pr' ? '/api/verdict' : '/api/queue-verdict';
+    const payload = kind === 'pr'
+      ? { number: item.number, verdict, note: ta.value.trim() }
+      : { id: item.id, verdict, note: ta.value.trim() };
+    const r = await fetch(url, { method: 'POST', body: JSON.stringify(payload) });
+    const d = await r.json();
+    if (d.ok) load();
+    else { err.textContent = d.error; for (const b of el.querySelectorAll('button')) b.disabled = false; }
+  };
+  el.querySelector('.pass').onclick = () => send('pass');
+  el.querySelector('.fail').onclick = () => send('fail');
+  if (state.readOnly) for (const b of el.querySelectorAll('button')) b.disabled = true;
+  return el;
+}
+
+async function load() {
+  const r = await fetch('/api/state');
+  state = await r.json();
+  $('#who').textContent = state.reviewer || '';
+  $('#ro').textContent = state.readOnly ? `read-only: ${state.readOnlyReason}` : '';
+  const main = $('#main');
+  main.innerHTML = '';
+  const pendingQueue = state.queue.filter((q) => q.status === 'pending');
+  const sections = [
+    ['Waiting for your eyes', [
+      ...state.prs.filter((p) => p.ready).map((p) => card(p, 'pr')),
+      ...pendingQueue.map((q) => card(q, 'queue')),
+    ]],
+    ['With the agents', state.prs.filter((p) => !p.ready).map((p) => card(p, 'pr'))],
+    ['Recently decided', state.queue.filter((q) => q.status !== 'pending').map((q) => card(q, 'queue'))],
+  ];
+  for (const [title, cards] of sections) {
+    if (!cards.length) continue;
+    const h = document.createElement('h2'); h.textContent = title; main.appendChild(h);
+    for (const c of cards) main.appendChild(c);
+  }
+  if (!main.children.length) main.innerHTML = '<div class="empty">Nothing needs you right now.</div>';
+}
+load();
+setInterval(load, 60_000);
+</script>
+</body>
+</html>

@@ -72,6 +72,26 @@ class IldsStandalonePlaygroundPage extends StatefulWidget {
 
 class _IldsStandalonePlaygroundPageState extends State<IldsStandalonePlaygroundPage> {
   int selectedNav = 0;
+
+  /// Review UI deep-link: `?panel=selection_button` or `?panel=9`.
+  /// Slug = section name lowercased, spaces → underscores.
+  @override
+  void initState() {
+    super.initState();
+    final String? panel = Uri.base.queryParameters['panel'];
+    if (panel == null || panel.isEmpty) return;
+    final int? byIndex = int.tryParse(panel);
+    if (byIndex != null && byIndex >= 0 && byIndex < _sections.length) {
+      selectedNav = byIndex;
+      return;
+    }
+    final String slug = panel.toLowerCase();
+    final int bySlug = _sections.indexWhere(
+      (s) => s.toLowerCase().replaceAll(' ', '_') == slug,
+    );
+    if (bySlug >= 0) selectedNav = bySlug;
+  }
+
   dynamic radioValue = 'A';
   IldsCheckboxState checkboxState = IldsCheckboxState.unchecked;
   bool switchValue = false;
