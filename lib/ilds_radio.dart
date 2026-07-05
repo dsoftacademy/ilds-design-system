@@ -3,6 +3,7 @@ import 'design_system/ilds_tokens.dart';
 
 enum IldsRadioSize { small, medium, large }
 
+/// Phase 6 Round 1 typography complete (merged #31).
 class IldsRadio extends StatefulWidget {
   const IldsRadio({
     super.key,

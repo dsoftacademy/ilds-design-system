@@ -70,17 +70,20 @@ Keep:
 
 **Add when router ships (5f v1):**
 
-8. `review-router` (or exact job name from `review-router.yml`)
+8. `review-router` ✅ **required** (2026-07-05)
 
 **Add when Phase 6 adversary ships:**
 
-9. `adversary-review` (or exact job name from `adversary-review.yml`)
+9. `adversary-review` ✅ **required** (2026-07-05)
 
 **Code owner reviews:**
 
-- [x] Require review from Code Owners — **only applies to paths in CODEOWNERS**
-- [ ] Required approving review count: **0** (code owners path-scoped is enough for T1)
+- [x] Require review from Code Owners
+- [x] Required approving review count: **1** (updated 2026-07-05 — was 0 + code-owner-only)
 - [x] Dismiss stale pull request approvals when new commits are pushed
+- [x] Do not allow bypassing the above settings (enforce admins)
+
+**Control-plane integrity (2026-07-05):** see `docs/CONTROL_PLANE_INTEGRITY.md` — red-team proven on #38/#39; Slack L12 still open.
 
 ---
 
