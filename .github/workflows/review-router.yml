@@ -1,6 +1,6 @@
 name: Selective Review Router
 
-# Phase 5f — classify PRs (T0 auto-merge vs T1 human) and enable bot auto-merge for safe content.
+# Phase 5f — classify PRs (T0 auto-merge vs T1 human) and enable GitHub auto-merge for both tiers.
 
 on:
   pull_request:
@@ -50,15 +50,15 @@ jobs:
           fi
           node tool/notify_pr_slack.mjs --pr ${{ github.event.pull_request.number }}
 
-      - name: Enable auto-merge (T0)
-        if: steps.classify.outputs.tier == 'T0' && github.event.pull_request.draft == false
+      - name: Enable auto-merge (T0 + T1)
+        if: github.event.pull_request.draft == false
         env:
           ILDS_AUTO_MERGE_TOKEN: ${{ secrets.ILDS_AUTO_MERGE_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
           if [ -z "${ILDS_AUTO_MERGE_TOKEN:-}" ]; then
-            echo "::warning::ILDS_AUTO_MERGE_TOKEN not set — T0 PR labeled but auto-merge not enabled."
+            echo "::warning::ILDS_AUTO_MERGE_TOKEN not set — PR classified but auto-merge not enabled."
             exit 0
           fi
           node tool/review_router.mjs auto-merge --pr ${{ github.event.pull_request.number }}

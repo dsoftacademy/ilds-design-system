@@ -28,6 +28,7 @@ export const CONTROL_PLANE_PATTERNS = [
   /^docs\/adversary\/PREEXISTING_DEBT_POLICY\.md$/,
   /^CURSOR_.*ROUTER.*\.md$/i,
   /^docs\/PHASE5F_ROUTER_SETTINGS\.md$/,
+  /^docs\/PHASE5F_AUTOMERGE_ON_APPROVAL\.md$/,
 ];
 
 /** Operational tool scripts only — not merge/PR/review governance. */
