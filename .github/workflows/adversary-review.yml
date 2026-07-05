@@ -1,15 +1,10 @@
 name: Adversary Review
 
 # Phase 6 MVP — independent adversary CI check on component/token PRs.
+# Runs on every PR so branch protection always gets a status; out-of-scope PRs PASS as N/A.
 
 on:
   pull_request:
-    paths:
-      - 'lib/**'
-      - 'web/src/**'
-      - 'tokens/**'
-      - 'tool/adversary/**'
-      - 'docs/adversary/**'
 
 permissions:
   contents: read

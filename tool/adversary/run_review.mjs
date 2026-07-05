@@ -21,6 +21,7 @@ import { scoreFindings, formatReportMarkdown } from './score.mjs';
 import { loadCatalog } from './catalog.mjs';
 import { enrichFindingsWithScope } from './diff_scope.mjs';
 import { applyAcknowledgements, loadDebtLedger } from './debt_ledger.mjs';
+import { isInAdversaryScope, outOfScopeReportMarkdown } from './scope.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -116,8 +117,19 @@ async function runReview(opts) {
     const { owner, repo } = parseRemote();
     const pr = await githubRequest(token, 'GET', `/repos/${owner}/${repo}/pulls/${opts.pr}`);
     const prFiles = await fetchPrFiles(token, owner, repo, opts.pr);
-    const diff = buildDiffFromFiles(prFiles);
     const meta = { prNumber: opts.pr, headSha: pr.head.sha, repo: `${owner}/${repo}` };
+
+    if (!isInAdversaryScope(prFiles)) {
+      const report = outOfScopeReportMarkdown(prFiles, meta);
+      if (opts.output) fs.writeFileSync(opts.output, report);
+      console.log(report);
+      if (process.env.GITHUB_STEP_SUMMARY) {
+        fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `\n${report}\n`);
+      }
+      return { verdict: 'pass', findings: [], score: { builder: 1, adversary: 0 } };
+    }
+
+    const diff = buildDiffFromFiles(prFiles);
 
     const readFile = (filename) => {
       try {
