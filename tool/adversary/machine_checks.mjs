@@ -18,6 +18,7 @@ export function runMachineChecks(content, filePath) {
 
   const findings = [];
   findings.push(...checkSpacingDerivedFontSize(content, filePath));
+  findings.push(...checkCrossFamilySizingArithmetic(content, filePath));
   findings.push(...checkMissingFontFamily(content, filePath));
   findings.push(...checkRawTypographyNumbers(content, filePath));
   return findings;
@@ -47,6 +48,38 @@ function checkSpacingDerivedFontSize(content, filePath) {
         severity: 'high',
         summary: 'Typography value sourced from wrong token family (spacing/border)',
         evidence: `${filePath} in ${match[1]}`,
+        source: 'machine',
+      });
+    }
+  }
+
+  return dedupeById(findings);
+}
+
+/**
+ * F-001 — spacing/border cross-family arithmetic in component sizing helpers
+ * @returns {Finding[]}
+ */
+function checkCrossFamilySizingArithmetic(content, filePath) {
+  const findings = [];
+  const methodRe =
+    /double\s+(_(?:inner|outer)?[Ss]ize\w*)\s*\([^)]*\)\s*(?:\{([\s\S]*?)\n\s*\}|=>\s*([^;]+);)/g;
+
+  for (const match of content.matchAll(methodRe)) {
+    const body = match[2] ?? match[3] ?? '';
+    const usesSpacing = /ILDSTokens\.spacing/.test(body);
+    const usesBorder = /ILDSTokens\.borderWidth/.test(body);
+    const usesTypography = /ILDSTokens\.fontSize/.test(body);
+    const hasCrossFamilyMath =
+      (usesSpacing && usesBorder && /[+\-*/]/.test(body)) ||
+      (usesSpacing && usesBorder && body.includes('/'));
+
+    if (hasCrossFamilyMath && !usesTypography) {
+      findings.push({
+        id: 'F-001',
+        severity: 'critical',
+        summary: `${match[1]} uses spacing/border token arithmetic instead of a proper size token`,
+        evidence: `${filePath}: ${match[0].slice(0, 200).replace(/\s+/g, ' ')}…`,
         source: 'machine',
       });
     }
