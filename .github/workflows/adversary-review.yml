@@ -37,7 +37,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          ILDS_ADVERSARY_MODEL: claude-opus-4-20250514
+          ILDS_ADVERSARY_MODEL: claude-opus-4-8
+          ILDS_ADVERSARY_REQUIRE_JUDGE: 'true'
         run: |
           set -euo pipefail
           node tool/adversary/run_review.mjs --pr ${{ github.event.pull_request.number }} --output /tmp/adversary-report.md

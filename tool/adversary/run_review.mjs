@@ -5,7 +5,7 @@
  *   node tool/adversary/run_review.mjs --pr 42
  *   node tool/adversary/run_review.mjs --file lib/ilds_radio.dart
  *
- * Env: ANTHROPIC_API_KEY (optional — machine checks always run)
+ * Env: ANTHROPIC_API_KEY, ILDS_ADVERSARY_REQUIRE_JUDGE=true (CI)
  *      GITHUB_TOKEN / GH_TOKEN (for --pr)
  */
 
@@ -61,30 +61,53 @@ function buildDiffFromFiles(files) {
   return files.map((f) => `--- ${f.filename}\n+++ ${f.filename}\n${f.patch ?? '(no patch)'}`).join('\n\n');
 }
 
+function dedupeFindings(findings) {
+  const seen = new Set();
+  return findings.filter((f) => {
+    const key = `${f.id}:${f.source}:${f.summary}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+async function reviewChangedDart({ diff, prFiles, readFile }) {
+  const machineFindings = runMachineChecksOnPrFiles(prFiles, readFile);
+  const changedDart = prFiles
+    .filter((f) => f.filename?.startsWith('lib/') && f.filename.endsWith('.dart'))
+    .map((f) => ({ path: f.filename, content: readFile(f.filename) ?? '' }))
+    .filter((f) => f.content);
+
+  const { findings: judgeFindings, meta: judgeMeta } = await runLlmJudge({
+    diff,
+    changedFiles: changedDart,
+  });
+
+  const judgeResult = scoreFindings(judgeFindings);
+  const combined = scoreFindings(dedupeFindings([...machineFindings, ...judgeFindings]));
+
+  return { machineFindings, judgeFindings, judgeMeta, judgeResult, combined };
+}
+
 /**
  * @param {object} opts
  */
 async function runReview(opts) {
   const catalog = loadCatalog();
-  console.log(`Loaded ${catalog.length} catalog entries (F-001…F-${String(catalog.length).padStart(3, '0')})`);
-
-  let prFiles = [];
-  let diff = '';
-  let meta = {};
+  console.log(`Loaded ${catalog.length} catalog entries`);
 
   if (opts.pr) {
     const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
     if (!token) throw new Error('GITHUB_TOKEN required for --pr');
     const { owner, repo } = parseRemote();
     const pr = await githubRequest(token, 'GET', `/repos/${owner}/${repo}/pulls/${opts.pr}`);
-    prFiles = await fetchPrFiles(token, owner, repo, opts.pr);
-    diff = buildDiffFromFiles(prFiles);
-    meta = { prNumber: opts.pr, headSha: pr.head.sha, repo: `${owner}/${repo}` };
+    const prFiles = await fetchPrFiles(token, owner, repo, opts.pr);
+    const diff = buildDiffFromFiles(prFiles);
+    const meta = { prNumber: opts.pr, headSha: pr.head.sha, repo: `${owner}/${repo}` };
 
-    // Fetch post-change content at PR head for lib dart files
     const readFile = (filename) => {
       try {
-        return execSync(`git show ${pr.head.sha}:${filename}`, {
+        return execSync(`git fetch origin pull/${opts.pr}/head:refs/remotes/origin/pr-${opts.pr} 2>/dev/null; git show ${pr.head.sha}:${filename}`, {
           cwd: REPO_ROOT,
           encoding: 'utf8',
         });
@@ -93,16 +116,11 @@ async function runReview(opts) {
       }
     };
 
-    const machineFindings = runMachineChecksOnPrFiles(prFiles, readFile);
-    const changedDart = prFiles
-      .filter((f) => f.filename?.startsWith('lib/') && f.filename.endsWith('.dart'))
-      .map((f) => ({ path: f.filename, content: readFile(f.filename) ?? '' }))
-      .filter((f) => f.content);
-
-    const judgeFindings = await runLlmJudge({ diff, changedFiles: changedDart, machineFindings });
-    const merged = dedupeFindings([...machineFindings, ...judgeFindings]);
-    const result = scoreFindings(merged);
-    const report = formatReportMarkdown(result, meta);
+    const { judgeMeta, judgeResult, combined } = await reviewChangedDart({ diff, prFiles, readFile });
+    const report = formatReportMarkdown(
+      { ...combined, judgeResult, judgeMeta },
+      meta,
+    );
 
     if (opts.output) fs.writeFileSync(opts.output, report);
     console.log(report);
@@ -111,35 +129,27 @@ async function runReview(opts) {
       fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `\n${report}\n`);
     }
 
-    return result;
+    return { ...combined, judgeResult, judgeMeta };
   }
 
   if (opts.file) {
     const content = readLocalFile(opts.file);
     if (!content) throw new Error(`File not found: ${opts.file}`);
-    const machineFindings = runMachineChecks(content, opts.file);
-    diff = `# local review ${opts.file}\n`;
-    const judgeFindings = await runLlmJudge({
-      diff,
-      changedFiles: [{ path: opts.file, content }],
-      machineFindings,
-    });
-    const result = scoreFindings(dedupeFindings([...machineFindings, ...judgeFindings]));
-    console.log(formatReportMarkdown(result, { repo: 'local', prNumber: opts.file }));
-    return result;
+    const diff = `# local review ${opts.file}\n`;
+    const prFiles = [{ filename: opts.file, patch: diff }];
+    const readFile = () => content;
+
+    const { judgeMeta, judgeResult, combined } = await reviewChangedDart({ diff, prFiles, readFile });
+    const report = formatReportMarkdown(
+      { ...combined, judgeResult, judgeMeta },
+      { repo: 'local', prNumber: opts.file },
+    );
+    console.log(report);
+    if (opts.output) fs.writeFileSync(opts.output, report);
+    return { ...combined, judgeResult, judgeMeta };
   }
 
   throw new Error('Provide --pr or --file');
-}
-
-function dedupeFindings(findings) {
-  const seen = new Set();
-  return findings.filter((f) => {
-    const key = `${f.id}:${f.summary}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
 }
 
 const { values: args } = parseArgs({
