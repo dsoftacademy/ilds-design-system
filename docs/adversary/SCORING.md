@@ -30,6 +30,16 @@ On **BLOCK**, the report includes plain-language **decision cards** per finding 
 Workflow: `.github/workflows/adversary-review.yml`  
 Job name: **`adversary-review`** (add as 9th required check after MVP proven on `main`).
 
+**Routing** (`tool/adversary/pr_gate.mjs`) — one required check name, different gates by path:
+
+| PR touches | Gate | What runs |
+|------------|------|-----------|
+| `lib/`, `web/src/`, `tokens/`, `tool/adversary/`, `docs/adversary/` | Component fidelity | Machine checks + Opus judge (`run_review.mjs`) |
+| Control-plane paths (`.github/`, router, `pr_authorship`, etc.) — no component paths | Control-plane integrity | `npm run test:integrity` (L1–L8 / L12) |
+| Safe T0 content only (docs, allowlisted tool scripts) | Skip | Job succeeds with explicit N/A report (same pattern as Chromatic skip) |
+
+Control-plane PRs are **not** rubber-stamped: they must pass integrity tests. Human Code Owner review remains required for T1.
+
 ## Round 2 pass criterion
 
 Planted dodge PR must **block** with F-001 and/or F-008 without the adversary being told a dodge was planted. A green Round 1 alone does not prove the architecture.

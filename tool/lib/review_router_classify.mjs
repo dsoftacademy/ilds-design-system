@@ -21,6 +21,7 @@ export const CONTROL_PLANE_PATTERNS = [
   /^tool\/lib\/pr_authorship\.mjs$/,
   /^tool\/lib\/slack_pr/,
   /^tool\/propose_change/,
+  /^tool\/control_plane_integrity\.test\.mjs$/,
   /^tool\/notify_pr_slack/,
   /^tool\/slack_interactivity/,
   /^tool\/run_5d2/,
