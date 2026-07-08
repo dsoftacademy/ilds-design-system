@@ -1,6 +1,6 @@
 {
   "name": "ilds-gif-export",
-  "version": "1.4.1",
+  "version": "1.6.0",
   "description": "Figma plugin — export a placed GIF from a frame to your local disk, with optional size/quality optimization.",
   "license": "UNLICENSED",
   "private": true,

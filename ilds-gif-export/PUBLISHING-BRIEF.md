@@ -37,13 +37,14 @@ Export a whole frame — GIF and all — as one animated GIF
 
 **Description**
 ```
-ILDS GIF Export turns any frame into a downloadable animated GIF — the placed GIF composited with everything around it (text, layout, effects, layer order, multiple GIFs), exactly as it looks on your canvas.
+ILDS GIF Export turns any frame into a downloadable animated GIF — placed videos and GIFs composited with everything around them (text, layout, gradients, effects, layer order), exactly as it looks on your canvas.
 
-Select a frame, choose Original or Optimized size, and export. Figma composites every frame, so stacking order, masks, blend modes and rotation are all preserved. Multiple GIFs of different lengths animate together on a shared timeline.
+Select a frame, choose Original or Optimized size, and export. Figma composites every frame, so stacking order, masks, blend modes and rotation are all preserved. Videos and multiple GIFs of different lengths animate together on a shared timeline.
 
-• Whole-frame export — not just the raw GIF, the full composed design
+• Whole-frame export — not just the raw asset, the full composed design
+• Placed video → GIF: drop the video's source file, it animates in place
 • Multiple GIFs, each looping independently
-• Original (full fidelity) or Optimized (smaller: scale, colors, frame sampling)
+• Original (full fidelity, up to 2048px) or Optimized (scale, colors, frame sampling)
 • Global palette + dithering for smooth gradients and minimal banding
 • Fully offline — no network access
 
@@ -57,7 +58,7 @@ Import & export
 
 **Tags** (≤5 — GIF is already selected; add from the recommended list + custom)
 ```
-GIF, Image, export, animation, design-system
+GIF, video, export, animation, design-system
 ```
 
 ---
@@ -65,7 +66,7 @@ GIF, Image, export, animation, design-system
 ## 3. Publish steps
 
 1. **Figma desktop app** → Plugins → Development → **Import plugin from manifest…** → select `ilds-gif-export/manifest.json`.
-2. Run it once on a frame with a GIF. Confirm the footer reads **v1.2.2** and the export animates ("~N unique" in the size line).
+2. Run it once on a frame with a GIF or a placed video. Confirm the footer reads **v1.6.0** and the export animates ("~N unique" in the size line).
 3. Plugins → Development → **ILDS GIF Export → Publish…**
 4. Set visibility to **Organization** (private to ILDS — not public Community).
 5. Paste the fields from Section 2, add both images from Section 1.
@@ -80,4 +81,4 @@ Do **not** hand-edit `manifest.json` line 3 (`"id": "REPLACE_WITH_ID_AFTER_FIRST
 
 Members find it via Plugins → search **"ILDS GIF Export"** (or the Resources panel, filtered to the org). No local import for them.
 
-To ship an update: `npm run build`, then Plugins → Development → **ILDS GIF Export → Publish…** again. The footer version (`v1.2.2 · built …`) is the at-a-glance check that users are on the latest.
+To ship an update: `npm run build`, then Plugins → Development → **ILDS GIF Export → Publish…** again. The footer version (`v1.6.0 · built …`) is the at-a-glance check that users are on the latest. Paste the latest `CHANGELOG.md` entry into the release-notes field.

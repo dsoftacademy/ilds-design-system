@@ -213,18 +213,56 @@ const cappedScale = (w, h, desired) => {
 const FRAME_CAP = 150;
 const VIDEO_MAX_EDGE = 800;
 const VIDEO_MAX_DURATION = 30;
-const planVideo = (durationSec, videoW, videoH, fps, scale) => {
+const planVideo = (durationSec, videoW, videoH, fps, scale, maxEdge = VIDEO_MAX_EDGE) => {
   const duration = Math.max(0.001, Math.min(durationSec, VIDEO_MAX_DURATION));
   let numFrames = Math.max(1, Math.round(duration * fps));
   if (numFrames > FRAME_CAP) numFrames = FRAME_CAP;
   const delay = Math.max(20, Math.round(1000 / Math.max(1, fps)));
   let s = scale;
   const edge = Math.max(videoW, videoH) * s;
-  if (edge > VIDEO_MAX_EDGE && edge > 0) s = s * (VIDEO_MAX_EDGE / edge);
+  if (edge > maxEdge && edge > 0) s = s * (maxEdge / edge);
   const w = Math.max(1, Math.round(videoW * s));
   const h = Math.max(1, Math.round(videoH * s));
   return { numFrames, delay, duration, w, h };
 };
+
+// Ported from code.ts — build an IMAGE paint from a VIDEO paint (placement copy).
+// Keys are copied only where valid for the scaleMode (set_fills rejects strays).
+function videoPaintToImagePaint(v, imageHash) {
+  const scaleMode = v.scaleMode || 'FILL';
+  const paint = { type: 'IMAGE', scaleMode, imageHash };
+  const transform = v.videoTransform || v.imageTransform;
+  if (scaleMode === 'CROP' && transform) paint.imageTransform = transform;
+  if (scaleMode === 'TILE' && v.scalingFactor !== undefined) paint.scalingFactor = v.scalingFactor;
+  if (scaleMode !== 'CROP' && v.rotation !== undefined) paint.rotation = v.rotation;
+  if (v.opacity !== undefined) paint.opacity = v.opacity;
+  if (v.blendMode !== undefined) paint.blendMode = v.blendMode;
+  if (v.visible !== undefined) paint.visible = v.visible;
+  return paint;
+}
+
+// Ported from code.ts — rebuild a VideoPaint with only documented keys (Figma's
+// real video paints carry hidden keys that make set_fills reject the array).
+function sanitizeVideoPaint(v) {
+  const scaleMode = v.scaleMode || 'FILL';
+  const paint = { type: 'VIDEO', scaleMode, videoHash: v.videoHash || '' };
+  if (scaleMode === 'CROP' && v.videoTransform) paint.videoTransform = v.videoTransform;
+  if (scaleMode === 'TILE' && v.scalingFactor !== undefined) paint.scalingFactor = v.scalingFactor;
+  if (scaleMode !== 'CROP' && v.rotation !== undefined) paint.rotation = v.rotation;
+  if (v.opacity !== undefined) paint.opacity = v.opacity;
+  if (v.blendMode !== undefined) paint.blendMode = v.blendMode;
+  if (v.visible !== undefined) paint.visible = v.visible;
+  return paint;
+}
+
+// Ported from ui.ts — nearest pre-sampled video frame for a wrapped time.
+function videoFrameIndexAt(total, frameCount, tMod) {
+  if (frameCount <= 1 || total <= 0) return 0;
+  let idx = Math.floor((tMod / total) * frameCount);
+  if (idx >= frameCount) idx = frameCount - 1;
+  if (idx < 0) idx = 0;
+  return idx;
+}
 
 // Ported from ui.ts — shared streaming encoder core (frame getter based).
 async function encodeFramesToGif(count, get, delay, colors) {
@@ -368,10 +406,12 @@ async function run() {
   // Mirror the real encoder: ONE global palette, dithered indices, global color
   // table on frame 0, no local tables after.
   const gp = quantize(decoded.frames[0].rgba, 64, { format: 'rgb565', clearAlpha: false });
-  const near = makeNearest(gp);
+  // NOTE: do not name this `near` — that would shadow the near() assertion
+  // helper and silently disable every near(...) test below it.
+  const gpNearest = makeNearest(gp);
   const enc = GIFEncoder();
   decoded.frames.forEach((f, i) => {
-    const idx = ditherToIndices(f.rgba, decoded.width, decoded.height, gp, near);
+    const idx = ditherToIndices(f.rgba, decoded.width, decoded.height, gp, gpNearest);
     if (i === 0) enc.writeFrame(idx, decoded.width, decoded.height, { palette: gp, delay: 100, repeat: 0 });
     else enc.writeFrame(idx, decoded.width, decoded.height, { delay: 100 });
   });
@@ -523,6 +563,13 @@ async function run() {
   near('planVideo pins longest edge to the cap', Math.max(big.w, big.h), 800, 1);
   eq('planVideo never returns zero frames', planVideo(0, 100, 100, 24, 1).numFrames, 1);
   eq('planVideo applies user scale', planVideo(1, 400, 400, 10, 0.5).w, 200);
+  // Adaptive maxEdge (HQ frame path): a larger cap preserves resolution that the
+  // default 800px ceiling would have thrown away.
+  const hq = planVideo(1, 1920, 1080, 10, 1, 2048);
+  eq('planVideo custom maxEdge keeps full HD width', hq.w, 1920);
+  const hqCap = planVideo(1, 4000, 2000, 10, 1, 2048);
+  near('planVideo custom maxEdge still caps oversized video', Math.max(hqCap.w, hqCap.h), 2048, 1);
+  eq('planVideo default maxEdge unchanged (Video tab regression)', Math.max(planVideo(1, 1920, 1080, 10, 1).w, planVideo(1, 1920, 1080, 10, 1).h), 800);
 
   // --- 17. Shared encoder core streams a video-style getter into a valid GIF ---
   const vpal = [[20, 30, 40], [200, 60, 60], [60, 200, 60]];
@@ -534,6 +581,61 @@ async function run() {
   const vout = decompressFrames(parseGIF(new Uint8Array(vgif).buffer), true);
   eq('encoder core preserves frame count from getter', vout.length, 4);
   ok('encoder core streamed frames on demand (getter was called)', getCalls > 0);
+
+  // --- 18. videoPaintToImagePaint preserves placement (crop-alignment safety) ---
+  const vp = {
+    type: 'VIDEO', scaleMode: 'CROP', videoHash: 'vh1',
+    imageTransform: [[1, 0, 0.1], [0, 1, 0.2]],
+    opacity: 0.9, blendMode: 'MULTIPLY', visible: true,
+  };
+  const ip = videoPaintToImagePaint(vp, 'img1');
+  eq('videoPaint→image sets IMAGE type', ip.type, 'IMAGE');
+  eq('videoPaint→image carries the new hash', ip.imageHash, 'img1');
+  eq('videoPaint→image preserves scaleMode', ip.scaleMode, 'CROP');
+  ok('videoPaint→image preserves imageTransform',
+    JSON.stringify(ip.imageTransform) === JSON.stringify(vp.imageTransform));
+  eq('videoPaint→image preserves opacity', ip.opacity, 0.9);
+  eq('videoPaint→image preserves blendMode', ip.blendMode, 'MULTIPLY');
+  const ipFill = videoPaintToImagePaint({ type: 'VIDEO', scaleMode: 'FILL', videoHash: 'v' }, 'i');
+  ok('FILL video emits no imageTransform key', !('imageTransform' in ipFill));
+  // Real Figma video paints expose the crop under videoTransform (docs) — and
+  // sometimes under a buggy imageTransform key. Both must map across.
+  const vpVT = videoPaintToImagePaint(
+    { type: 'VIDEO', scaleMode: 'CROP', videoHash: 'v', videoTransform: [[1, 0, 0.3], [0, 1, 0.4]] },
+    'i2',
+  );
+  ok('CROP videoTransform maps to imageTransform',
+    JSON.stringify(vpVT.imageTransform) === JSON.stringify([[1, 0, 0.3], [0, 1, 0.4]]));
+
+  // sanitizeVideoPaint: strips hidden/buggy keys that break set_fills, keeps the
+  // documented ones. This is the design-corruption guard.
+  const dirty = {
+    type: 'VIDEO', scaleMode: 'FILL', videoHash: 'vh9', opacity: 1, blendMode: 'NORMAL',
+    visible: true, imageTransform: [[1, 0, 0], [0, 1, 0]], filters: { exposure: 0 },
+  };
+  const clean = sanitizeVideoPaint(dirty);
+  ok('sanitize strips buggy imageTransform from VIDEO paint', !('imageTransform' in clean));
+  ok('sanitize strips undocumented filters key', !('filters' in clean));
+  eq('sanitize keeps videoHash', clean.videoHash, 'vh9');
+  eq('sanitize keeps scaleMode', clean.scaleMode, 'FILL');
+  eq('sanitize keeps opacity', clean.opacity, 1);
+  ok('sanitize null videoHash becomes empty string', sanitizeVideoPaint({ type: 'VIDEO', scaleMode: 'FILL', videoHash: null }).videoHash === '');
+
+  // --- 19. VideoPaint JSON round-trip is lossless (restore-safety guarantee) ---
+  const vclone = JSON.parse(JSON.stringify(vp));
+  ok('VideoPaint round-trips losslessly through JSON', JSON.stringify(vclone) === JSON.stringify(vp));
+
+  // --- 20. Unified timeline: video + GIF loop independently ---
+  eq('video frame at t=0', videoFrameIndexAt(1000, 10, 0), 0);
+  eq('video frame mid', videoFrameIndexAt(1000, 10, 500), 5);
+  eq('video frame near end clamps to last', videoFrameIndexAt(1000, 10, 999), 9);
+  eq('video single-frame source stays at 0', videoFrameIndexAt(1000, 1, 700), 0);
+  // A 400ms 4-frame video on a 1000ms shared timeline wraps: t=600 → tMod=200 → frame 2.
+  eq('video wraps on the shared timeline', videoFrameIndexAt(400, 4, 600 % 400), 2);
+  // Same shared t=600 for a 300ms GIF ([100,100,100]) wraps to its own frame 0.
+  const gifCum = cumulativeTimes([100, 100, 100]); // total 300
+  eq('gif source wraps independently at the same instant', frameIndexAtTime(gifCum, 600 % 300), 0);
+  eq('gif source mid at shared t=250', frameIndexAtTime(gifCum, 250 % 300), 2);
 
   console.log('\nILDS GIF Export — end-to-end test\n');
   console.log(results.join('\n'));

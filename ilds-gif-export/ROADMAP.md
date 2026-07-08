@@ -6,11 +6,16 @@ Phases are ordered. Do not start a phase until the prior one is proven.
 
 ---
 
-## Phase 0 — Whole-frame GIF export (shipped: v1.2.2)
+## Phase 0 — Whole-frame GIF export (shipped: v1.6.0)
 
-Status: working. Figma-composited fill-swap engine, shared multi-GIF timeline, global palette + dithering, Original/Optimized sizes, offline.
+Status: working, incl. **placed video** in the frame. Figma-composited engine
+(fill-swap for GIFs, temporary overlay for videos), shared multi-source timeline,
+global palette + dithering, Original/Optimized sizes, offline. A single frame can
+mix video + GIFs + images + gradients + text + effects and export as one GIF.
 
-Remaining before "done": generality hardening (validate on 3–4 unrelated frames), then publish privately to ILDS. Watch the "N unique" indicator as the animation acceptance signal.
+Done: validated on real frames; the "N unique" indicator is the animation
+acceptance signal. Video needs its source file dropped in (Figma exposes no way to
+read placed-video pixels). Next: publish the v1.6.0 update to ILDS.
 
 ---
 

@@ -13,6 +13,16 @@ import { parseGIF, decompressFrames } from 'gifuct-js';
 import { GIFEncoder, quantize, applyPalette, nearestColorIndex } from 'gifenc';
 
 interface GifNodeRef { id: string; fillIndex: number; hash: string; name: string; }
+interface VideoNodeRef {
+  id: string;
+  fillIndex: number;
+  videoHash: string;
+  scaleMode: string;
+  imageTransform?: number[][];
+  nodeWidth: number;
+  nodeHeight: number;
+  name: string;
+}
 interface Asset { hash: string; bytes: Uint8Array; width: number; height: number; size: number; }
 interface Root {
   id: string;
@@ -21,6 +31,7 @@ interface Root {
   height: number;
   gifNodes: GifNodeRef[];
   assets: Asset[];
+  videoNodes: VideoNodeRef[];
 }
 
 type Mode = 'original' | 'optimized';
@@ -37,12 +48,16 @@ let mode: Mode = 'original';
 // True when the selection contains a placed VIDEO fill but no exportable GIF —
 // Figma can't read placed video bytes, so we nudge the user to the Video tab.
 let placedVideoHint = false;
+// Source files the user has dropped for placed video nodes, keyed by node id.
+// A video node with no entry here exports as its frozen poster (fallback).
+const frameVideoFiles = new Map<string, File>();
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 const emptyEl = $('empty');
 const mainEl = $('main');
 const listEl = $('gifList');
+const videoSourcesEl = $('videoSources');
 const optsEl = $('opts');
 const sizeEl = $('sizeline');
 const statusEl = $('status');
@@ -69,8 +84,8 @@ function render() {
     emptyEl.style.display = 'block';
     mainEl.style.display = 'none';
     emptyEl.innerHTML = placedVideoHint
-      ? 'This selection has a placed <strong>video</strong>. Figma can\u2019t read placed video pixels, so switch to the <strong>Video \u2192 GIF</strong> tab and drop the video file there.'
-      : 'Select a frame that contains a GIF.';
+      ? 'This selection has a placed <strong>video</strong> but nothing exportable was detected. Select the frame that contains it.'
+      : 'Select a frame that contains a GIF or a placed video.';
     return;
   }
   emptyEl.style.display = 'none';
@@ -80,13 +95,12 @@ function render() {
   roots.forEach((r, i) => {
     const item = document.createElement('div');
     item.className = 'gif-item' + (i === selectedIndex ? ' selected' : '');
-    const count = r.gifNodes.length;
     const dims = r.width && r.height ? `${Math.round(r.width)}×${Math.round(r.height)} · ` : '';
     item.innerHTML =
       `<div class="radio"></div>` +
       `<div style="flex:1;min-width:0;">` +
       `<div class="name">${escapeHtml(r.name)}</div>` +
-      `<div class="meta">${dims}${count} GIF${count === 1 ? '' : 's'}</div>` +
+      `<div class="meta">${dims}${sourceSummary(r)}</div>` +
       `</div>`;
     item.addEventListener('click', () => {
       selectedIndex = i;
@@ -95,11 +109,75 @@ function render() {
     listEl.appendChild(item);
   });
 
+  renderVideoSources();
+
   optsEl.classList.toggle('show', mode === 'optimized');
   modeOriginal.classList.toggle('active', mode === 'original');
   modeOptimized.classList.toggle('active', mode === 'optimized');
   exportBtn.textContent = 'Export frame as GIF';
   updateSizeLine();
+}
+
+// "2 GIFs · 1 video" style summary for a root row.
+function sourceSummary(r: Root): string {
+  const parts: string[] = [];
+  const g = r.gifNodes.length;
+  const v = r.videoNodes.length;
+  if (g) parts.push(`${g} GIF${g === 1 ? '' : 's'}`);
+  if (v) parts.push(`${v} video${v === 1 ? '' : 's'}`);
+  return parts.join(' · ') || 'no animated sources';
+}
+
+// Render one "drop the source file" row per placed video node on the selected
+// frame. Figma can't read placed-video pixels, so each needs its source file to
+// animate; without a file it exports as a frozen poster (handled at export time).
+function renderVideoSources() {
+  const r = roots[selectedIndex];
+  videoSourcesEl.innerHTML = '';
+  if (!r || r.videoNodes.length === 0) {
+    videoSourcesEl.style.display = 'none';
+    return;
+  }
+  videoSourcesEl.style.display = 'block';
+
+  const heading = document.createElement('div');
+  heading.className = 'vs-heading';
+  heading.textContent = r.videoNodes.length === 1 ? 'Placed video — drop its source file' : 'Placed videos — drop each source file';
+  videoSourcesEl.appendChild(heading);
+
+  r.videoNodes.forEach((vn) => {
+    const has = frameVideoFiles.has(vn.id);
+    const row = document.createElement('div');
+    row.className = 'vs-row' + (has ? ' ready' : '');
+    const dims = vn.nodeWidth && vn.nodeHeight ? `${Math.round(vn.nodeWidth)}×${Math.round(vn.nodeHeight)}` : '';
+    const file = frameVideoFiles.get(vn.id);
+    const label = has && file ? `✓ ${escapeHtml(file.name)}` : 'Drop video / click to choose';
+    row.innerHTML =
+      `<div class="vs-name">${escapeHtml(vn.name)}${dims ? ` · ${dims}` : ''}</div>` +
+      `<div class="vs-drop">${label}</div>`;
+    const drop = row.querySelector('.vs-drop') as HTMLElement;
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm';
+    input.style.display = 'none';
+    row.appendChild(input);
+    input.addEventListener('change', () => {
+      const f = input.files && input.files[0];
+      if (f) { frameVideoFiles.set(vn.id, f); render(); }
+    });
+    drop.addEventListener('click', () => input.click());
+    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+    drop.addEventListener('drop', (e) => {
+      e.preventDefault();
+      drop.classList.remove('over');
+      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) { frameVideoFiles.set(vn.id, f); render(); }
+    });
+
+    videoSourcesEl.appendChild(row);
+  });
 }
 
 function updateSizeLine() {
@@ -441,14 +519,32 @@ function countDistinct(frames: Uint8Array[]): number {
   return seen.size;
 }
 
-async function exportRoot(root: Root, opts: { scale: number; colors: number; frameStep: number }) {
-  if (root.assets.length === 0 || root.gifNodes.length === 0) {
-    throw new Error('No GIFs found in this frame.');
-  }
+// A node that animates on the shared timeline. GIFs decode from bytes already in
+// hand; videos decode from a user-supplied file into pre-sampled canvases. Both
+// loop independently on one timeline (each sampled at t % its own total).
+interface GifSource { kind: 'gif'; nodeId: string; fillIndex: number; hash: string; cum: number[]; total: number; width: number; height: number; frames: DecodedFrame[]; }
+interface VideoSource { kind: 'video'; nodeId: string; fillIndex: number; total: number; frames: HTMLCanvasElement[]; }
+type AnimatedSource = GifSource | VideoSource;
 
-  // Decode each distinct GIF asset once.
-  const decoded = new Map<string, DecodedAsset>();
+// Pure: nearest pre-sampled video frame for a wrapped time (unit-tested).
+function videoFrameIndexAt(total: number, frameCount: number, tMod: number): number {
+  if (frameCount <= 1 || total <= 0) return 0;
+  let idx = Math.floor((tMod / total) * frameCount);
+  if (idx >= frameCount) idx = frameCount - 1;
+  if (idx < 0) idx = 0;
+  return idx;
+}
+
+// fps for pre-sampling placed videos on the frame path. Dense enough to look
+// smooth; the shared timeline resamples from these frames.
+const FRAME_VIDEO_FPS = 15;
+
+async function exportRoot(root: Root, opts: { scale: number; colors: number; frameStep: number }) {
+  const sources: AnimatedSource[] = [];
   let minDelay = 100;
+
+  // --- GIF sources: decode each distinct asset once, one source per node. ---
+  const decoded = new Map<string, DecodedAsset>();
   for (const asset of root.assets) {
     const { width, height, frames } = decodeGifToFrames(asset.bytes);
     const cum = cumulativeTimes(frames.map((f) => f.delay));
@@ -456,23 +552,55 @@ async function exportRoot(root: Root, opts: { scale: number; colors: number; fra
     for (const f of frames) if (f.delay > 0) minDelay = Math.min(minDelay, f.delay);
     decoded.set(asset.hash, { frames, cum, total, width, height });
   }
+  for (const node of root.gifNodes) {
+    const d = decoded.get(node.hash);
+    if (!d) continue;
+    sources.push({ kind: 'gif', nodeId: node.id, fillIndex: node.fillIndex, hash: node.hash, cum: d.cum, total: d.total, width: d.width, height: d.height, frames: d.frames });
+  }
 
-  const drawNodes = root.gifNodes.filter((n) => decoded.has(n.hash));
-  if (drawNodes.length === 0) throw new Error('GIFs are no longer on the frame. Reselect and try again.');
+  // --- Video sources: decode each supplied file once (pre-sampled canvases). ---
+  let missingVideos = 0;
+  for (const vn of root.videoNodes) {
+    const file = frameVideoFiles.get(vn.id);
+    if (!file) { missingVideos++; continue; } // fallback: frozen poster (Phase D)
+    statusEl.textContent = `Decoding video: ${file.name}…`;
+    await new Promise((r) => setTimeout(r, 0));
+    // Sample at the sharpness this export actually needs: the video node's
+    // rendered size × export scale (min 800, capped at MAX_EDGE). A flat 800px
+    // ceiling visibly softened large placed videos in "Original size" exports.
+    const nodeEdge = Math.max(vn.nodeWidth, vn.nodeHeight) * (opts.scale || 1);
+    const maxEdge = Math.min(MAX_EDGE, Math.max(VIDEO_MAX_EDGE, Math.ceil(nodeEdge)));
+    const dv = await decodeVideoFile(file, FRAME_VIDEO_FPS, 1, maxEdge, (done, total) => {
+      statusEl.textContent = `Decoding video ${done}/${total}: ${file.name}`;
+    });
+    if (dv.frames.length === 0) { missingVideos++; continue; }
+    minDelay = Math.min(minDelay, dv.delay);
+    sources.push({ kind: 'video', nodeId: vn.id, fillIndex: vn.fillIndex, total: dv.durationMs, frames: dv.frames });
+  }
 
-  const totalDuration = Math.max(...[...decoded.values()].map((d) => d.total));
+  if (sources.length === 0 && root.videoNodes.length === 0) {
+    throw new Error('No animated sources found in this frame.');
+  }
+
+  // Video-only frame with no source file: never block. Export a single-step
+  // composite — the video renders as its poster still, everything else (text,
+  // images, gradients, effects) renders exactly as Figma draws it.
+  const stillOnly = sources.length === 0;
+  const totalDuration = stillOnly ? 1000 : Math.max(...sources.map((s) => s.total));
   const baseFps = Math.min(24, Math.max(1, Math.round(1000 / minDelay)));
   const fps = Math.max(1, Math.round(baseFps / opts.frameStep));
-  const { numFrames, frameDelay } = planTimeline(totalDuration, fps, FRAME_CAP);
+  const { numFrames, frameDelay } = stillOnly
+    ? { numFrames: 1, frameDelay: 1000 }
+    : planTimeline(totalDuration, fps, FRAME_CAP);
 
   statusEl.textContent = `Preparing ${numFrames} frames…`;
   await new Promise((r) => setTimeout(r, 16));
 
-  // Deduplicate PNGs by (asset hash, asset frame index).
+  // Deduplicate PNGs: GIF frames by (hash, frameIdx); video frames by (nodeId, frameIdx).
   const pngs: Uint8Array[] = [];
   const pngIndexByKey = new Map<string, number>();
-  async function pngFor(hash: string, frameIdx: number): Promise<number> {
-    const key = hash + ':' + frameIdx;
+  async function pngForGif(hash: string, frameIdx: number): Promise<number> {
+    const key = 'g:' + hash + ':' + frameIdx;
     const existing = pngIndexByKey.get(key);
     if (existing !== undefined) return existing;
     const d = decoded.get(hash)!;
@@ -482,17 +610,29 @@ async function exportRoot(root: Root, opts: { scale: number; colors: number; fra
     pngIndexByKey.set(key, idx);
     return idx;
   }
+  async function pngForVideo(src: VideoSource, frameIdx: number): Promise<number> {
+    const key = 'v:' + src.nodeId + ':' + frameIdx;
+    const existing = pngIndexByKey.get(key);
+    if (existing !== undefined) return existing;
+    const idx = pngs.length;
+    pngs.push(await canvasToPng(src.frames[frameIdx]));
+    pngIndexByKey.set(key, idx);
+    return idx;
+  }
 
   const steps: Step[] = [];
   for (let k = 0; k < numFrames; k++) {
     const t = (k * totalDuration) / numFrames;
     const assignments: Assignment[] = [];
-    for (const node of drawNodes) {
-      const d = decoded.get(node.hash)!;
-      const tMod = d.total > 0 ? t % d.total : 0;
-      const frameIdx = frameIndexAtTime(d.cum, tMod);
-      const pngIndex = await pngFor(node.hash, frameIdx);
-      assignments.push({ nodeId: node.id, fillIndex: node.fillIndex, pngIndex });
+    for (const src of sources) {
+      const tMod = src.total > 0 ? t % src.total : 0;
+      let pngIndex: number;
+      if (src.kind === 'gif') {
+        pngIndex = await pngForGif(src.hash, frameIndexAtTime(src.cum, tMod));
+      } else {
+        pngIndex = await pngForVideo(src, videoFrameIndexAt(src.total, src.frames.length, tMod));
+      }
+      assignments.push({ nodeId: src.nodeId, fillIndex: src.fillIndex, pngIndex });
     }
     steps.push({ assignments });
   }
@@ -512,8 +652,15 @@ async function exportRoot(root: Root, opts: { scale: number; colors: number; fra
   const suffix = mode === 'optimized' ? '-optimized' : '';
   download(outBytes, safeName(root.name + suffix));
 
-  const animNote = uniqueFrames <= 1 ? ' · ⚠ frames identical (static)' : ` · ${uniqueFrames} unique`;
-  sizeEl.innerHTML = `Whole frame → <strong>${human(outBytes.length)}</strong> (${composited.length} frames${animNote})${sizeWarnNote(outBytes.length)}`;
+  const animNote = stillOnly
+    ? ' · still image'
+    : uniqueFrames <= 1
+      ? ' · ⚠ frames identical (static)'
+      : ` · ${uniqueFrames} unique`;
+  const stillNote = missingVideos > 0
+    ? ` · ${missingVideos} video${missingVideos === 1 ? '' : 's'} exported as a still (drop the source file to animate)`
+    : '';
+  sizeEl.innerHTML = `Whole frame → <strong>${human(outBytes.length)}</strong> (${composited.length} frames${animNote})${sizeWarnNote(outBytes.length)}${stillNote}`;
   statusEl.textContent = 'Exported frame as GIF.';
   notify('Frame exported as GIF.');
 }
@@ -575,14 +722,24 @@ const VIDEO_MAX_DURATION = 30; // seconds — guards runaway exports
 interface VideoPlan { numFrames: number; delay: number; duration: number; w: number; h: number; }
 
 // Pure (unit-tested): decide frame count, delay, and output dimensions.
-function planVideo(durationSec: number, videoW: number, videoH: number, fps: number, scale: number): VideoPlan {
+// maxEdge defaults to the Video-tab cap; the frame path passes the video node's
+// rendered size × export scale so the sampled frames are exactly as sharp as
+// the export needs (no fixed 800px ceiling degrading a large placed video).
+function planVideo(
+  durationSec: number,
+  videoW: number,
+  videoH: number,
+  fps: number,
+  scale: number,
+  maxEdge: number = VIDEO_MAX_EDGE,
+): VideoPlan {
   const duration = Math.max(0.001, Math.min(durationSec, VIDEO_MAX_DURATION));
   let numFrames = Math.max(1, Math.round(duration * fps));
   if (numFrames > FRAME_CAP) numFrames = FRAME_CAP;
   const delay = Math.max(20, Math.round(1000 / Math.max(1, fps)));
   let s = scale;
   const edge = Math.max(videoW, videoH) * s;
-  if (edge > VIDEO_MAX_EDGE && edge > 0) s = s * (VIDEO_MAX_EDGE / edge);
+  if (edge > maxEdge && edge > 0) s = s * (maxEdge / edge);
   const w = Math.max(1, Math.round(videoW * s));
   const h = Math.max(1, Math.round(videoH * s));
   return { numFrames, delay, duration, w, h };
@@ -591,6 +748,72 @@ function planVideo(durationSec: number, videoW: number, videoH: number, fps: num
 let videoFile: File | null = null;
 type VideoDest = 'download' | 'figma';
 let videoDest: VideoDest = 'download';
+
+interface DecodedVideo {
+  width: number;
+  height: number;
+  durationMs: number;
+  delay: number;
+  capped: boolean;
+  frames: HTMLCanvasElement[];
+}
+
+// Decode a video file to a fixed set of pre-sampled frame canvases ONCE. Both
+// the Video → GIF tab and the frame-with-video path use this: seeking is slow
+// and flaky, so we never seek again per timeline step — we resample from these
+// canvases. Reuses loadVideo + seekVideo (rVFC-guarded) + planVideo.
+async function decodeVideoFile(
+  file: File,
+  fps: number,
+  scale: number,
+  maxEdge: number = VIDEO_MAX_EDGE,
+  onProgress?: (done: number, total: number) => void,
+): Promise<DecodedVideo> {
+  const v = await loadVideo(file);
+  const objUrl = v.src;
+  try {
+    if (!v.videoWidth || !v.videoHeight) throw new Error('This file has no visual track.');
+    const durationSec = isFinite(v.duration) && v.duration > 0 ? v.duration : VIDEO_MAX_DURATION;
+    const plan = planVideo(durationSec, v.videoWidth, v.videoHeight, fps, scale, maxEdge);
+    const frames: HTMLCanvasElement[] = [];
+    for (let i = 0; i < plan.numFrames; i++) {
+      const t = plan.numFrames <= 1 ? 0 : (i * plan.duration) / plan.numFrames;
+      await seekVideo(v, t);
+      const [c, ctx] = makeCanvas(plan.w, plan.h);
+      ctx.drawImage(v, 0, 0, plan.w, plan.h);
+      frames.push(c);
+      // High-res sources seek slowly (hundreds of ms/frame on 4K video); report
+      // progress and yield so the UI repaints instead of looking frozen.
+      if (onProgress) onProgress(i + 1, plan.numFrames);
+      if (i % 3 === 0) await new Promise((r) => setTimeout(r, 0));
+    }
+    const durationMs = plan.duration * 1000;
+    const delay = Math.max(20, Math.round(durationMs / Math.max(1, plan.numFrames)));
+    return {
+      width: plan.w,
+      height: plan.h,
+      durationMs,
+      delay,
+      capped: durationSec > VIDEO_MAX_DURATION,
+      frames,
+    };
+  } finally {
+    setTimeout(() => URL.revokeObjectURL(objUrl), 2000);
+  }
+}
+
+function canvasFrame(c: HTMLCanvasElement): FrameRGBA {
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  if (!ctx) throw new Error('Canvas not available.');
+  return { data: ctx.getImageData(0, 0, c.width, c.height).data, w: c.width, h: c.height };
+}
+
+async function canvasToPng(c: HTMLCanvasElement): Promise<Uint8Array> {
+  const blob: Blob = await new Promise((res, rej) =>
+    c.toBlob((b) => (b ? res(b) : rej(new Error('PNG encode failed.'))), 'image/png'),
+  );
+  return new Uint8Array(await blob.arrayBuffer());
+}
 
 const tabFrame = $('tabFrame');
 const tabVideo = $('tabVideo');
@@ -687,39 +910,33 @@ function onVideoChosen(file: File) {
 async function exportVideo() {
   if (!videoFile) return;
   videoBtn.disabled = true;
-  setVideoStatus('Loading video…');
-  let objUrl: string | null = null;
+  setVideoStatus('Decoding video…');
   try {
-    const v = await loadVideo(videoFile);
-    objUrl = v.src;
-    if (!v.videoWidth || !v.videoHeight) throw new Error('This file has no visual track.');
-    const durationSec = isFinite(v.duration) ? v.duration : VIDEO_MAX_DURATION;
-
     const fps = parseInt($<HTMLSelectElement>('videoFps').value, 10) || 15;
     const scale = parseFloat($<HTMLSelectElement>('videoScale').value) || 1;
     const colors = parseInt($<HTMLSelectElement>('videoColors').value, 10) || 256;
-    const plan = planVideo(durationSec, v.videoWidth, v.videoHeight, fps, scale);
 
-    const [, ctx] = makeCanvas(plan.w, plan.h);
-    const get: FrameGetter = async (i: number) => {
-      const t = plan.numFrames <= 1 ? 0 : (i * plan.duration) / plan.numFrames;
-      await seekVideo(v, t);
-      ctx.drawImage(v, 0, 0, plan.w, plan.h);
-      const data = ctx.getImageData(0, 0, plan.w, plan.h).data;
-      return { data, w: plan.w, h: plan.h };
-    };
+    const dv = await decodeVideoFile(videoFile, fps, scale, VIDEO_MAX_EDGE, (done, total) => {
+      setVideoStatus(`Decoding video ${done}/${total}…`);
+    });
 
-    setVideoStatus(`Sampling ${plan.numFrames} frames…`);
-    const outBytes = await encodeFramesToGif(plan.numFrames, get, plan.delay, colors, setVideoStatus);
+    setVideoStatus(`Sampling ${dv.frames.length} frames…`);
+    const outBytes = await encodeFramesToGif(
+      dv.frames.length,
+      (i) => Promise.resolve(canvasFrame(dv.frames[i])),
+      dv.delay,
+      colors,
+      setVideoStatus,
+    );
 
     const base = videoFile.name.replace(/\.[^.]+$/, '') || 'video';
-    const capNote = durationSec > VIDEO_MAX_DURATION ? ` · first ${VIDEO_MAX_DURATION}s` : '';
+    const capNote = dv.capped ? ` · first ${VIDEO_MAX_DURATION}s` : '';
     videoSizeEl.innerHTML =
-      `Video → <strong>${human(outBytes.length)}</strong> (${plan.numFrames} frames · ${plan.w}×${plan.h}${capNote})${sizeWarnNote(outBytes.length)}`;
+      `Video → <strong>${human(outBytes.length)}</strong> (${dv.frames.length} frames · ${dv.width}×${dv.height}${capNote})${sizeWarnNote(outBytes.length)}`;
 
     if (videoDest === 'figma') {
       setVideoStatus('Placing on canvas…');
-      requestPlace(outBytes, base, plan.w, plan.h);
+      requestPlace(outBytes, base, dv.width, dv.height);
       // status is finalized when the sandbox confirms placement.
     } else {
       download(outBytes, safeName(base));
@@ -729,7 +946,6 @@ async function exportVideo() {
   } catch (e) {
     setVideoStatus('Export failed: ' + (e instanceof Error ? e.message : String(e)), true);
   } finally {
-    if (objUrl) setTimeout(() => URL.revokeObjectURL(objUrl as string), 2000);
     videoBtn.disabled = !videoFile;
   }
 }
@@ -776,6 +992,11 @@ window.onmessage = (event: MessageEvent) => {
     roots = msg.roots as Root[];
     if (selectedIndex >= roots.length) selectedIndex = 0;
     placedVideoHint = Boolean(msg.hasPlacedVideo) && roots.length === 0;
+    // Keep dropped files only for video nodes still present in the new scan;
+    // drop entries for nodes that are gone (selection changed).
+    const liveVideoIds = new Set<string>();
+    for (const r of roots) for (const vn of r.videoNodes) liveVideoIds.add(vn.id);
+    for (const id of [...frameVideoFiles.keys()]) if (!liveVideoIds.has(id)) frameVideoFiles.delete(id);
     statusEl.textContent = '';
     statusEl.className = 'status';
     render();

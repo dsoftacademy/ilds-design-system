@@ -28,6 +28,20 @@ interface GifNodeRef {
   name: string;
 }
 
+// A placed video fill. Figma exposes no way to read the video's pixels, so the
+// user must supply the source file — but we DO need the fill's geometry so the
+// swapped-in image lands in exactly the same box (crop/fit) as the video.
+interface VideoNodeRef {
+  id: string;
+  fillIndex: number;
+  videoHash: string;
+  scaleMode: string;
+  imageTransform?: number[][];
+  nodeWidth: number;
+  nodeHeight: number;
+  name: string;
+}
+
 interface Asset {
   hash: string;
   bytes: Uint8Array;
@@ -43,6 +57,7 @@ interface Root {
   height: number;
   gifNodes: GifNodeRef[];
   assets: Asset[];
+  videoNodes: VideoNodeRef[];
 }
 
 // Record every image-fill node (not deduped — each node instance needs its own
@@ -64,23 +79,46 @@ function collectImageFillNodes(node: SceneNode, out: GifNodeRef[], hashes: Set<s
   }
 }
 
-// Detect a placed VIDEO fill anywhere in the node tree. Figma stores videos as
-// VideoPaint fills, and the plugin API exposes no way to read their bytes/pixels
-// back — so we can't convert a canvas video here. We only detect it to nudge the
-// user toward the Video → GIF tab (upload the source file instead).
-function hasVideoFill(node: SceneNode): boolean {
-  const anyNode = node as unknown as { fills?: readonly Paint[] };
+// Collect every placed VIDEO fill in the node tree, capturing the geometry we
+// need to reconstruct the fill as an IMAGE at export time (scaleMode + the crop
+// transform). Figma exposes no way to read a placed video's pixels, so the user
+// supplies the source file; this list drives the "drop a file per video" UI.
+function collectVideoFillNodes(node: SceneNode, out: VideoNodeRef[]) {
+  const anyNode = node as unknown as {
+    fills?: readonly Paint[];
+    width?: number;
+    height?: number;
+  };
   if (Array.isArray(anyNode.fills)) {
-    for (const fill of anyNode.fills) {
-      if ((fill as { type: string }).type === 'VIDEO') return true;
-    }
+    anyNode.fills.forEach((fill, index) => {
+      const f = fill as {
+        type: string;
+        videoHash?: string | null;
+        scaleMode?: string;
+        videoTransform?: number[][];
+        imageTransform?: number[][];
+      };
+      if (f.type === 'VIDEO') {
+        out.push({
+          id: node.id,
+          fillIndex: index,
+          videoHash: f.videoHash || '',
+          scaleMode: f.scaleMode || 'FILL',
+          // Crop transform only matters for CROP. Documented as videoTransform,
+          // but real paints sometimes expose it as imageTransform (Figma bug).
+          imageTransform: f.scaleMode === 'CROP' ? f.videoTransform || f.imageTransform : undefined,
+          nodeWidth: anyNode.width || 0,
+          nodeHeight: anyNode.height || 0,
+          name: node.name,
+        });
+      }
+    });
   }
   if ('children' in node) {
     for (const child of (node as ChildrenMixin).children) {
-      if (hasVideoFill(child as SceneNode)) return true;
+      collectVideoFillNodes(child as SceneNode, out);
     }
   }
-  return false;
 }
 
 async function scanSelection() {
@@ -89,11 +127,13 @@ async function scanSelection() {
   let hasPlacedVideo = false;
 
   for (const sel of selection) {
-    if (!hasPlacedVideo && hasVideoFill(sel)) hasPlacedVideo = true;
     const imageNodes: GifNodeRef[] = [];
     const hashes = new Set<string>();
     collectImageFillNodes(sel, imageNodes, hashes);
-    if (imageNodes.length === 0) continue;
+
+    const videoNodes: VideoNodeRef[] = [];
+    collectVideoFillNodes(sel, videoNodes);
+    if (videoNodes.length > 0) hasPlacedVideo = true;
 
     const assets: Asset[] = [];
     const gifHashes = new Set<string>();
@@ -118,7 +158,10 @@ async function scanSelection() {
         // skip unreadable fills
       }
     }
-    if (assets.length === 0) continue;
+
+    // Include the frame if it has EITHER animatable GIF assets OR placed videos
+    // (which become animatable once the user drops the source file).
+    if (assets.length === 0 && videoNodes.length === 0) continue;
 
     const layout = sel as unknown as { width?: number; height?: number };
     roots.push({
@@ -128,6 +171,7 @@ async function scanSelection() {
       height: layout.height || 0,
       gifNodes: imageNodes.filter((n) => gifHashes.has(n.hash)),
       assets,
+      videoNodes,
     });
   }
 
@@ -147,6 +191,103 @@ interface RenderMsg {
   scale: number;
   pngs: Uint8Array[];
   steps: Step[];
+}
+
+// Build an IMAGE paint that reproduces a VIDEO paint's placement exactly, only
+// swapping in decoded video frame pixels. Copying scaleMode + the crop transform
+// is MANDATORY: a CROP video (e.g. a phone screen) misaligns or vanishes if these
+// are dropped. Properties are copied ONLY where valid for the scaleMode, because
+// Figma's set_fills validation rejects stray keys. Note: VideoPaint's crop lives
+// in `videoTransform` (docs), but real paints sometimes expose it under a buggy
+// `imageTransform` key instead — we accept either. Pure — mirrored in e2e.mjs.
+function videoPaintToImagePaint(v: VideoPaint, imageHash: string): ImagePaint {
+  const src = v as unknown as {
+    scaleMode?: ImagePaint['scaleMode'];
+    videoTransform?: Transform;
+    imageTransform?: Transform;
+    scalingFactor?: number;
+    rotation?: number;
+    opacity?: number;
+    blendMode?: BlendMode;
+    visible?: boolean;
+  };
+  const scaleMode = src.scaleMode || 'FILL';
+  const paint: Record<string, unknown> = { type: 'IMAGE', scaleMode, imageHash };
+  const transform = src.videoTransform || src.imageTransform;
+  if (scaleMode === 'CROP' && transform) paint.imageTransform = transform;
+  if (scaleMode === 'TILE' && src.scalingFactor !== undefined) paint.scalingFactor = src.scalingFactor;
+  if (scaleMode !== 'CROP' && src.rotation !== undefined) paint.rotation = src.rotation;
+  if (src.opacity !== undefined) paint.opacity = src.opacity;
+  if (src.blendMode !== undefined) paint.blendMode = src.blendMode;
+  if (src.visible !== undefined) paint.visible = src.visible;
+  return paint as unknown as ImagePaint;
+}
+
+// Rebuild a VideoPaint with ONLY its documented keys. Figma's real video paints
+// carry hidden buggy keys (e.g. imageTransform) that make set_fills REJECT the
+// whole array ("Invalid SHA1 hash" / "Unrecognized key"), a confirmed Figma API
+// bug. Used when a swap array or a restore must include a video paint.
+function sanitizeVideoPaint(v: VideoPaint): VideoPaint {
+  const src = v as unknown as {
+    videoHash?: string | null;
+    scaleMode?: string;
+    videoTransform?: Transform;
+    scalingFactor?: number;
+    rotation?: number;
+    opacity?: number;
+    blendMode?: BlendMode;
+    visible?: boolean;
+  };
+  const scaleMode = src.scaleMode || 'FILL';
+  const paint: Record<string, unknown> = { type: 'VIDEO', scaleMode, videoHash: src.videoHash || '' };
+  if (scaleMode === 'CROP' && src.videoTransform) paint.videoTransform = src.videoTransform;
+  if (scaleMode === 'TILE' && src.scalingFactor !== undefined) paint.scalingFactor = src.scalingFactor;
+  if (scaleMode !== 'CROP' && src.rotation !== undefined) paint.rotation = src.rotation;
+  if (src.opacity !== undefined) paint.opacity = src.opacity;
+  if (src.blendMode !== undefined) paint.blendMode = src.blendMode;
+  if (src.visible !== undefined) paint.visible = src.visible;
+  return paint as unknown as VideoPaint;
+}
+
+// Create a temporary node that sits EXACTLY over a video node and will carry the
+// per-step video frame as an image fill. We never write the video node's own
+// fills — Figma's set_fills is broken for video paints (see sanitizeVideoPaint)
+// and a failed RESTORE would corrupt the design. The overlay:
+//   - childless video node → a clone (same shape, radius, transform, opacity),
+//     inserted directly above the original so z-order and masks are preserved;
+//   - container with a video background → a rectangle inserted as the BOTTOM
+//     child (above the background fill, below all children).
+// Returns null when insertion is impossible (e.g. inside an instance) — the
+// video then just renders as its poster (graceful degradation).
+function createVideoOverlay(node: SceneNode & MinimalFillsMixin): (SceneNode & MinimalFillsMixin) | null {
+  try {
+    if ('children' in node) {
+      const container = node as unknown as FrameNode;
+      const rect = figma.createRectangle();
+      rect.name = 'GIF Export video frame (temp)';
+      rect.resize(Math.max(1, container.width), Math.max(1, container.height));
+      rect.x = 0;
+      rect.y = 0;
+      rect.fills = [];
+      container.insertChild(0, rect);
+      return rect;
+    }
+    const parent = node.parent;
+    if (!parent || !('children' in parent)) return null;
+    const clone = (node as SceneNode & { clone(): SceneNode }).clone();
+    clone.name = 'GIF Export video frame (temp)';
+    const anyClone = clone as unknown as { fills?: Paint[]; effects?: unknown[]; strokes?: unknown[] };
+    anyClone.fills = [];
+    // Effects/strokes would render twice (once on the original underneath).
+    if (anyClone.effects) anyClone.effects = [];
+    if (anyClone.strokes) anyClone.strokes = [];
+    const idx = (parent as ChildrenMixin).children.indexOf(node);
+    (parent as BaseNode & ChildrenMixin).insertChild(idx + 1, clone);
+    clone.relativeTransform = node.relativeTransform;
+    return clone as SceneNode & MinimalFillsMixin;
+  } catch (e) {
+    return null;
+  }
 }
 
 async function renderComposite(msg: RenderMsg) {
@@ -181,8 +322,14 @@ async function renderComposite(msg: RenderMsg) {
     }
   }
 
-  // Capture the original fills of every node the timeline touches.
+  // Split the touched nodes into two strategies:
+  //   IMAGE fills → classic swap + restore (safe; set_fills accepts image paints).
+  //   VIDEO fills → temporary OVERLAY node carrying the frame as an image fill.
+  //     We must never call set_fills on a fills array containing a video paint:
+  //     Figma's validation is broken for them (hidden keys → "Invalid SHA1
+  //     hash"), and a failed RESTORE would corrupt the user's design.
   const touched = new Map<string, { node: SceneNode & MinimalFillsMixin; original: Paint[] }>();
+  const overlays = new Map<string, { overlay: SceneNode & MinimalFillsMixin; paint: VideoPaint }>();
   const nodeIds = new Set<string>();
   for (const step of msg.steps) for (const a of step.assignments) nodeIds.add(a.nodeId);
   for (const id of nodeIds) {
@@ -190,7 +337,15 @@ async function renderComposite(msg: RenderMsg) {
     if (!n) continue;
     const fills = n.fills;
     if (fills === figma.mixed || !Array.isArray(fills)) continue;
-    touched.set(id, { node: n, original: JSON.parse(JSON.stringify(fills)) as Paint[] });
+    const videoPaint = (fills as Paint[]).find((p) => (p as { type: string }).type === 'VIDEO');
+    if (videoPaint) {
+      const overlay = createVideoOverlay(n);
+      // No overlay possible (e.g. inside an instance): the video renders as its
+      // poster still — degraded but safe. Its assignments are simply skipped.
+      if (overlay) overlays.set(id, { overlay, paint: sanitizeVideoPaint(videoPaint as VideoPaint) });
+    } else {
+      touched.set(id, { node: n, original: JSON.parse(JSON.stringify(fills)) as Paint[] });
+    }
   }
 
   const out: Uint8Array[] = [];
@@ -204,6 +359,14 @@ async function renderComposite(msg: RenderMsg) {
         else byNode.set(a.nodeId, [a]);
       }
       for (const [nodeId, list] of byNode) {
+        const ov = overlays.get(nodeId);
+        if (ov) {
+          // Video node: paint this step's frame on the temporary overlay,
+          // matching the video's fit/crop. The video node itself is untouched.
+          const hash = imageHashes[list[0].pngIndex];
+          if (hash) ov.overlay.fills = [videoPaintToImagePaint(ov.paint, hash)];
+          continue;
+        }
         const entry = touched.get(nodeId);
         if (!entry) continue;
         const fills = JSON.parse(JSON.stringify(entry.original)) as Paint[];
@@ -253,7 +416,17 @@ async function renderComposite(msg: RenderMsg) {
       figma.ui.postMessage({ type: 'compositeProgress', done: i + 1, total: msg.steps.length });
     }
   } finally {
+    // Restore image-fill swaps and delete the temporary video overlays. The
+    // video nodes themselves were never written, so the design is untouched
+    // even if this cleanup runs mid-failure.
     for (const { node, original } of touched.values()) node.fills = original;
+    for (const { overlay } of overlays.values()) {
+      try {
+        overlay.remove();
+      } catch (e) {
+        // already gone
+      }
+    }
   }
 
   figma.ui.postMessage({ type: 'composited', frames: out });
