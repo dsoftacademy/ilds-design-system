@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  /* Swap these for ILDS design tokens when integrating. */
+  :root {
+    --bg: var(--figma-color-bg, #ffffff);
+    --bg-secondary: var(--figma-color-bg-secondary, #f5f5f5);
+    --text: var(--figma-color-text, #1e1e1e);
+    --text-secondary: var(--figma-color-text-secondary, #666666);
+    --border: var(--figma-color-border, #e6e6e6);
+    --brand: var(--figma-color-bg-brand, #0d99ff);
+    --brand-text: var(--figma-color-text-onbrand, #ffffff);
+    --danger: #e5484d;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: Inter, -apple-system, system-ui, sans-serif;
+    font-size: 12px;
+    color: var(--text);
+    background: var(--bg);
+  }
+  .wrap { padding: 12px 14px 16px; }
+  h1 { font-size: 13px; font-weight: 600; margin: 0 0 2px; }
+  .sub { color: var(--text-secondary); margin: 0 0 12px; }
+
+  .empty {
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 24px 16px;
+    text-align: center;
+    color: var(--text-secondary);
+  }
+
+  .gif-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .gif-item {
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 8px; cursor: pointer;
+  }
+  .gif-item.selected { border-color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); }
+  .gif-item .name { font-weight: 500; }
+  .gif-item .meta { color: var(--text-secondary); }
+  .gif-item .radio {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 1.5px solid var(--border); flex: 0 0 auto;
+  }
+  .gif-item.selected .radio { border-color: var(--brand); background: var(--brand); box-shadow: inset 0 0 0 2px var(--bg); }
+
+  fieldset { border: none; margin: 0; padding: 0; }
+  .modes { display: flex; gap: 6px; margin-bottom: 12px; }
+  .mode {
+    flex: 1; text-align: center; padding: 8px; border: 1px solid var(--border);
+    border-radius: 6px; cursor: pointer; font-weight: 500;
+  }
+  .mode.active { border-color: var(--brand); color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); }
+
+  .opts { display: none; flex-direction: column; gap: 10px; margin-bottom: 12px;
+    background: var(--bg-secondary); border-radius: 8px; padding: 10px; }
+  .opts.show { display: flex; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .row label { color: var(--text-secondary); }
+  select {
+    font-size: 12px; padding: 4px 6px; border: 1px solid var(--border);
+    border-radius: 5px; background: var(--bg); color: var(--text);
+  }
+
+  .sizeline { color: var(--text-secondary); margin: 0 0 10px; min-height: 15px; }
+  .sizeline strong { color: var(--text); }
+
+  button.primary {
+    width: 100%; padding: 10px; border: none; border-radius: 6px;
+    background: var(--brand); color: var(--brand-text);
+    font-weight: 600; font-size: 12px; cursor: pointer;
+  }
+  button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .status { margin-top: 8px; text-align: center; color: var(--text-secondary); min-height: 15px; }
+  .status.error { color: var(--danger); }
+  .build { margin: 12px 0 0; text-align: center; color: var(--text-secondary); font-size: 10px; opacity: 0.6; }
+  .credit { margin: 4px 0 0; text-align: center; color: var(--text-secondary); font-size: 10px; opacity: 0.7; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .tab {
+    flex: 1; text-align: center; padding: 8px; border: 1px solid var(--border);
+    border-radius: 6px; cursor: pointer; font-weight: 600;
+  }
+  .tab.active { border-color: var(--brand); color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); }
+
+  .drop {
+    border: 1px dashed var(--border); border-radius: 8px; padding: 24px 16px;
+    text-align: center; color: var(--text-secondary); cursor: pointer; margin-bottom: 10px;
+  }
+  .drop.over { border-color: var(--brand); color: var(--brand); background: var(--bg-secondary); }
+
+  #videoSources { margin-bottom: 12px; }
+  .vs-heading { font-weight: 600; margin-bottom: 6px; }
+  .vs-row { border: 1px solid var(--border); border-radius: 6px; padding: 8px; margin-bottom: 6px; }
+  .vs-row.ready { border-color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); }
+  .vs-name { font-weight: 500; margin-bottom: 6px; }
+  .vs-drop {
+    border: 1px dashed var(--border); border-radius: 6px; padding: 10px;
+    text-align: center; color: var(--text-secondary); cursor: pointer; font-size: 11px;
+  }
+  .vs-drop.over { border-color: var(--brand); color: var(--brand); background: var(--bg-secondary); }
+  .vs-row.ready .vs-drop { color: var(--brand); border-color: var(--brand); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>GIF Export</h1>
+
+    <div class="tabs">
+      <div id="tabFrame" class="tab active">Frame → GIF</div>
+      <div id="tabVideo" class="tab">Video → GIF</div>
+    </div>
+
+    <div id="viewFrame">
+      <p class="sub">Exports the whole frame — the GIF composited with everything around it — as an animated GIF.</p>
+
+      <div id="empty" class="empty">Select a frame that contains a GIF.</div>
+
+      <div id="main" style="display:none;">
+        <div id="gifList" class="gif-list"></div>
+
+        <div id="videoSources" style="display:none;"></div>
+
+        <div class="modes">
+          <div id="modeOriginal" class="mode active">Original size</div>
+          <div id="modeOptimized" class="mode">Optimized size</div>
+        </div>
+
+        <fieldset id="opts" class="opts">
+          <div class="row">
+            <label for="scale">Scale</label>
+            <select id="scale">
+              <option value="1">100%</option>
+              <option value="0.75" selected>75%</option>
+              <option value="0.5">50%</option>
+              <option value="0.25">25%</option>
+            </select>
+          </div>
+          <div class="row">
+            <label for="colors">Colors</label>
+            <select id="colors">
+              <option value="256" selected>256</option>
+              <option value="128">128</option>
+              <option value="64">64</option>
+              <option value="32">32</option>
+            </select>
+          </div>
+          <div class="row">
+            <label for="frameStep">Frames</label>
+            <select id="frameStep">
+              <option value="1">Keep all</option>
+              <option value="2">Every 2nd</option>
+              <option value="3">Every 3rd</option>
+            </select>
+          </div>
+        </fieldset>
+
+        <p id="sizeline" class="sizeline"></p>
+        <button id="exportBtn" class="primary">Export GIF</button>
+        <p id="status" class="status"></p>
+      </div>
+    </div>
+
+    <div id="viewVideo" style="display:none;">
+      <p class="sub">Convert a video file to an animated GIF. Runs fully offline. MP4, MOV, WebM (WMV not supported yet).</p>
+
+      <div id="drop" class="drop">Drop a video here, or click to choose</div>
+      <input id="videoFile" type="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" style="display:none;" />
+      <p id="videoInfo" class="sizeline"></p>
+
+      <fieldset class="opts show">
+        <div class="row">
+          <label for="videoFps">Frame rate</label>
+          <select id="videoFps">
+            <option value="10">10 fps</option>
+            <option value="15" selected>15 fps</option>
+            <option value="24">24 fps</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="videoScale">Scale</label>
+          <select id="videoScale">
+            <option value="1" selected>100%</option>
+            <option value="0.75">75%</option>
+            <option value="0.5">50%</option>
+            <option value="0.25">25%</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="videoColors">Colors</label>
+          <select id="videoColors">
+            <option value="256" selected>256</option>
+            <option value="128">128</option>
+            <option value="64">64</option>
+            <option value="32">32</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <div class="modes">
+        <div id="destDownload" class="mode active">Download file</div>
+        <div id="destFigma" class="mode">Place in Figma</div>
+      </div>
+
+      <p id="videoSize" class="sizeline"></p>
+      <button id="videoBtn" class="primary" disabled>Convert to GIF</button>
+      <p id="videoStatus" class="status"></p>
+    </div>
+
+    <p id="build" class="build"></p>
+    <p class="credit">Made by Pratishek Bansal</p>
+  </div>
+
+  <script>/*__UI_JS__*/</script>
+</body>
+</html>
