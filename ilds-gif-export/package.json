@@ -1,0 +1,22 @@
+{
+  "name": "ilds-gif-export",
+  "version": "1.4.1",
+  "description": "Figma plugin — export a placed GIF from a frame to your local disk, with optional size/quality optimization.",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node test/e2e.mjs"
+  },
+  "dependencies": {
+    "gifenc": "^1.0.3",
+    "gifuct-js": "^2.1.2"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.100.0",
+    "esbuild": "^0.23.0",
+    "typescript": "^5.5.0"
+  }
+}

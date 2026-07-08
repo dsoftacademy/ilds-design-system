@@ -1,0 +1,13 @@
+{
+  "name": "ILDS GIF Export",
+  "id": "1656664936097690411",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["none"],
+    "reasoning": "All GIF extraction and optimization runs locally in the plugin. No network requests."
+  }
+}
